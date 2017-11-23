@@ -1,6 +1,6 @@
 error
 rm(list=ls())
-setwd("~/Dropbox/Projects/032_Coexistence_table/src/levins_metapopulation/")
+setwd("~/Dropbox/Projects/032_Coexistence_mechanisms/src/levins_metapopulation/")
 
 
 #load functions
