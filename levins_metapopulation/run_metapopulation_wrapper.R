@@ -163,7 +163,7 @@ rewrap_pop<-function(out, population) {
   patch_occupied[pos_sp]<-1
   
   population<-list(spid=spid,
-                   nlst=out$output[nrow(out$output),-1],
+                   nlst=unname(table(spid)),
                    clst=population$clst,
                    mlst=population$mlst,
                    radlst=population$radlst,
