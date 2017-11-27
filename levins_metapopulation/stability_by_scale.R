@@ -20,6 +20,6 @@ out1<-out
 
 
 population1<-rewrap_pop(out1, population)
-out1<-run_metapopulation(tmax=500, nsteps = 100, gridout, population1, talktime = 0)
+out1<-run_metapopulation(tmax=100, nsteps = 100, gridout, population1, talktime = 0)
 plot_metapop(out1)
 plot_map(out1, gridout)
