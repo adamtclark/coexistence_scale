@@ -129,7 +129,12 @@ plot_metapop<-function(output) {
   ceq<-output$plotdata$ceq
   ngrid<-output$plotdata$ngrid
   
-  matplot(out[,1], out[,-1]/ngrid, type="l", xlab="time", ylab="p",
+  sbs<-which(out[,1]>0)
+  if(sbs[1]!=1) {
+    sbs<-c(1, sbs)
+  }
+  #out[,-1][out[,-1]==0]<-NA
+  matplot(out[sbs,1], out[sbs,-1]/ngrid, type="l", xlab="time", ylab="p",
           lty=1, col=1:ncol(out), lwd=2, ylim=c(0,1))
   abline(h=c(0,1), lty=3)
   abline(h=ceq,

@@ -107,6 +107,7 @@ void run_metapopulation(double *ptmax, int *pgridsize, int *pnsp, int xylim[], i
 
 	//start main loop
 	while((tnow<tmax) && (totabund>0)) {
+
 	  //find minimum next position
 	  double event_info[3] = {0, 0, 0};
 
@@ -254,8 +255,10 @@ void run_metapopulation(double *ptmax, int *pgridsize, int *pnsp, int xylim[], i
 	 }
 	   
 	 //save state
-	 if((tnow > trecord)&&(tnow < (trecord+dt))) {
-	   trecord=trecord+dt;
+	 if((tnow > trecord)){//&&(tnow < (trecord+dt))) {
+	   //trecord=trecord+dt;
+	   trecord=tnow+dt;
+	   
 	   output[istep+cadj] = tnow; //First time step
 	  
 	   //for(i in 0:(nsp-1)) {
@@ -275,6 +278,10 @@ void run_metapopulation(double *ptmax, int *pgridsize, int *pnsp, int xylim[], i
 	     R_CheckUserInterrupt();
 	 }
 	}
+	
+	//fprintf(stderr, "totabund = %d \n", totabund);
+	//fprintf(stderr, "tnow = %f \n", tnow);
+	//fprintf(stderr, "tmax = %f \n", tmax);
 }
 
 
