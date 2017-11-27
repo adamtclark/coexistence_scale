@@ -16,7 +16,7 @@ makegrid<-function(xlng=50, ylng=50) {
 }
 
 
-populate<-function(gridout, nlst=0.1, clst=c(3,20), mlst=c(0.1, 0.1), radlst=3) {
+populate<-function(gridout, nlst=0.1, clst=c(3,20), mlst=rep(0.1, length(clst)), radlst=3) {
   if(sum(nlst)<1) {
     nlst<-rep(round(prod(gridout$lng)*nlst), length(clst))
     while(sum(nlst)/prod(gridout$lng)>1) {
@@ -106,7 +106,7 @@ run_metapopulation<-function(tmax, nsteps, gridout, population, talktime=1) {
     
     ceq<-numeric(nsp)
     for(i in 1:nsp) {
-      ceq[i]<-(1-population$mlst[i]/population$clst[i])-sum(ceq[0:(i-1)])
+      ceq[i]<-(1-population$mlst[i]/population$clst[i])-sum(ceq[0:(i-1)]*(1+population$clst[0:(i-1)]/population$clst[i]))
     }
     
     plotdata<-list(ceq=ceq, ngrid=ngrid)
@@ -115,21 +115,57 @@ run_metapopulation<-function(tmax, nsteps, gridout, population, talktime=1) {
   }
 }
 
+getceq<-function(population) {
+  nsp<-length(population$nlst)
+  ceq<-numeric(nsp)
+  for(i in 1:nsp) {
+    ceq[i]<-(1-population$mlst[i]/population$clst[i])-sum(ceq[0:(i-1)]*(1+population$clst[0:(i-1)]/population$clst[i]))
+  }
+  ceq
+}
+
 plot_metapop<-function(output) {
   out<-output$out
   ceq<-output$plotdata$ceq
   ngrid<-output$plotdata$ngrid
   
   matplot(out[,1], out[,-1]/ngrid, type="l", xlab="time", ylab="p",
-          lty=1, col=1:ncol(out), lwd=2)
+          lty=1, col=1:ncol(out), lwd=2, ylim=c(0,1))
+  abline(h=c(0,1), lty=3)
   abline(h=ceq,
          lty=2, col=1:ncol(out), lwd=2)
 }
 
+plot_map<-function(out, gridout) {
+  tmp<-out$full$speciesid; tmp[tmp==out$full$pnsp]<-NA
+  plot(gridout$xpos, gridout$ypos, col=tmp+1, pch=16)
+}
 
-rewrap_pop<-function(out) {
-  population<-list(spid=out$full$speciesid)
+
+rewrap_pop<-function(out, population) {
+  snp<-length(population$nlst)
   
+  spid<-NULL
+  pos_sp<-NULL
+  
+  for(i in 1:snp) {
+    spid<-c(spid, rep(i, out$full$abundances[i]))
+    pos_sp<-c(pos_sp, which(out$full$speciesid==(i-1)))
+  }
+  spid<-factor(spid, levels=1:snp)
+  
+  patch_occupied<-numeric(length(gridout$xpos))
+  patch_occupied[pos_sp]<-1
+  
+  population<-list(spid=spid,
+                   nlst=out$output[nrow(out$output),-1],
+                   clst=population$clst,
+                   mlst=population$mlst,
+                   radlst=population$radlst,
+                   pos_sp=pos_sp,
+                   patch_occupied=patch_occupied)
+  
+  population
 }
 
 if(FALSE) {

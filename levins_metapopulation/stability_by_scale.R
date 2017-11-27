@@ -7,17 +7,19 @@ setwd("~/Dropbox/Projects/032_Coexistence_mechanisms/src/levins_metapopulation/"
 source("run_metapopulation_wrapper.R")
 
 gridout<-makegrid(xlng = 100, ylng = 100)
-population<-populate(gridout, nlst = rep(round(0.1*prod(gridout$lng)), 4), clst = c(0.15, 1, 10, 200), mlst = rep(0.1, 4), radlst = Inf)
+#population<-populate(gridout, clst = c(0.15, 0.3, 0.8, 3, 15), radlst = Inf)
+population<-populate(gridout, clst = c(0.15, 0.3), radlst = 2)
+getceq(population)
 
-out<-run_metapopulation(tmax=200, nsteps = 1000, gridout, population, talktime = 0)
+out<-run_metapopulation(tmax=500, nsteps = 1000, gridout, population, talktime = 10)
 
 plot_metapop(out)
+plot_map(out, gridout)
+out1<-out
 
 
 
-plot(gridout$xpos, gridout$ypos, col=out$full$speciesid, pch=16)
-
-
-
-
-out1<-run_metapopulation(tmax=10, nsteps = 10, gridout, population, talktime = 0)
+population1<-rewrap_pop(out1, population)
+out1<-run_metapopulation(tmax=500, nsteps = 100, gridout, population1, talktime = 0)
+plot_metapop(out1)
+plot_map(out1, gridout)
