@@ -11,7 +11,7 @@ setwd("~/Dropbox/Projects/032_Coexistence_mechanisms/src/levins_metapopulation/"
 require(rEDM)
 source("run_metapopulation_wrapper.R")
 
-par(mfcol=c(3,2), mar=c(4,4,2,2))
+par(mfcol=c(4,2), mar=c(4,4,2,2))
 set.seed(1152)
 
 ##### Try Tilman metapopulation model
@@ -25,9 +25,13 @@ plot_metapop(out_meta)
 #plot_map(out_meta, gridout)
 
 #Test rEDM
+Elst<-2:10
 outcol_meta<-out_meta$output[,2]
-predL_meta<-predict_vs_L(outcol = outcol_meta, E=6)
-predlag_meta<-test_predict_tlag(outcol_meta, Luse=min(c(floor(length(outcol_meta)/5), predL_meta$Lmin)), E=6)
+simplout_meta<-suppressWarnings(simplex(outcol_meta, E=Elst))
+E_meta<-Elst[min(which((max(simplout_meta$rho)-simplout_meta$rho)/diff(range(simplout_meta$rho))<0.1))]
+plot(simplout_meta$E, simplout_meta$rho, type="l", xlab="E", ylab="rho"); abline(v=E_meta, lty=3)
+predL_meta<-predict_vs_L(outcol = outcol_meta, E=E_meta)
+predlag_meta<-test_predict_tlag(outcol_meta, Luse=min(c(floor(length(outcol_meta)/5), predL_meta$Lmin)), E=E_meta)
 
 ##### Try Hubbell NZNS neutral model
 population<-populate(gridout, nlst = rep(floor(prod(gridout$lng)/3), 3), clst = rep(0.5, 3), radlst = Inf)
@@ -36,9 +40,11 @@ plot_metapop(out_neut)
 
 #Test rEDM
 outcol_neut<-out_neut$output[,2]
-predL_neut<-predict_vs_L(outcol = outcol_neut, E=6)
-predlag_neut<-test_predict_tlag(outcol=outcol_neut, Luse=min(c(floor(length(outcol_neut)/5), predL_neut$Lmin)), E=6)
-#min(c(100, predL_neut$minL))
+simplout_neut<-suppressWarnings(simplex(outcol_neut, E=Elst))
+E_neu<-Elst[min(which((max(simplout_neut$rho)-simplout_neut$rho)/diff(range(simplout_neut$rho))<0.1))]
+plot(simplout_neut$E, simplout_neut$rho, type="l", xlab="E", ylab="rho"); abline(v=E_neu, lty=3)
+predL_neut<-predict_vs_L(outcol = outcol_neut, E=E_neu)
+predlag_neut<-test_predict_tlag(outcol=outcol_neut, Luse=min(c(floor(length(outcol_neut)/5), predL_neut$Lmin)), E=E_neu)
 
 
 
