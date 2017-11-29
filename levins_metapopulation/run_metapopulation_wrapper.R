@@ -38,13 +38,26 @@ populate<-function(gridout, nlst=0.1, clst=c(3,20), mlst=rep(0.1, length(clst)),
 }
 
 #tmax=20; nsteps=20; talktime=1
-run_metapopulation<-function(tmax, nsteps, gridout, population, talktime=1) {
-  system("R CMD SHLIB run_metapopulation.c")
-  if(!is.loaded("run_metapopulation")) {
-    dyn.load("run_metapopulation.so")
+run_metapopulation<-function(tmax, nsteps, gridout, population, talktime=1, runtype="metapopulation") {
+  
+  if(runtype=="metapopulation") {
+    system("R CMD SHLIB run_metapopulation.c", ignore.stdout = TRUE)
+    if(!is.loaded("run_metapopulation")) {
+      dyn.load("run_metapopulation.so")
+    } else {
+      dyn.unload("run_metapopulation.so")
+      dyn.load("run_metapopulation.so")
+    }
+  } else if(runtype=="neutral") {
+    system("R CMD SHLIB run_neutral_metapopulation.c", ignore.stdout = TRUE)
+    if(!is.loaded("run_neutral_metapopulation")) {
+      dyn.load("run_neutral_metapopulation.so")
+    } else {
+      dyn.unload("run_neutral_metapopulation.so")
+      dyn.load("run_neutral_metapopulation.so")
+    }
   } else {
-    dyn.unload("run_metapopulation.so")
-    dyn.load("run_metapopulation.so")
+    return("error: run type must be 'metapopulation' or 'neutral'")
   }
   
   gridsize<-prod(gridout$lng); nsp<-length(population$clst); xylim<-gridout$lng; destroyed<-rep(0, gridsize)
@@ -92,7 +105,12 @@ run_metapopulation<-function(tmax, nsteps, gridout, population, talktime=1) {
     print("error: must compile code with larger buffer size!")
   } else {
     
-    cout<-.C("run_metapopulation",
+    if(runtype=="metapopulation") {
+      runname<-"run_metapopulation"
+    } else if(runtype=="neutral") {
+      runname<-"run_neutral_metapopulation"
+    }
+    cout<-.C(runname,
              ptmax= as.double(tmax), pgridsize=as.integer(gridsize), pnsp=as.integer(nsp), xylim=as.integer(xylim), destroyed=as.integer(destroyed), #grid
              c_sptraits=as.double(c_sptraits), m_sptraits=as.double(m_sptraits), abundances=as.integer(abundances), colsites=as.integer(colsites), pncolsites=as.integer(ncolsites), #traits
              eventtimes_c=as.double(eventtimes_c), eventtimes_m=as.double(eventtimes_m), #events
@@ -111,15 +129,17 @@ run_metapopulation<-function(tmax, nsteps, gridout, population, talktime=1) {
     
     plotdata<-list(ceq=ceq, ngrid=ngrid)
     
+    out<-out[out[,1]!=0 | (1:nrow(out))==1,]
+    
     return(list(output=out, full=cout, plotdata=plotdata))
   }
 }
 
-getceq<-function(population) {
-  nsp<-length(population$nlst)
+getceq<-function(clst, mlst=rep(0.1, length(clst))) {
+  nsp<-length(clst)
   ceq<-numeric(nsp)
   for(i in 1:nsp) {
-    ceq[i]<-(1-population$mlst[i]/population$clst[i])-sum(ceq[0:(i-1)]*(1+population$clst[0:(i-1)]/population$clst[i]))
+    ceq[i]<-(1-mlst[i]/clst[i])-sum(ceq[0:(i-1)]*(1+clst[0:(i-1)]/clst[i]))
   }
   ceq
 }
@@ -172,6 +192,110 @@ rewrap_pop<-function(out, population) {
   
   population
 }
+
+
+#rEDM functions
+predict_vs_L<-function(outcol, E=1, burnin=0, Luse=floor((seq((30), (length(outcol)-burnin), length=20))), niter=0,  doplot=TRUE) {
+  
+  #calculates predictive power vs. library length
+  #niter=0 calculates for all possible time windows
+  predmat<-NULL
+  
+  for(i in 1:length(Luse)) {
+    #find windows to use for prediction
+    window_starts<-seq((burnin+1), (length(outcol)-(Luse[i]-1)), by=Luse[i])
+    if(niter!=0 & niter<length(window_starts)) {
+      window_use<-sample(window_starts, niter, replace = F)
+    } else {
+      window_use<-window_starts
+    }
+    
+    predmat_tmp<-matrix(ncol=5, nrow=length(window_use))
+    predmat_tmp[,1]<-Luse[i]
+    
+    #calculate predictive power
+    for(j in 1:length(window_use)) {
+      tmp<-suppressWarnings(simplex(outcol, E=E, lib=c(window_use[j], (window_use[j]+Luse[i]-1)), pred=c(1+burnin, length(outcol)), stats_only = FALSE))
+      
+      predmat_tmp[j,2]<-tmp$rho
+      predmat_tmp[j,3]<-tmp$rmse#/mean(tmp[[1]]$model_output$pred, na.rm=T)
+      
+      predmat_tmp[j,4]<-mean(tmp$model_output[[1]]$pred, na.rm=T)
+      predmat_tmp[j,5]<-tmp$num_pred
+    }
+    
+    predmat<-rbind(predmat, predmat_tmp)
+  }
+  
+  colnames(predmat)<-c("Luse", "rho", "rmse", "mean", "n")
+  
+  CVest<-t(matrix(nrow=5, unlist(tapply(predmat[,"rmse"]/predmat[,"mean"], predmat[,"Luse"], function(x) quantile(x[is.finite(x)], c(0.025, pnorm(-1, 0, 1), 0.5, pnorm(1, 0, 1), 0.975), na.rm=T)))))
+  
+  #minimum library length that gives us 50% of the best predictive power
+  Lmin<-Luse[min(which((CVest[,5]-min(CVest[,5]))/(CVest[,5])<0.5))]
+  
+  if(doplot) {
+    plot(Luse, CVest[,3], type="n", xlab="library length", ylab="CV", ylim=c(0, max(c(1, CVest[,3]))), xlim=c(min(c(0, Luse)), max(Luse)), xaxs="i")
+    polygon(c(Luse, rev(Luse)), c(CVest[,1], rev(CVest[,5])), col=adjustcolor("black", alpha.f = 0.2), border=NA)
+    polygon(c(Luse, rev(Luse)), c(CVest[,2], rev(CVest[,4])), col=adjustcolor("black", alpha.f = 0.2), border=NA)
+    lines(Luse, CVest[,3], lwd=2)
+    
+    abline(v=c(min(Luse), Lmin), h=c(0, 1), lty=3)
+  }
+  
+  return(list(Lmin=Lmin, CVest=CVest, predmat=predmat))
+}
+
+test_predict_tlag<-function(outcol, Luse, E=1, burnin=0, laglst=c(floor((seq((0), ((length(outcol)-burnin-Luse)), length=20)))), niter=0, doplot=TRUE) {
+  predmat<-NULL
+  
+  #Cycle through lag lengths
+  for(i in 1:length(laglst)) {
+    #Find all possible comparisons
+    p1full<-seq(burnin+1, length(outcol)-(Luse-1)-laglst[i], by=Luse)
+    
+    if(niter!=0 & niter<length(p1full)) {
+      p1<-sample(p1full, niter, replace = F)
+    } else {
+      p1<-p1full
+    }
+    
+    p2<-p1+laglst[i]
+    
+    predmat_tmp<-matrix(ncol=5, nrow=length(p1))
+    predmat_tmp[,1]<-laglst[i]
+    
+    for(j in 1:length(p1)) {
+      tmplib<-c(p1[j], (p1[j]+Luse-1))
+      tmppred<-c(p2[j], (p2[j]+Luse-1))
+      
+      tmp<-suppressWarnings(simplex(outcol,E=E, lib=tmplib, pred=tmppred, stats_only = FALSE))
+      
+      predmat_tmp[j,2]<-tmp$rho
+      predmat_tmp[j,3]<-tmp$rmse#/mean(tmp[[1]]$model_output$pred, na.rm=T)
+      
+      predmat_tmp[j,4]<-mean(tmp$model_output[[1]]$pred, na.rm=T)
+      predmat_tmp[j,5]<-tmp$num_pred
+    }
+    predmat<-rbind(predmat, predmat_tmp)
+  }
+  
+  colnames(predmat)<-c("Luse", "rho", "rmse", "mean", "n")
+  
+  CVest<-t(matrix(nrow=5, unlist(tapply(predmat[,"rmse"]/predmat[,"mean"], predmat[,"Luse"], function(x) quantile(x[is.finite(x)], c(0.025, pnorm(-1, 0, 1), 0.5, pnorm(1, 0, 1), 0.975), na.rm=T)))))
+  
+  if(doplot) {
+    plot(laglst, CVest[,3], type="n", xlab="time lag", ylab="CV", ylim=c(0, max(c(1, CVest[,3]))), xlim=c(min(c(0, laglst)), max(laglst)), xaxs="i")
+    polygon(c(laglst, rev(laglst)), c(CVest[,1], rev(CVest[,5])), col=adjustcolor("black", alpha.f = 0.2), border=NA)
+    polygon(c(laglst, rev(laglst)), c(CVest[,2], rev(CVest[,4])), col=adjustcolor("black", alpha.f = 0.2), border=NA)
+    lines(laglst, CVest[,3], lwd=2)
+    
+    abline(v=c(min(laglst)), h=c(0, 1), lty=3)
+  }
+  
+  return(list(CVest=CVest, predmat=predmat))
+}
+
 
 if(FALSE) {
   gridout<-makegrid(xlng = 100, ylng = 100)
