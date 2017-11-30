@@ -14,10 +14,10 @@ require(rEDM)
 source("run_metapopulation_wrapper.R")
 
 #par(mfcol=c(4,2), mar=c(4,4,2,2))
-set.seed(1152)
+#set.seed(1152)
 
 ##### Try Tilman metapopulation model
-gridout<-makegrid(xlng = 20, ylng = 20)
+gridout<-makegrid(xlng = 50, ylng = 50)
 clst = c(0.15, 0.3, 0.8)
 #getceq(clst)
 population<-populate(gridout, nlst = floor(getceq(clst)*prod(gridout$lng)), clst = clst, radlst = Inf)
@@ -84,12 +84,9 @@ for(i in 1:length(out_meta$plotdata$ceq)) {
   pt[i]<-1
   tmp<-rerunrun_metapopulation(out=out_meta, tmax=burnin, talktime = 0, runtype = "metapopulation", perturb=pt, perturbsites=1:out_meta$plotdata$ngrid)
   
-  newpop<-tmp$output[nrow(tmp$output),-1]
-  newpop[i]<-ceiling((out_meta$plotdata$ngrid-sum(newpop[-i]))*0.05)
-  
-  population<-populate(gridout, nlst = newpop, clst = clst, radlst = Inf)
-  
-  out_meta_2[[i]]<-run_metapopulation(tmax=simtime, gridout=gridout, population=population, talktime = 0)
+  at<-rep(0, length(out_meta$plotdata$ceq))
+  at[i]<-0.05
+  out_meta_2[[i]]<-rerunrun_metapopulation(out=tmp, tmax=simtime, talktime = 0, runtype = "metapopulation", add=at, addsites=1:out_meta$plotdata$ngrid)
 }
 
 

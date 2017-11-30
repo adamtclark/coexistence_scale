@@ -142,7 +142,7 @@ run_metapopulation<-function(tmax, nsteps=tmax, gridout, population, talktime=1,
 }
 
 
-rerunrun_metapopulation<-function(out, tmax, nsteps=tmax, talktime=1, runtype="metapopulation", perturb=rep(0, out$full$pnsp), perturbsites=1:out$plotdata$ngrid) {
+rerunrun_metapopulation<-function(out, tmax, nsteps=tmax, talktime=1, runtype="metapopulation", perturb=rep(0, out$full$pnsp), perturbsites=1:out$plotdata$ngrid, addn=0, addsites=1:out$plotdata$ngrid) {
   if(!all(perturb<=1 & perturb>=0)) {
     return("error!: perturb elements must be between 0 and 1")
   }
@@ -179,7 +179,7 @@ rerunrun_metapopulation<-function(out, tmax, nsteps=tmax, talktime=1, runtype="m
   
   #conduct perturbation
   if(sum(abs(perturb))>0) {
-    pert_abund<-ceiling(table(speciesid[perturbsites])[1:out$full$pnsp]*perturb)
+    pert_abund<-ceiling(table(factor(speciesid[addsites], levels=0:out$full$pnsp))[1:out$full$pnsp]*perturb)
     
     for(i in 1:length(pert_abund)) {
       if(pert_abund[i]>0) {
@@ -192,6 +192,34 @@ rerunrun_metapopulation<-function(out, tmax, nsteps=tmax, talktime=1, runtype="m
         eventtimes_m[perturbsites][remove]<-0
         
         abundances[i]<-abundances[i]-pert_abund[i]
+      }
+    }
+  }
+  
+  #add in new individuals
+  if(sum(abs(addn))>0) {
+    add_abund<-ceiling((out$plotdata$ngrid-sum(table(speciesid[addsites][speciesid[addsites]!=out$full$pnsp])))*addn)
+    add_abund[addn>0 & add_abund==0]<-1
+
+    for(i in 1:length(add_abund)) {
+      if(add_abund[i]>0) {
+        #select locations to add individuals
+        add<-sample(which(speciesid[addsites]==out$full$pnsp), add_abund[i], rep=FALSE)
+        speciesid[addsites][add]<-(i-1)
+        
+        #add c and m events for added individuals
+        for(j in 1:add_abund[i]) {
+          x<-runif(1)
+          eventtimes_c[addsites][add[j]]<-log(-x+1)/(-c(out$full$c_sptraits[i]))
+          
+          x<-runif(1)
+          eventtimes_m[addsites][add[j]]<-log(-x+1)/(-c(out$full$m_sptraits[i]))
+        }
+        
+        eventtimes_c[!is.finite(eventtimes_c)]<-tmax+1
+        eventtimes_m[!is.finite(eventtimes_m)]<-tmax+1
+        
+        abundances[i]<-abundances[i]+add_abund[i]
       }
     }
   }
