@@ -38,7 +38,7 @@ populate<-function(gridout, nlst=0.1, clst=c(3,20), mlst=rep(0.1, length(clst)),
 }
 
 #tmax=20; nsteps=20; talktime=1
-run_metapopulation<-function(tmax, nsteps, gridout, population, talktime=1, runtype="metapopulation") {
+run_metapopulation<-function(tmax, nsteps=tmax, gridout, population, talktime=1, runtype="metapopulation") {
   
   if(runtype=="metapopulation") {
     system("R CMD SHLIB run_metapopulation.c", ignore.stdout = TRUE)
@@ -118,6 +118,12 @@ run_metapopulation<-function(tmax, nsteps, gridout, population, talktime=1, runt
              output=as.double(output), pnsteps=as.integer(nsteps),
              ptalktime=as.integer(talktime))
     
+    if(runtype=="metapopulation") {
+      dyn.unload("run_metapopulation.so")
+    } else if(runtype=="neutral") {
+      dyn.load("run_neutral_metapopulation.so")
+    }
+    
     out<-matrix(cout$output, nrow=nsteps+1)
     nsp<-ncol(out)-1
     ngrid<-prod(gridout$lng)
@@ -134,6 +140,99 @@ run_metapopulation<-function(tmax, nsteps, gridout, population, talktime=1, runt
     return(list(output=out, full=cout, plotdata=plotdata))
   }
 }
+
+
+rerunrun_metapopulation<-function(out, tmax, nsteps=tmax, talktime=1, runtype="metapopulation", perturb=rep(0, out$full$pnsp), perturbsites=1:out$plotdata$ngrid) {
+  if(!all(perturb<=1 & perturb>=0)) {
+    return("error!: perturb elements must be between 0 and 1")
+  }
+  
+  if(runtype=="metapopulation") {
+    if(!is.loaded("run_metapopulation")) {
+      dyn.load("run_metapopulation.so")
+    } else {
+      dyn.unload("run_metapopulation.so")
+      dyn.load("run_metapopulation.so")
+    }
+    
+    runname<-"run_metapopulation"
+  } else if(runtype=="neutral") {
+    if(!is.loaded("run_neutral_metapopulation")) {
+      dyn.load("run_neutral_metapopulation.so")
+    } else {
+      dyn.unload("run_neutral_metapopulation.so")
+      dyn.load("run_neutral_metapopulation.so")
+    }
+    
+    runname<-"run_neutral_metapopulation"
+  }
+  
+  eventtimes_c<-out$full$eventtimes_c-out$full$ptmax
+  eventtimes_c[eventtimes_c<0]<-0
+  eventtimes_m<-out$full$eventtimes_m-out$full$ptmax
+  eventtimes_m[eventtimes_m<0]<-0
+  
+  output<-numeric((nsteps+1)*(out$full$pnsp+1))
+  
+  abundances<-out$full$abundances
+  speciesid<-out$full$speciesid
+  
+  #conduct perturbation
+  if(sum(abs(perturb))>0) {
+    pert_abund<-ceiling(table(speciesid[perturbsites])[1:out$full$pnsp]*perturb)
+    
+    for(i in 1:length(pert_abund)) {
+      if(pert_abund[i]>0) {
+        #select individuals to remove
+        remove<-sample(which(speciesid[perturbsites]==(i-1)), pert_abund[i], rep=FALSE)
+        speciesid[perturbsites][remove]<-out$full$pnsp
+        
+        #remove c and m events from killed off individuals
+        eventtimes_c[perturbsites][remove]<-0
+        eventtimes_m[perturbsites][remove]<-0
+        
+        abundances[i]<-abundances[i]-pert_abund[i]
+      }
+    }
+  }
+  
+  
+  cout<-.C(runname,
+           ptmax= as.double(tmax), pgridsize=as.integer(out$full$pgridsize), pnsp=as.integer(out$full$pnsp), xylim=as.integer(out$full$xylim), destroyed=as.integer(out$full$destroyed), #grid
+           c_sptraits=as.double(out$full$c_sptraits), m_sptraits=as.double(out$full$m_sptraits), abundances=as.integer(abundances), colsites=as.integer(out$full$colsites), pncolsites=as.integer(out$full$pncolsites), #traits
+           eventtimes_c=as.double(eventtimes_c), eventtimes_m=as.double(eventtimes_m), #events
+           speciesid=as.integer(speciesid), #species
+           output=as.double(output), pnsteps=as.integer(nsteps),
+           ptalktime=as.integer(talktime))
+  
+  if(runtype=="metapopulation") {
+    dyn.unload("run_metapopulation.so")
+  } else if(runtype=="neutral") {
+    dyn.load("run_neutral_metapopulation.so")
+  }
+  
+  outnew<-matrix(cout$output, nrow=nsteps+1)
+  nsp<-ncol(outnew)-1
+  ngrid<-prod(gridout$lng)
+  
+  ceq<-numeric(nsp)
+  for(i in 1:nsp) {
+    ceq[i]<-(1-out$full$m_sptraits[i]/out$full$c_sptraits[i])-sum(ceq[0:(i-1)]*(1+out$full$c_sptraits[0:(i-1)]/out$full$c_sptraits[i]))
+  }
+  
+  plotdata<-list(ceq=ceq, ngrid=ngrid)
+  
+  outnew<-outnew[outnew[,1]!=0 | (1:nrow(outnew))==1,]
+  
+  return(list(output=outnew, full=cout, plotdata=plotdata))
+}
+
+
+
+
+
+
+
 
 getceq<-function(clst, mlst=rep(0.1, length(clst))) {
   nsp<-length(clst)
