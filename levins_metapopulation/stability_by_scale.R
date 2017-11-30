@@ -131,7 +131,9 @@ predL_meta<-predict_vs_L(outcol = outcol_meta, E=E_meta)
 predlag_meta<-test_predict_tlag(outcol_meta, Luse=min(c(floor(length(outcol_meta)/5), predL_meta$Lmin)), E=E_meta)
 
 ##### Try Hubbell NZNS neutral model
-population<-populate(gridout, nlst = rep(floor(prod(gridout$lng)/3), 3), clst = rep(0.5, 3), radlst = Inf)
+clst<-rep(0.5, 3)
+population<-populate(gridout, nlst = round(rep(unique(abs(getceq(clst)))/length(clst), length(clst))*prod(gridout$lng)),
+                     clst = clst, radlst = Inf)
 out_neut<-run_metapopulation(tmax=1000, nsteps = 1000, gridout, population, talktime = 0, runtype = "neutral")
 plot_metapop(out_neut)
 

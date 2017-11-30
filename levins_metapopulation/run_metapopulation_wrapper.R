@@ -253,11 +253,18 @@ plot_metapop<-function(output) {
     sbs<-c(1, sbs)
   }
   #out[,-1][out[,-1]==0]<-NA
-  matplot(out[sbs,1], out[sbs,-1]/ngrid, type="l", xlab="time", ylab="p",
-          lty=1, col=1:ncol(out), lwd=2, ylim=c(0,1))
+  matplot(out[sbs,1], cbind(rowSums(out[sbs,-1]/ngrid), out[sbs,-1]/ngrid), type="l", xlab="time", ylab="p",
+          col=1:(ncol(out)), lty=c(1, rep(1, ncol(out)-1)), lwd=2, ylim=c(0,1), xaxs="i", xlim=c(0, ceiling(max(out[sbs,1]))))
   abline(h=c(0,1), lty=3)
-  abline(h=ceq,
-         lty=2, col=1:ncol(out), lwd=2)
+  
+  if(length(unique(abs(ceq)))>1) {
+    abline(h=ceq,
+         lty=2, col=2:ncol(out), lwd=2)
+    abline(h=sum(ceq), lwd=2, lty=2)
+  } else {
+    abline(h=unique(abs(ceq)),
+           lty=2, col=1, lwd=2)
+  }
 }
 
 plot_map<-function(out, gridout) {
