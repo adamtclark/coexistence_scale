@@ -36,7 +36,7 @@ populate<-function(gridout, nlst=0.1, clst=c(3,20), mlst=rep(0.1, length(clst)),
   return(list(spid=spid, nlst=nlst, clst=clst, mlst=mlst, radlst=radlst, pos_sp=pos_sp, patch_occupied=patch_occupied))
 }
 
-run_metapopulation<-function(tmax, nsteps=tmax, gridout, population, talktime=1, runtype="metapopulation") {
+run_metapopulation<-function(tmax, nsteps=tmax, gridout, population, talktime=1, runtype="metapopulation", sites_sub=0) {
   
   if(runtype=="metapopulation") {
     system("R CMD SHLIB run_metapopulation.c", ignore.stdout = TRUE)
@@ -54,8 +54,16 @@ run_metapopulation<-function(tmax, nsteps=tmax, gridout, population, talktime=1,
       dyn.unload("run_neutral_metapopulation.so")
       dyn.load("run_neutral_metapopulation.so")
     }
+  } else if(runtype=="metapopulation_spatial") {
+    system("R CMD SHLIB run_metapopulation_spatialsub.c", ignore.stdout = TRUE)
+    if(!is.loaded("run_metapopulation_spatialsub")) {
+      dyn.load("run_metapopulation_spatialsub.so")
+    } else {
+      dyn.unload("run_metapopulation_spatialsub.so")
+      dyn.load("run_metapopulation_spatialsub.so")
+    }
   } else {
-    return("error: run type must be 'metapopulation' or 'neutral'")
+    return("error: run type must be 'metapopulation', 'neutral', or 'metapopulation_spatial'")
   }
   
   gridsize<-prod(gridout$lng); nsp<-length(population$clst); xylim<-gridout$lng; destroyed<-rep(0, gridsize)
@@ -100,26 +108,53 @@ run_metapopulation<-function(tmax, nsteps=tmax, gridout, population, talktime=1,
   #print(round(eventtimes_m, 3))
   
   if(gridsize>1e6) {
-    print("error: must compile code with larger buffer size!")
+    print("error: must compile code with larger buffer size, or decrease grid size!")
   } else {
     
     if(runtype=="metapopulation") {
       runname<-"run_metapopulation"
     } else if(runtype=="neutral") {
       runname<-"run_neutral_metapopulation"
+    } else if(runtype=="metapopulation_spatial") {
+      runname<-"run_metapopulation_spatialsub"
     }
-    cout<-.C(runname,
-             ptmax= as.double(tmax), pgridsize=as.integer(gridsize), pnsp=as.integer(nsp), xylim=as.integer(xylim), destroyed=as.integer(destroyed), #grid
-             c_sptraits=as.double(c_sptraits), m_sptraits=as.double(m_sptraits), abundances=as.integer(abundances), colsites=as.integer(colsites), pncolsites=as.integer(ncolsites), #traits
-             eventtimes_c=as.double(eventtimes_c), eventtimes_m=as.double(eventtimes_m), #events
-             speciesid=as.integer(speciesid), #species
-             output=as.double(output), pnsteps=as.integer(nsteps),
-             ptalktime=as.integer(talktime))
+    
+    if(runtype=="metapopulation_spatial") {
+      pnsites_sub<-length(sites_sub[sites_sub!=0])
+      c_sites_sub<-sites_sub-1
+      output_sub<-output
+      
+      abundances_sub<-unname(table(speciesid[sites_sub])[1:nsp])
+      
+      cout<-.C(runname,
+               ptmax= as.double(tmax), pgridsize=as.integer(gridsize), pnsp=as.integer(nsp), xylim=as.integer(xylim), destroyed=as.integer(destroyed), #grid
+               c_sptraits=as.double(c_sptraits), m_sptraits=as.double(m_sptraits), abundances=as.integer(abundances), colsites=as.integer(colsites), pncolsites=as.integer(ncolsites), #traits
+               eventtimes_c=as.double(eventtimes_c), eventtimes_m=as.double(eventtimes_m), #events
+               speciesid=as.integer(speciesid), #species
+               output=as.double(output), pnsteps=as.integer(nsteps),
+               ptalktime=as.integer(talktime),
+               abundances_sub=as.integer(abundances_sub), sites_sub=as.integer(c_sites_sub), pnsites_sub=as.integer(pnsites_sub), output_sub=as.double(output_sub))
+      
+      out_spatial<-matrix(cout$output_sub, nrow=nsteps+1)
+      out_spatial<-out_spatial[out_spatial[,1]!=0 | (1:nrow(out_spatial))==1,]
+    } else {
+      cout<-.C(runname,
+               ptmax= as.double(tmax), pgridsize=as.integer(gridsize), pnsp=as.integer(nsp), xylim=as.integer(xylim), destroyed=as.integer(destroyed), #grid
+               c_sptraits=as.double(c_sptraits), m_sptraits=as.double(m_sptraits), abundances=as.integer(abundances), colsites=as.integer(colsites), pncolsites=as.integer(ncolsites), #traits
+               eventtimes_c=as.double(eventtimes_c), eventtimes_m=as.double(eventtimes_m), #events
+               speciesid=as.integer(speciesid), #species
+               output=as.double(output), pnsteps=as.integer(nsteps),
+               ptalktime=as.integer(talktime))
+      
+      out_spatial<-NA
+    }
     
     if(runtype=="metapopulation") {
       dyn.unload("run_metapopulation.so")
     } else if(runtype=="neutral") {
-      dyn.load("run_neutral_metapopulation.so")
+      dyn.unload("run_neutral_metapopulation.so")
+    } else if(runtype=="metapopulation_spatial") {
+      dyn.unload("run_metapopulation_spatialsub.so")
     }
     
     out<-matrix(cout$output, nrow=nsteps+1)
@@ -135,7 +170,7 @@ run_metapopulation<-function(tmax, nsteps=tmax, gridout, population, talktime=1,
     
     out<-out[out[,1]!=0 | (1:nrow(out))==1,]
     
-    return(list(output=out, full=cout, plotdata=plotdata))
+    return(list(output=out, full=cout, plotdata=plotdata, output_spatial=out_spatial))
   }
 }
 

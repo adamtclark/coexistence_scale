@@ -4,6 +4,10 @@ setwd("~/Dropbox/Projects/032_Coexistence_mechanisms/src/levins_metapopulation/"
 
 #TODO:
 #3. Set up wrapper functions for spatial subsetting
+#-. FIRST - update wrapper for rerun
+#-. THEN - update neutral c code
+#-. THEN - build spatial output into other functions
+
 #4. Think about PSF model to use
 #-. Needs both intransitivity etc. and cycles that drop off-cycle with disturbance.
 #-. Maybe one example can be rock-paper-scissors?
@@ -12,6 +16,11 @@ setwd("~/Dropbox/Projects/032_Coexistence_mechanisms/src/levins_metapopulation/"
 require(rEDM)
 source("run_metapopulation_wrapper.R")
 
+
+
+############################################################
+# "Global" run
+############################################################
 par(mfcol=c(4,2), mar=c(4,4,2,2))
 set.seed(171201)
 
@@ -64,7 +73,20 @@ invar_out<-estimate_invar(out_neut, E=E_neut, burnin=0, doplot=TRUE)
 
 
 
+############################################################
+# Spatial subsetting
+############################################################
+out_meta<-run_metapopulation(tmax=1000, gridout = gridout, population = population, talktime = 0, runtype = "metapopulation_spatial", sites_sub = 1:100)
 
+
+
+population<-populate(gridout, nlst = floor(getceq(clst_meta)*prod(gridout$lng)), clst = clst_meta, radlst = Inf)
+
+out_meta_sp<-run_metapopulation(tmax=1, gridout = gridout, population = population, talktime = 0)
+
+for(i in 1:100) {
+  out_meta_sp<-rerunrun_metapopulation(out=out_meta_sp, tmax=1, talktime = 0)
+}
 
 
 
