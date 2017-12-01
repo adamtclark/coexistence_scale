@@ -3,9 +3,9 @@
 #rm(list=ls())
 #setwd("~/Dropbox/ActiveWork/Projects/019_Dave habitat loss/src/")
 
-####################
-# Functions
-####################
+########################################
+# Metapopulation simulation functions
+########################################
 makegrid<-function(xlng=50, ylng=50) {
   xpos<-rep(1:xlng, ylng)
   ypos<-rep(1:ylng, each=xlng)
@@ -14,7 +14,6 @@ makegrid<-function(xlng=50, ylng=50) {
   
   return(list(xpos=xpos, ypos=ypos, lng=c(xlng, ylng), posmat=posmat))
 }
-
 
 populate<-function(gridout, nlst=0.1, clst=c(3,20), mlst=rep(0.1, length(clst)), radlst=3) {
   if(sum(nlst)<1) {
@@ -37,7 +36,6 @@ populate<-function(gridout, nlst=0.1, clst=c(3,20), mlst=rep(0.1, length(clst)),
   return(list(spid=spid, nlst=nlst, clst=clst, mlst=mlst, radlst=radlst, pos_sp=pos_sp, patch_occupied=patch_occupied))
 }
 
-#tmax=20; nsteps=20; talktime=1
 run_metapopulation<-function(tmax, nsteps=tmax, gridout, population, talktime=1, runtype="metapopulation") {
   
   if(runtype=="metapopulation") {
@@ -140,7 +138,6 @@ run_metapopulation<-function(tmax, nsteps=tmax, gridout, population, talktime=1,
     return(list(output=out, full=cout, plotdata=plotdata))
   }
 }
-
 
 rerunrun_metapopulation<-function(out, tmax, nsteps=tmax, talktime=1, runtype="metapopulation", perturb=rep(0, out$full$pnsp), perturbsites=1:out$plotdata$ngrid, addn=0, addsites=1:out$plotdata$ngrid) {
   if(!all(perturb<=1 & perturb>=0)) {
@@ -255,13 +252,6 @@ rerunrun_metapopulation<-function(out, tmax, nsteps=tmax, talktime=1, runtype="m
   return(list(output=outnew, full=cout, plotdata=plotdata))
 }
 
-
-
-
-
-
-
-
 getceq<-function(clst, mlst=rep(0.1, length(clst))) {
   nsp<-length(clst)
   ceq<-numeric(nsp)
@@ -328,8 +318,190 @@ rewrap_pop<-function(out, population) {
 }
 
 
-#rEDM functions
-predict_vs_L<-function(outcol, E=1, burnin=0, Luse=floor((seq((30), (length(outcol)-burnin), length=20))), niter=0,  doplot=TRUE) {
+########################################
+# Equilibrium analysis function
+########################################
+getE<-function(out, Elst=2:10, doplot=FALSE) {
+  
+  Eout<-numeric(length(out$plotdata$ceq))
+  simplout<-NULL
+  for(i in 1:length(Eout)) {
+    simplout[[i]]<-suppressWarnings(simplex(out$output[,i+1], E=Elst))
+    Eout[i]<-Elst[min(which((max(simplout[[i]]$rho)-simplout[[i]]$rho)/diff(range(simplout[[i]]$rho))<0.1))]
+  }
+  
+  if(doplot) {
+    rng<-c(NA, NA)
+    for(i in 1:length(simplout)) {
+      tmp<-range(simplout[[i]]$rho, na.rm=T)
+      rng[1]<-min(c(tmp[1], rng[1]), na.rm=T)
+      rng[2]<-max(c(tmp[2], rng[2]), na.rm=T)
+    }
+    
+    plot(range(Elst), rng, xlab="E", ylab=expression(paste(rho)), type="n")
+    for(i in 1:length(simplout)) {
+      lines(simplout[[i]]$E, simplout[[i]]$rho, lty=1, lwd=2, col=i+1)
+      abline(v=Eout[i], lty=3, col=i+1)
+    }
+  }
+  
+  return(list(Eout=Eout, simplout=simplout))
+}
+
+
+estimate_eqreturn<-function(out, simtime=100, runtype="metapopulation", perturbsites=1:out$plotdata$ngrid, doplot=TRUE, useeq=0, prtb=0.1, E=0) {
+  out_lst<-NULL
+  for(i in 1:length(out$plotdata$ceq)) {
+    pt<-rep(0, length(out$plotdata$ceq))
+    pt[i]<-prtb
+    out_lst[[i]]<-rerunrun_metapopulation(out=out, tmax=simtime, talktime = 0, runtype = runtype, perturb=pt, perturbsites=perturbsites)
+  }
+  
+  if(sum(useeq)==0 & sum(E)==0) {
+    pt<-rep(0, length(out$plotdata$ceq))
+    out_lst0<-rerunrun_metapopulation(out=out, tmax=simtime, talktime = 0, runtype = runtype, perturb=pt, perturbsites=perturbsites)
+  }
+
+  eigenlst<-matrix(ncol=length(out_lst), nrow=(simtime-1), data=NA)
+  eigenlst_sd<-matrix(ncol=length(out_lst), nrow=(simtime-1), data=NA)
+  
+  if(sum(E)==0) {
+    for(sppos in 1:length(out_lst)) {
+      if(sum(useeq)==0) {
+        pred_diff<-abs(out_lst0$output[,sppos+1]-out_lst[[sppos]]$output[,sppos+1])/(out$plotdata$ngrid)
+      } else {
+        pred_diff<-abs(useeq[sppos]-(out_lst[[sppos]]$output[,sppos+1])/(out$plotdata$ngrid))
+      }
+      
+      logdiftmp<-log(pred_diff[-1]/pred_diff[-length(pred_diff)])
+      sbs<-is.finite(logdiftmp)
+      
+      eigenlst[1:(length(logdiftmp)),sppos][sbs]<-cumsum(logdiftmp[sbs])/(1:(length(pred_diff[sbs])-1))
+      eigenlst_sd[1:(length(logdiftmp)),sppos][sbs]<-sqrt(cumsum(logdiftmp[sbs]^2)/(1:(length(pred_diff[sbs])-1))-(eigenlst[1:(length(logdiftmp[sbs])),sppos])^2)
+    }
+  } else {
+    if(length(E)==1) {
+      E<-rep(E, length(out$plotdata$ceq))
+    }
+    
+    for(sppos in 1:length(out_lst)) {
+      tmp<-simplex(time_series = c(out$output[,sppos+1], out_lst[[sppos]]$output[,sppos+1]),
+                   E=E[sppos],
+                   lib=c(1,length(out$output[,2])),
+                   pred=c(nrow(out$output)-E[sppos]+1, nrow(out$output)+nrow(out_lst[[sppos]]$output)), stats_only = FALSE)
+      
+      pred_diff<-abs(tmp$model_output[[1]]$pred-tmp$model_output[[1]]$obs)/(out$plotdata$ngrid)
+      
+      logdiftmp<-log(pred_diff[-1]/pred_diff[-length(pred_diff)])
+      sbs<-is.finite(logdiftmp)
+      
+      eigenlst[1:(length(logdiftmp)),sppos][sbs]<-cumsum(logdiftmp[sbs])/(1:(length(pred_diff[sbs])-1))
+      eigenlst_sd[1:(length(logdiftmp)),sppos][sbs]<-sqrt(cumsum(logdiftmp[sbs]^2)/(1:(length(pred_diff[sbs])-1))-(eigenlst[1:(length(logdiftmp[sbs])),sppos])^2)
+    }
+  }
+  
+  if(doplot) {
+    matplot(c(1,nrow(eigenlst)), range(c(0, eigenlst)), col=1:ncol(eigenlst)+1, lty=1, xlab="time span", ylab=expression(paste(lambda)), type="n"); abline(h=0, lty=3)
+    for(i in 1:ncol(eigenlst)) {
+      sbs<-which(!is.na(eigenlst[,i]+eigenlst_sd[,i]))
+      if(sum(sbs)>0) {
+        polygon(c(1:nrow(eigenlst[sbs,]), rev(1:nrow(eigenlst[sbs,]))),
+              c(eigenlst[sbs,i]+eigenlst_sd[sbs,i], rev(eigenlst[sbs,i]-eigenlst_sd[sbs,i])), col=adjustcolor(i+1, alpha.f = 0.1), border=NA)
+      }
+    }
+    
+    matlines(1:nrow(eigenlst), eigenlst, col=1:ncol(eigenlst)+1, lty=1, lwd=2)
+  }
+  
+  return(list(eigenlst=eigenlst, eigenlst_sd=eigenlst_sd, out_lst=out_lst))
+}
+
+estimate_rarereturn<-function(out, simtime=100, burnin=100, runtype="metapopulation", perturbsites=1:out$plotdata$ngrid, doplot=TRUE) {
+  out_lst<-NULL
+  for(i in 1:length(out$plotdata$ceq)) {
+    pt<-rep(0, length(out$plotdata$ceq))
+    pt[i]<-1
+    tmp<-rerunrun_metapopulation(out=out, tmax=burnin, talktime = 0, runtype = runtype, perturb=pt, perturbsites=perturbsites)
+    
+    at<-rep(0, length(out$plotdata$ceq))
+    at[i]<-0.05
+    out_lst[[i]]<-rerunrun_metapopulation(out=tmp, tmax=simtime, talktime = 0, runtype = runtype, add=at, addsites=perturbsites)
+  }
+
+  grwrare<-matrix(ncol=length(out_lst), nrow=(simtime-1))
+  grwrare_sd<-matrix(ncol=length(out_lst), nrow=(simtime-1))
+  
+  for(sppos in 1:length(out_lst)) {
+    pred_grw<-out_lst[[sppos]]$output[,sppos+1]/out$plotdata$ngrid
+    
+    logdiftmp<-log(pred_grw[-1]/pred_grw[-length(pred_grw)])
+    grwrare[,sppos][1:length(logdiftmp)]<-cumsum(logdiftmp)/(1:(length(pred_grw)-1))
+    
+    grwrare_sd[,sppos][1:length(logdiftmp)]<-sqrt(cumsum(logdiftmp^2)/(1:(length(pred_grw)-1))-(grwrare[,sppos]^2)[1:length(logdiftmp)])
+  }
+  
+  if(doplot) {
+    matplot(c(1, nrow(grwrare)), range(c(grwrare, 0)), col=1:ncol(grwrare)+1, lty=1, xlab="time span", ylab=expression(paste("r"[0])), type="n"); abline(h=0, lty=3)
+    for(i in 1:ncol(grwrare)) {
+      sbs<-is.finite(grwrare[,i]+grwrare_sd[,i])
+      polygon(c(1:nrow(grwrare[sbs,]), rev(1:nrow(grwrare[sbs,]))),
+              c(grwrare[sbs,i]+grwrare_sd[sbs,i], rev(grwrare[sbs,i]-grwrare_sd[sbs,i])), col=adjustcolor(i+1, alpha.f = 0.1), border=NA)
+    }
+    
+    matlines(1:nrow(grwrare), grwrare, col=(1:ncol(grwrare))+1, lty=1, lwd=2)
+  }
+}
+
+
+estimate_invar<-function(out, E=1, burnin=0, Luse=floor((seq((30), (nrow(out$output)-burnin), length=20))), laglst=0, niter=0, doplot=TRUE) {
+  if(length(E)==1) {
+    E<-rep(E, length(out$plotdata$ceq))
+  }
+  
+  pdL_list<-NULL
+  pdlag_list<-NULL
+  
+  for(i in 1:length(out$plotdata$ceq)) {
+    pdL_list[[i]]<-predict_vs_L(out$output[,i+1], E=E[i], burnin=burnin, Luse=Luse, niter=niter, doplot=FALSE)
+    Lusetmp<-min(c(ceiling(nrow(out$output)/5), pdL_list[[i]]$Lmin))
+    
+    if(sum(laglst==0)) {
+      laglst_use<-c(floor((seq((0), ((nrow(out$output)-burnin-Lusetmp)), length=20))))
+    } else {
+      laglst_use<-laglst
+    }
+    pdlag_list[[i]]<-test_predict_tlag(out$output[,i+1], Luse=Lusetmp, E=E[i], burnin=burnin, laglst=laglst_use, niter=niter, doplot=FALSE)
+  }
+  
+  if(doplot) {
+    mx<-0
+    tl<-0
+    for(i in 1:length(pdlag_list)) {
+      mx<-max(c(mx, max(range(pdlag_list[[i]]$CVest[,2:4], na.rm=T), na.rm=T)))
+      tl<-max(c(tl, pdlag_list[[i]]$laglst))
+    }
+    
+    plot(c(0, tl), c(0, max(c(mx))), xlab="time lag", ylab="CV", type="n", xaxs="i")
+    abline(h=0, lty=3)
+    
+    for(i in 1:length(pdlag_list)) {
+      sbs<-which(is.finite(rowSums(pdlag_list[[i]]$CVest)))
+      polygon(c(pdlag_list[[i]]$laglst[sbs], rev(pdlag_list[[i]]$laglst[sbs])),
+              c(pdlag_list[[i]]$CVest[sbs,2], rev(pdlag_list[[i]]$CVest[sbs,4])),
+              col=adjustcolor(i+1, 0.2), border=NA)
+      lines(pdlag_list[[i]]$laglst, pdlag_list[[i]]$CVest[,3], col=i+1, lwd=2, lty=1)
+    }
+  }
+  
+  return(list(pdL_list=pdL_list, pdlag_list=pdlag_list))
+}
+
+
+
+
+
+
+predict_vs_L<-function(outcol, E=1, burnin=0, Luse=floor((seq((30), (length(outcol)-burnin), length=20))), niter=0, doplot=TRUE) {
   
   #calculates predictive power vs. library length
   #niter=0 calculates for all possible time windows
@@ -377,7 +549,7 @@ predict_vs_L<-function(outcol, E=1, burnin=0, Luse=floor((seq((30), (length(outc
     abline(v=c(min(Luse), Lmin), h=c(0, 1), lty=3)
   }
   
-  return(list(Lmin=Lmin, CVest=CVest, predmat=predmat))
+  return(list(Lmin=Lmin, CVest=CVest, predmat=predmat, Luse=Luse))
 }
 
 test_predict_tlag<-function(outcol, Luse, E=1, burnin=0, laglst=c(floor((seq((0), ((length(outcol)-burnin-Luse)), length=20)))), niter=0, doplot=TRUE) {
@@ -427,9 +599,12 @@ test_predict_tlag<-function(outcol, Luse, E=1, burnin=0, laglst=c(floor((seq((0)
     abline(v=c(min(laglst)), h=c(0, 1), lty=3)
   }
   
-  return(list(CVest=CVest, predmat=predmat))
+  return(list(CVest=CVest, predmat=predmat, laglst=laglst, Luse=Luse))
 }
 
+########################################
+# Example of running functions
+########################################
 
 if(FALSE) {
   gridout<-makegrid(xlng = 100, ylng = 100)
