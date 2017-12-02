@@ -3,6 +3,8 @@ rm(list=ls())
 setwd("~/Dropbox/Projects/032_Coexistence_mechanisms/src/levins_metapopulation/")
 
 #TODO:
+#2. Neet to think upbetter "return to equilibrium" method?
+
 #3. Set up wrapper functions for spatial subsetting
 #-. FIRST - update wrapper for rerun
 #-. THEN - update neutral c code
@@ -38,9 +40,9 @@ getEmeta<-getE(out_meta, Elst = 2:10)
 E_meta<-getEmeta$Eout
 
 #Estimate Eigenvalue
-#eig_meta<-estimate_eqreturn(out_meta, simtime=100, runtype="metapopulation", useeq=getceq(clst_meta))
-#eig_meta<-estimate_eqreturn(out_meta, simtime=100, runtype="metapopulation")
-eig_meta<-estimate_eqreturn(out_meta, simtime=20, runtype="metapopulation", E=E_meta)
+#eig_meta<-estimate_eqreturn(out_meta, simtime=100, runtype="metapopulation", useeq=getceq(clst_meta), replace_perturb = 1)
+#eig_meta<-estimate_eqreturn(out_meta, simtime=100, runtype="metapopulation", replace_perturb = 1)
+#eig_meta<-estimate_eqreturn(out_meta, simtime=100, runtype="metapopulation", E=E_meta, replace_perturb = 1)
 
 #Estimate increase when rare
 r0_meta<-estimate_rarereturn(out_meta, simtime=20, burnin=100, runtype="metapopulation")
@@ -61,15 +63,15 @@ getEneut<-getE(out_neut, Elst = 2:10)
 E_neut<-getEneut$Eout
 
 #Estimate Eigenvalue
-#eig_meta<-estimate_eqreturn(out_neut, simtime=100, runtype="neutral", useeq = rep(unique(abs(getceq(clst_neut)))/length(clst_neut), length(clst_neut)))
-#eig_meta<-estimate_eqreturn(out_neut, simtime=100, runtype="neutral")
-eig_meta<-estimate_eqreturn(out_neut, simtime=20, runtype="neutral", E=E_neut)
+#eig_neut<-estimate_eqreturn(out_neut, simtime=100, runtype="neutral", useeq = rep(unique(abs(getceq(clst_neut)))/length(clst_neut), length(clst_neut)), replace_perturb = 1)
+eig_neut<-estimate_eqreturn(out_neut, simtime=100, runtype="neutral", replace_perturb = 1)
+#eig_neut<-estimate_eqreturn(out_neut, simtime=100, runtype="neutral", E=E_neut, replace_perturb = 1)
 
 #Estimate increase when rare
-r0_meta<-estimate_rarereturn(out_neut, simtime=20, burnin=100, runtype="neutral")
+r0_neut<-estimate_rarereturn(out_neut, simtime=20, burnin=100, runtype="neutral")
 
 #Estimate invariability
-invar_out<-estimate_invar(out_neut, E=E_neut, burnin=0, doplot=TRUE)
+invar_neut<-estimate_invar(out_neut, E=E_neut, burnin=0, doplot=TRUE)
 
 
 

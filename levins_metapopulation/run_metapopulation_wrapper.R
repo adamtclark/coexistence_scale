@@ -174,7 +174,7 @@ run_metapopulation<-function(tmax, nsteps=tmax, gridout, population, talktime=1,
   }
 }
 
-rerunrun_metapopulation<-function(out, tmax, nsteps=tmax, talktime=1, runtype="metapopulation", perturb=rep(0, out$full$pnsp), perturbsites=1:out$plotdata$ngrid, addn=0, addsites=1:out$plotdata$ngrid) {
+rerunrun_metapopulation<-function(out, tmax, nsteps=tmax, talktime=1, runtype="metapopulation", perturb=rep(0, out$full$pnsp), perturbsites=1:out$plotdata$ngrid, addn=0, addsites=1:out$plotdata$ngrid, replace_perturb=0) {
   if(!all(perturb<=1 & perturb>=0)) {
     return("error!: perturb elements must be between 0 and 1")
   }
@@ -229,9 +229,19 @@ rerunrun_metapopulation<-function(out, tmax, nsteps=tmax, talktime=1, runtype="m
   }
   
   #add in new individuals
-  if(sum(abs(addn))>0) {
-    add_abund<-ceiling((out$plotdata$ngrid-sum(table(speciesid[addsites][speciesid[addsites]!=out$full$pnsp])))*addn)
-    add_abund[addn>0 & add_abund==0]<-1
+  if(sum(abs(addn))>0 | replace_perturb!=0) {
+      add_abund<-ceiling((out$plotdata$ngrid-sum(table(speciesid[addsites][speciesid[addsites]!=out$full$pnsp])))*addn)
+      add_abund[addn>0 & add_abund==0]<-1
+    if(replace_perturb!=0) {
+      tmp<-numeric(length(pert_abund))
+      for(i in 1:length(pert_abund)) {
+        if(pert_abund[i]>0) {
+          tmp[sample((1:length(pert_abund))[-i],1)]<-pert_abund[i]
+        }
+      }
+      
+      add_abund<-add_abund+tmp
+    }
 
     for(i in 1:length(add_abund)) {
       if(add_abund[i]>0) {
@@ -297,7 +307,7 @@ getceq<-function(clst, mlst=rep(0.1, length(clst))) {
 }
 
 plot_metapop<-function(output) {
-  out<-output$out
+  out<-output$output
   ceq<-output$plotdata$ceq
   ngrid<-output$plotdata$ngrid
   
@@ -384,12 +394,12 @@ getE<-function(out, Elst=2:10, doplot=FALSE) {
 }
 
 
-estimate_eqreturn<-function(out, simtime=100, runtype="metapopulation", perturbsites=1:out$plotdata$ngrid, doplot=TRUE, useeq=0, prtb=0.1, E=0) {
+estimate_eqreturn<-function(out, simtime=100, runtype="metapopulation", perturbsites=1:out$plotdata$ngrid, doplot=TRUE, useeq=0, prtb=0.1, E=0, replace_perturb=0) {
   out_lst<-NULL
   for(i in 1:length(out$plotdata$ceq)) {
     pt<-rep(0, length(out$plotdata$ceq))
     pt[i]<-prtb
-    out_lst[[i]]<-rerunrun_metapopulation(out=out, tmax=simtime, talktime = 0, runtype = runtype, perturb=pt, perturbsites=perturbsites)
+    out_lst[[i]]<-rerunrun_metapopulation(out=out, tmax=simtime, talktime = 0, runtype = runtype, perturb=pt, perturbsites=perturbsites, replace_perturb=replace_perturb)
   }
   
   if(sum(useeq)==0 & sum(E)==0) {
@@ -411,8 +421,8 @@ estimate_eqreturn<-function(out, simtime=100, runtype="metapopulation", perturbs
       logdiftmp<-log(pred_diff[-1]/pred_diff[-length(pred_diff)])
       sbs<-is.finite(logdiftmp)
       
-      eigenlst[1:(length(logdiftmp)),sppos][sbs]<-cumsum(logdiftmp[sbs])/(1:(length(pred_diff[sbs])-1))
-      eigenlst_sd[1:(length(logdiftmp)),sppos][sbs]<-sqrt(cumsum(logdiftmp[sbs]^2)/(1:(length(pred_diff[sbs])-1))-(eigenlst[1:(length(logdiftmp[sbs])),sppos])^2)
+      eigenlst[1:(length(logdiftmp)),sppos][sbs]<-cumsum(logdiftmp[sbs])/(1:sum(sbs))
+      eigenlst_sd[1:(length(logdiftmp)),sppos][sbs]<-sqrt(cumsum(logdiftmp[sbs]^2)/(1:sum(sbs))-(eigenlst[1:(length(logdiftmp)),sppos][sbs])^2)
     }
   } else {
     if(length(E)==1) {
@@ -430,13 +440,13 @@ estimate_eqreturn<-function(out, simtime=100, runtype="metapopulation", perturbs
       logdiftmp<-log(pred_diff[-1]/pred_diff[-length(pred_diff)])
       sbs<-is.finite(logdiftmp)
       
-      eigenlst[1:(length(logdiftmp)),sppos][sbs]<-cumsum(logdiftmp[sbs])/(1:(length(pred_diff[sbs])-1))
-      eigenlst_sd[1:(length(logdiftmp)),sppos][sbs]<-sqrt(cumsum(logdiftmp[sbs]^2)/(1:(length(pred_diff[sbs])-1))-(eigenlst[1:(length(logdiftmp[sbs])),sppos])^2)
+      eigenlst[1:(length(logdiftmp)),sppos][sbs]<-cumsum(logdiftmp[sbs])/(1:sum(sbs))
+      eigenlst_sd[1:(length(logdiftmp)),sppos][sbs]<-sqrt(cumsum(logdiftmp[sbs]^2)/(1:(length(pred_diff[sbs])-1))-(eigenlst[1:(length(logdiftmp)),sppos][sbs])^2)
     }
   }
   
   if(doplot) {
-    matplot(c(1,nrow(eigenlst)), range(c(0, eigenlst)), col=1:ncol(eigenlst)+1, lty=1, xlab="time span", ylab=expression(paste(lambda)), type="n"); abline(h=0, lty=3)
+    matplot(c(1,nrow(eigenlst)), range(c(0, eigenlst), na.rm=T), col=1:ncol(eigenlst)+1, lty=1, xlab="time span", ylab=expression(paste(lambda)), type="n"); abline(h=0, lty=3)
     for(i in 1:ncol(eigenlst)) {
       sbs<-which(!is.na(eigenlst[,i]+eigenlst_sd[,i]))
       if(sum(sbs)>0) {
