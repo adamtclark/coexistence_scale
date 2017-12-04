@@ -394,17 +394,17 @@ getE<-function(out, Elst=2:10, doplot=FALSE) {
 }
 
 
-estimate_eqreturn<-function(out, simtime=100, runtype="metapopulation", perturbsites=1:out$plotdata$ngrid, doplot=TRUE, useeq=0, prtb=0.1, E=0, replace_perturb=0) {
+estimate_eqreturn<-function(out, simtime=100, runtype="metapopulation", perturbsites=1:out$plotdata$ngrid, doplot=TRUE, useeq=0, prtb=0.1, E=0, replace_perturb=0, talktime=0) {
   out_lst<-NULL
   for(i in 1:length(out$plotdata$ceq)) {
     pt<-rep(0, length(out$plotdata$ceq))
     pt[i]<-prtb
-    out_lst[[i]]<-rerunrun_metapopulation(out=out, tmax=simtime, talktime = 0, runtype = runtype, perturb=pt, perturbsites=perturbsites, replace_perturb=replace_perturb)
+    out_lst[[i]]<-rerunrun_metapopulation(out=out, tmax=simtime, runtype = runtype, perturb=pt, perturbsites=perturbsites, replace_perturb=replace_perturb, talktime=talktime)
   }
   
   if(sum(useeq)==0 & sum(E)==0) {
     pt<-rep(0, length(out$plotdata$ceq))
-    out_lst0<-rerunrun_metapopulation(out=out, tmax=simtime, talktime = 0, runtype = runtype, perturb=pt, perturbsites=perturbsites)
+    out_lst0<-rerunrun_metapopulation(out=out, tmax=simtime, runtype = runtype, perturb=pt, perturbsites=perturbsites, talktime=talktime)
   }
 
   eigenlst<-matrix(ncol=length(out_lst), nrow=(simtime-1), data=NA)
@@ -446,7 +446,10 @@ estimate_eqreturn<-function(out, simtime=100, runtype="metapopulation", perturbs
   }
   
   if(doplot) {
-    matplot(c(1,nrow(eigenlst)), range(c(0, eigenlst), na.rm=T), col=1:ncol(eigenlst)+1, lty=1, xlab="time span", ylab=expression(paste(lambda)), type="n"); abline(h=0, lty=3)
+    eigenlst<-eigenlst*1:nrow(eigenlst)
+    eigenlst_sd<-eigenlst_sd*1:nrow(eigenlst_sd)
+    
+    matplot(c(1,nrow(eigenlst)), range(c(0, eigenlst), na.rm=T), col=1:ncol(eigenlst)+1, lty=1, xlab="time span", ylab=expression(paste(lambda, "t")), type="n"); abline(h=0, lty=3)
     for(i in 1:ncol(eigenlst)) {
       sbs<-which(!is.na(eigenlst[,i]+eigenlst_sd[,i]))
       if(sum(sbs)>0) {
@@ -461,16 +464,16 @@ estimate_eqreturn<-function(out, simtime=100, runtype="metapopulation", perturbs
   return(list(eigenlst=eigenlst, eigenlst_sd=eigenlst_sd, out_lst=out_lst))
 }
 
-estimate_rarereturn<-function(out, simtime=100, burnin=100, runtype="metapopulation", perturbsites=1:out$plotdata$ngrid, doplot=TRUE) {
+estimate_rarereturn<-function(out, simtime=100, burnin=100, runtype="metapopulation", perturbsites=1:out$plotdata$ngrid, doplot=TRUE, talktime=0) {
   out_lst<-NULL
   for(i in 1:length(out$plotdata$ceq)) {
     pt<-rep(0, length(out$plotdata$ceq))
     pt[i]<-1
-    tmp<-rerunrun_metapopulation(out=out, tmax=burnin, talktime = 0, runtype = runtype, perturb=pt, perturbsites=perturbsites)
+    tmp<-rerunrun_metapopulation(out=out, tmax=burnin, runtype = runtype, perturb=pt, perturbsites=perturbsites, talktime=0)
     
     at<-rep(0, length(out$plotdata$ceq))
     at[i]<-0.05
-    out_lst[[i]]<-rerunrun_metapopulation(out=tmp, tmax=simtime, talktime = 0, runtype = runtype, add=at, addsites=perturbsites)
+    out_lst[[i]]<-rerunrun_metapopulation(out=tmp, tmax=simtime, runtype = runtype, add=at, addsites=perturbsites, talktime=0)
   }
 
   grwrare<-matrix(ncol=length(out_lst), nrow=(simtime-1))
@@ -486,7 +489,10 @@ estimate_rarereturn<-function(out, simtime=100, burnin=100, runtype="metapopulat
   }
   
   if(doplot) {
-    matplot(c(1, nrow(grwrare)), range(c(grwrare, 0)), col=1:ncol(grwrare)+1, lty=1, xlab="time span", ylab=expression(paste("r"[0])), type="n"); abline(h=0, lty=3)
+    grwrare<-grwrare*1:nrow(grwrare)
+    grwrare_sd<-grwrare_sd*1:nrow(grwrare_sd)
+    
+    matplot(c(1, nrow(grwrare)), range(c(grwrare[is.finite(grwrare)], 0, na.rm=T)), col=1:ncol(grwrare)+1, lty=1, xlab="time span", ylab=expression(paste("r"[0], "t")), type="n"); abline(h=0, lty=3)
     for(i in 1:ncol(grwrare)) {
       sbs<-is.finite(grwrare[,i]+grwrare_sd[,i])
       polygon(c(1:nrow(grwrare[sbs,]), rev(1:nrow(grwrare[sbs,]))),
@@ -526,7 +532,7 @@ estimate_invar<-function(out, E=1, burnin=0, Luse=floor((seq((30), (nrow(out$out
       tl<-max(c(tl, pdlag_list[[i]]$laglst))
     }
     
-    plot(c(0, tl), c(0, max(c(mx))), xlab="time lag", ylab="CV", type="n", xaxs="i")
+    plot(c(0, tl), c(0, max(c(mx, na.rm=T))), xlab="time lag", ylab="CV", type="n", xaxs="i")
     abline(h=0, lty=3)
     
     for(i in 1:length(pdlag_list)) {
