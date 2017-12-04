@@ -79,10 +79,16 @@ void run_neutral_metapopulation_spatialsub(double *ptmax, int *pgridsize, int *p
 	GetRNGstate();  // Load seed for random number generation, R base
 
 	//Output time and species abundances
+	output_sub[0+cadj] = 0; //First time step
+	for(i=0; i<nsp; i++) {
+	 output_sub[(nsteps+1)*(i+1)+cadj] = abundances_sub[i+cadj]; //Each species		
+	}
+
 	output[0+cadj] = 0; //First time step
 	for(i=0; i<nsp; i++) {
 	 output[(nsteps+1)*(i+1)+cadj] = abundances[i+cadj]; //Each species		
 	}
+
 	istep=istep+1;
 
 	//Loop until we reach tmax
