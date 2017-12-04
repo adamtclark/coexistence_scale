@@ -15,6 +15,23 @@ makegrid<-function(xlng=50, ylng=50) {
   return(list(xpos=xpos, ypos=ypos, lng=c(xlng, ylng), posmat=posmat))
 }
 
+grid_subset<-function(gridout, size=0.1) {
+  lng<-gridout$lng
+  
+  sz_tmp<-round(sqrt(prod(lng)*size))
+  if(sz_tmp==0) {sz_tmp<-1}
+  
+  x1<-ceiling(lng[1]/2)-ceiling(sz_tmp/2)
+  x2<-ceiling(lng[1]/2)+ceiling(sz_tmp/2-1)
+  
+  y1<-ceiling(lng[2]/2)-ceiling(sz_tmp/2)
+  y2<-ceiling(lng[2]/2)+ceiling(sz_tmp/2-1)
+  
+  sites<-c(gridout$posmat)[gridout$xpos%in%c(x1:x2) & gridout$ypos%in%c(y1:y2)]
+  
+  return(list(sites=sites, frac_tot=(sz_tmp^2)/prod(lng), borders=c(x1=x1, x2=x2, y1=y1, y2=y2)))
+}
+
 populate<-function(gridout, nlst=0.1, clst=c(3,20), mlst=rep(0.1, length(clst)), radlst=3) {
   if(sum(nlst)<1) {
     nlst<-rep(round(prod(gridout$lng)*nlst), length(clst))
@@ -62,8 +79,16 @@ run_metapopulation<-function(tmax, nsteps=tmax, gridout, population, talktime=1,
       dyn.unload("run_metapopulation_spatialsub.so")
       dyn.load("run_metapopulation_spatialsub.so")
     }
+  } else if(runtype=="neutral_spatial") {
+    system("R CMD SHLIB run_neutral_metapopulation_spatialsub.c", ignore.stdout = TRUE)
+    if(!is.loaded("run_neutral_metapopulation_spatialsub")) {
+      dyn.load("run_neutral_metapopulation_spatialsub.so")
+    } else {
+      dyn.unload("run_neutral_metapopulation_spatialsub.so")
+      dyn.load("run_neutral_metapopulation_spatialsub.so")
+    }
   } else {
-    return("error: run type must be 'metapopulation', 'neutral', or 'metapopulation_spatial'")
+    return("error: run type must be 'metapopulation', 'neutral', 'metapopulation_spatial', or 'neural_spatial'")
   }
   
   gridsize<-prod(gridout$lng); nsp<-length(population$clst); xylim<-gridout$lng; destroyed<-rep(0, gridsize)
@@ -117,9 +142,11 @@ run_metapopulation<-function(tmax, nsteps=tmax, gridout, population, talktime=1,
       runname<-"run_neutral_metapopulation"
     } else if(runtype=="metapopulation_spatial") {
       runname<-"run_metapopulation_spatialsub"
+    } else if(runtype=="neutral_spatial") {
+      runname<-"run_neutral_metapopulation_spatialsub"
     }
     
-    if(runtype=="metapopulation_spatial") {
+    if(runtype%in%c("metapopulation_spatial", "neutral_spatial")) {
       pnsites_sub<-length(sites_sub[sites_sub!=0])
       c_sites_sub<-sites_sub-1
       output_sub<-output
@@ -155,6 +182,8 @@ run_metapopulation<-function(tmax, nsteps=tmax, gridout, population, talktime=1,
       dyn.unload("run_neutral_metapopulation.so")
     } else if(runtype=="metapopulation_spatial") {
       dyn.unload("run_metapopulation_spatialsub.so")
+    } else if(runtype=="neutral_spatial") {
+      dyn.unload("run_neutral_metapopulation_spatialsub.so")
     }
     
     out<-matrix(cout$output, nrow=nsteps+1)
@@ -170,7 +199,7 @@ run_metapopulation<-function(tmax, nsteps=tmax, gridout, population, talktime=1,
     
     out<-out[out[,1]!=0 | (1:nrow(out))==1,]
     
-    return(list(output=out, full=cout, plotdata=plotdata, output_spatial=out_spatial))
+    return(list(output=out, full=cout, plotdata=plotdata, output_spatial=out_spatial, sites_sub=sites_sub))
   }
 }
 
@@ -306,16 +335,22 @@ getceq<-function(clst, mlst=rep(0.1, length(clst))) {
   ceq
 }
 
-plot_metapop<-function(output) {
-  out<-output$output
+plot_metapop<-function(output, sites=0) {
   ceq<-output$plotdata$ceq
-  ngrid<-output$plotdata$ngrid
+  
+  if(sum(sites)==0) {
+    out<-output$output
+    ngrid<-output$plotdata$ngrid
+  } else {
+    out<-output$output_spatial
+    ngrid<-length(output$sites_sub)
+  }
   
   sbs<-which(out[,1]>0)
   if(sbs[1]!=1) {
     sbs<-c(1, sbs)
   }
-  #out[,-1][out[,-1]==0]<-NA
+  
   matplot(out[sbs,1], cbind(rowSums(out[sbs,-1]/ngrid), out[sbs,-1]/ngrid), type="l", xlab="time", ylab="p",
           col=1:(ncol(out)), lty=c(1, rep(1, ncol(out)-1)), lwd=2, ylim=c(0,1), xaxs="i", xlim=c(0, ceiling(max(out[sbs,1]))))
   abline(h=c(0,1), lty=3)
@@ -330,9 +365,14 @@ plot_metapop<-function(output) {
   }
 }
 
-plot_map<-function(out, gridout) {
+plot_map<-function(out, gridout, grid_sub=NULL) {
   tmp<-out$full$speciesid; tmp[tmp==out$full$pnsp]<-NA
-  plot(gridout$xpos, gridout$ypos, col=tmp+1, pch=16)
+  plot(gridout$xpos, gridout$ypos, col=tmp+2, pch=16)
+  
+  if(!is.null(grid_sub)) {
+    segments(grid_sub$borders[c(1,1,2,2)]+0.5*c(-1,-1,1,1), grid_sub$borders[c(3,4,4,3)]+0.5*c(-1,1,1,-1), grid_sub$borders[c(1,2,2,1)]+0.5*c(-1,1,1,-1), grid_sub$borders[c(4,4,3,3)]+0.5*c(1,1,-1,-1), col="black", lwd=4)
+    segments(grid_sub$borders[c(1,1,2,2)]+0.5*c(-1,-1,1,1), grid_sub$borders[c(3,4,4,3)]+0.5*c(-1,1,1,-1), grid_sub$borders[c(1,2,2,1)]+0.5*c(-1,1,1,-1), grid_sub$borders[c(4,4,3,3)]+0.5*c(1,1,-1,-1), col="white", lwd=1)
+  }
 }
 
 
@@ -532,7 +572,7 @@ estimate_invar<-function(out, E=1, burnin=0, Luse=floor((seq((30), (nrow(out$out
       tl<-max(c(tl, pdlag_list[[i]]$laglst))
     }
     
-    plot(c(0, tl), c(0, max(c(mx, na.rm=T))), xlab="time lag", ylab="CV", type="n", xaxs="i")
+    plot(c(0, tl), c(0, max(c(mx), na.rm=T)), xlab="time lag", ylab="CV", type="n", xaxs="i")
     abline(h=0, lty=3)
     
     for(i in 1:length(pdlag_list)) {
