@@ -1,0 +1,13 @@
+#!/bin/bash
+#------------------------------------------
+#$ -N levins_script
+#$ -o iman.out$JOB_ID
+#$ -j y
+#$ -S /bin/bash
+#$ -l h_rt=01:00:00 
+#$ -l h_vmem=10G
+#$ -pe smp 10
+#$ -m ea
+#$ -M adam.tclark@gmail.com
+
+source levins_script
