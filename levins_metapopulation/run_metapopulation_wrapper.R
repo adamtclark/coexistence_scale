@@ -885,11 +885,11 @@ runpar<-function(...) {
   matout[1:neq,(1:nsp)+nsp*(5)]<-r0_neut$grwrare
   
   for(ii in 1:length(invar_meta$pdlag_list)) {
-    matout[1:nlg,nsp*6+(ii)+3*(ii-1)]<-invar_meta$pdlag_list[[ii]]$laglst
-    matout[1:nlg,nsp*6+(ii)+3*(ii-1)+1]<-invar_meta$pdlag_list[[ii]]$CVest[,3]
+    matout[1:length(invar_meta$pdlag_list[[ii]]$laglst),nsp*6+(ii)+3*(ii-1)]<-invar_meta$pdlag_list[[ii]]$laglst
+    matout[1:length(invar_meta$pdlag_list[[ii]]$laglst),nsp*6+(ii)+3*(ii-1)+1]<-invar_meta$pdlag_list[[ii]]$CVest[,3]
     
-    matout[1:nlg,nsp*6+(ii)+3*(ii-1)+2]<-invar_neut$pdlag_list[[ii]]$laglst
-    matout[1:nlg,nsp*6+(ii)+3*(ii-1)+3]<-invar_neut$pdlag_list[[ii]]$CVest[,3]
+    matout[1:length(invar_neut$pdlag_list[[ii]]$laglst),nsp*6+(ii)+3*(ii-1)+2]<-invar_neut$pdlag_list[[ii]]$laglst
+    matout[1:length(invar_neut$pdlag_list[[ii]]$laglst),nsp*6+(ii)+3*(ii-1)+3]<-invar_neut$pdlag_list[[ii]]$CVest[,3]
   }
   
   return(t(matout))
