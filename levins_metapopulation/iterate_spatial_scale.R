@@ -11,7 +11,7 @@ require(parallel)
 source("run_metapopulation_wrapper.R")
 
 #set up for runs
-niterations<-3#1000
+niterations<-1000
 scalelst<-c(0.01, 0.02, 0.05, 0.1, 0.3, 0.5, 1)
 
 #set up simulations
