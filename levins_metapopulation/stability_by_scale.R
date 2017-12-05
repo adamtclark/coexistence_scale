@@ -46,7 +46,7 @@ mtext("Levins Model", side=3)
 
 getEmeta<-getE(out_meta, Elst = 2:10)
 E_meta<-getEmeta$Eout
-E_meta[E_meta<5]<-5
+E_meta[E_meta<4]<-4
 
 #Estimate Eigenvalue
 #eig_meta<-estimate_eqreturn(out_meta, simtime=100, runtype="metapopulation", useeq=getceq(clst_meta), replace_perturb = 1)
@@ -79,7 +79,7 @@ mtext("Neutral Model", side=3)
 
 getEneut<-getE(out_neut, Elst = 2:10)
 E_neut<-getEneut$Eout
-E_neut[E_neut<5]<-5
+E_neut[E_neut<4]<-4
 
 #Estimate Eigenvalue
 #eig_neut<-estimate_eqreturn(out_neut, simtime=100, runtype="neutral", useeq = rep(unique(abs(getceq(clst_neut)))/length(clst_neut), length(clst_neut)), replace_perturb = 1)
@@ -113,6 +113,10 @@ plot_metapop(out_meta, sites=1)
 mtext("Levins Model", side=3)
 #plot_map(out_meta, gridout, grid_sub=grid_sub)
 
+getEmeta<-getE(out_meta, Elst = 2:10, sites_sub = grid_sub$sites)
+E_meta<-getEmeta$Eout
+E_meta[E_meta<4]<-4
+
 #eig_meta<-estimate_eqreturn(out_meta, simtime=100, runtype="metapopulation", replace_perturb = 0, talktime=0, prtb=ptb)
 eig_meta1<-estimate_eqreturn(out_meta, simtime=100, runtype="metapopulation_spatial", replace_perturb = 1, talktime=0, prtb=ptb, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites)
 mtext("replace", side=3, cex=0.8)
@@ -132,6 +136,10 @@ out_neut<-run_metapopulation(tmax=1000, gridout = gridout, population = populati
 plot_metapop(out_neut, sites=1)
 mtext("Neutral Model", side=3)
 #plot_map(out_neut, gridout, grid_sub=grid_sub)
+
+getEneut<-getE(out_neut, Elst = 2:10, sites_sub = grid_sub$sites)
+E_neut<-getEneut$Eout
+E_neut[E_neut<4]<-4
 
 #eig_neut<-estimate_eqreturn(out_neut, simtime=100, runtype="neutral", replace_perturb = 1, talktime=0, prtb=ptb)
 eig_neut1<-estimate_eqreturn(out_neut, simtime=100, runtype="neutral_spatial", replace_perturb = 1, talktime=0, prtb=ptb, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites)

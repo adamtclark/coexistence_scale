@@ -453,7 +453,11 @@ rewrap_pop<-function(out, population) {
 ########################################
 # Equilibrium analysis function
 ########################################
-getE<-function(out, Elst=2:10, doplot=FALSE) {
+getE<-function(out, Elst=2:10, doplot=FALSE, sites_sub=0) {
+  
+  if(sum(sites_sub)>0) {
+    out$output<-out$output_spatial
+  }
   
   Eout<-numeric(length(out$plotdata$ceq))
   simplout<-NULL
@@ -802,6 +806,94 @@ test_predict_tlag<-function(outcol, Luse, E=1, burnin=0, laglst=c(floor((seq((0)
   
   return(list(CVest=CVest, predmat=predmat, laglst=laglst, Luse=Luse))
 }
+
+
+########################################
+# Parallel functions
+########################################
+
+runpar<-function(...) {
+  require(rEDM)
+  
+  #run simulations
+  if(grid_sub$frac_tot==1) {   #global sclae
+    #run levins
+    out_meta<-run_metapopulation(tmax=tmax, gridout = gridout, population = population_meta, talktime = 0)
+    
+    getEmeta<-getE(out_meta, Elst = 2:10)
+    E_meta<-getEmeta$Eout
+    E_meta[E_meta<minE]<-minE
+    
+    eig_meta1<-estimate_eqreturn(out_meta, simtime=simtime, runtype="metapopulation", replace_perturb = 1, talktime=0, prtb=ptb, doplot=FALSE)
+    eig_meta2<-estimate_eqreturn(out_meta, simtime=simtime, runtype="metapopulation", replace_perturb = 0, talktime=0, prtb=ptb, doplot=FALSE)
+    r0_meta<-estimate_rarereturn(out_meta, simtime=simtime, burnin=burnin, runtype="metapopulation", doplot=FALSE)
+    invar_meta<-estimate_invar(out_meta, E=E_meta, burnin=0, doplot=FALSE, laglst = lglst)
+    
+    #run netural
+    out_neut<-run_metapopulation(tmax=tmax, gridout = gridout, population = population_neut, talktime = 0, runtype = "neutral")
+    
+    getEneut<-getE(out_neut, Elst = 2:10)
+    E_neut<-getEneut$Eout
+    E_neut[E_neut<minE]<-minE
+    
+    eig_neut1<-estimate_eqreturn(out_neut, simtime=simtime, runtype="neutral", replace_perturb = 1, talktime=0, prtb=ptb, doplot=FALSE)
+    eig_neut2<-estimate_eqreturn(out_neut, simtime=simtime, runtype="neutral", replace_perturb = 0, talktime=0, prtb=ptb, doplot=FALSE)
+    r0_neut<-estimate_rarereturn(out_neut, simtime=simtime, burnin=burnin, runtype="neutral", doplot=FALSE)
+    invar_neut<-estimate_invar(out_neut, E=E_neut, burnin=0, doplot=FALSE, laglst = lglst)
+    
+  } else { #spatial subset
+    #run levins
+    out_meta<-run_metapopulation(tmax=tmax, gridout = gridout, population = population_meta, talktime = 0, runtype = "metapopulation_spatial", sites_sub = grid_sub$sites)
+    
+    getEmeta<-getE(out_meta, Elst = 2:10, sites_sub = grid_sub$sites)
+    E_meta<-getEmeta$Eout
+    E_meta[E_meta<minE]<-minE
+    
+    eig_meta1<-estimate_eqreturn(out_meta, simtime=simtime, runtype="metapopulation_spatial", replace_perturb = 1, talktime=0, prtb=ptb, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites, doplot=FALSE)
+    eig_meta2<-estimate_eqreturn(out_meta, simtime=simtime, runtype="metapopulation_spatial", replace_perturb = 0, talktime=0, prtb=ptb, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites, doplot=FALSE)
+    r0_meta<-estimate_rarereturn(out_meta, simtime=simtime, burnin=burnin, runtype="metapopulation_spatial", perturbsites = grid_sub$sites, sites_sub = grid_sub$sites, doplot=FALSE)
+    invar_meta<-estimate_invar(out_meta, E=E_meta, burnin=0, doplot=FALSE, sites_sub = grid_sub$sites, laglst = lglst)
+    
+    #run neutral
+    out_neut<-run_metapopulation(tmax=tmax, gridout = gridout, population = population_neut, talktime = 0, runtype = "neutral_spatial", sites_sub = grid_sub$sites)
+    
+    getEneut<-getE(out_neut, Elst = 2:10)
+    E_neut<-getEneut$Eout
+    E_neut[E_neut<minE]<-minE
+    
+    eig_neut1<-estimate_eqreturn(out_neut, simtime=simtime, runtype="neutral_spatial", replace_perturb = 1, talktime=0, prtb=ptb, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites, doplot=FALSE)
+    eig_neut2<-estimate_eqreturn(out_neut, simtime=simtime, runtype="neutral_spatial", replace_perturb = 0, talktime=0, prtb=ptb, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites, doplot=FALSE)
+    r0_neut<-estimate_rarereturn(out_neut, simtime=simtime, burnin=burnin, runtype="neutral_spatial", perturbsites = grid_sub$sites, sites_sub = grid_sub$sites, doplot=FALSE)
+    invar_neut<-estimate_invar(out_neut, E=E_neut, burnin=0, doplot=FALSE, sites_sub = grid_sub$sites, laglst = lglst)
+  }
+  
+  #make output matrix
+  nsp<-length(clst_meta)
+  neq<-nrow(eig_meta1$eigenlst)
+  nlg<-length(invar_meta$pdlag_list[[1]]$laglst)
+  mlng<-max(c(neq, nlg))
+  matout<-matrix(nrow=mlng, ncol=nsp*10, data=NA)
+  
+  #collect and output data
+  matout[1:neq,(1:nsp)+nsp*(0)]<-eig_meta1$eigenlst
+  matout[1:neq,(1:nsp)+nsp*(1)]<-eig_meta2$eigenlst
+  matout[1:neq,(1:nsp)+nsp*(2)]<-r0_meta$grwrare
+  
+  matout[1:neq,(1:nsp)+nsp*(3)]<-eig_neut1$eigenlst
+  matout[1:neq,(1:nsp)+nsp*(4)]<-eig_neut2$eigenlst
+  matout[1:neq,(1:nsp)+nsp*(5)]<-r0_neut$grwrare
+  
+  for(ii in 1:length(invar_meta$pdlag_list)) {
+    matout[1:nlg,nsp*6+(ii)+3*(ii-1)]<-invar_meta$pdlag_list[[ii]]$laglst
+    matout[1:nlg,nsp*6+(ii)+3*(ii-1)+1]<-invar_meta$pdlag_list[[ii]]$CVest[,3]
+    
+    matout[1:nlg,nsp*6+(ii)+3*(ii-1)+2]<-invar_neut$pdlag_list[[ii]]$laglst
+    matout[1:nlg,nsp*6+(ii)+3*(ii-1)+3]<-invar_neut$pdlag_list[[ii]]$CVest[,3]
+  }
+  
+  return(t(matout))
+}
+
 
 ########################################
 # Example of running functions
