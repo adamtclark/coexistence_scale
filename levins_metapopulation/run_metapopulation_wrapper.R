@@ -662,10 +662,11 @@ estimate_invar<-function(out, E=1, burnin=0, Luse=floor((seq((30), (nrow(out$out
     pdL_list[[i]]<-predict_vs_L(out$output[,i+1], E=E[i], burnin=burnin, Luse=Luse, niter=niter, doplot=FALSE)
     Lusetmp<-min(c(ceiling(nrow(out$output)/5), pdL_list[[i]]$Lmin))
     
-    if(sum(laglst==0)) {
+    if(sum(laglst)==0) {
       laglst_use<-c(floor((seq((0), ((nrow(out$output)-burnin-Lusetmp)), length=20))))
     } else {
       laglst_use<-laglst
+      laglst_use<-laglst_use[laglst_use<=((nrow(out$output)-burnin-Lusetmp))]
     }
     pdlag_list[[i]]<-test_predict_tlag(out$output[,i+1], Luse=Lusetmp, E=E[i], burnin=burnin, laglst=laglst_use, niter=niter, doplot=FALSE)
   }
