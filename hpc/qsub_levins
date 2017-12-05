@@ -10,4 +10,4 @@
 #$ -m ea
 #$ -M adam.tclark@gmail.com
 
-source levins_script
+source /home/clarka/coexistence_scale/hpc/levins_script
