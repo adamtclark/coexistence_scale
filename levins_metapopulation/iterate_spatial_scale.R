@@ -1,5 +1,5 @@
 #!/usr/bin/env Rscript
-error
+#error
 rm(list=ls())
 #setwd("~/Dropbox/Projects/032_Coexistence_mechanisms/src/levins_metapopulation/")
 
