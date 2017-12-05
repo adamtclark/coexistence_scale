@@ -638,9 +638,17 @@ estimate_rarereturn<-function(out, simtime=100, burnin=100, runtype="metapopulat
 }
 
 
-estimate_invar<-function(out, E=1, burnin=0, Luse=floor((seq((30), (nrow(out$output)-burnin), length=20))), laglst=0, niter=0, doplot=TRUE) {
+estimate_invar<-function(out, E=1, burnin=0, Luse=floor((seq((30), (nrow(out$output)-burnin), length=20))), laglst=0, niter=0, doplot=TRUE, sites_sub=0) {
   if(length(E)==1) {
     E<-rep(E, length(out$plotdata$ceq))
+  }
+  
+  if(sum(sites_sub)>0) {
+    out$tmp_data<-out$output
+    out$tmp_lng<-out$plotdata$ngrid
+    
+    out$output<-out$output_spatial
+    out$plotdata$ngrid<-length(out$sites_sub)
   }
   
   pdL_list<-NULL
@@ -677,6 +685,14 @@ estimate_invar<-function(out, E=1, burnin=0, Luse=floor((seq((30), (nrow(out$out
       lines(pdlag_list[[i]]$laglst, pdlag_list[[i]]$CVest[,3], col=i+1, lwd=2, lty=1)
     }
   }
+  
+  #if(sum(sites_sub)>0) {
+  #  out$output<-out$tmp_data
+  #  out$plotdata$ngrid<-out$tmp_lng
+  #  
+  #  out$tmp_data<-NULL
+  #  out$tmp_lng<-NULL
+  #}
   
   return(list(pdL_list=pdL_list, pdlag_list=pdlag_list))
 }
