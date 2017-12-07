@@ -23,7 +23,7 @@ tmax<-1000 #timeseries length
 burnin<-100 #burning for growth rate when rare method
 simtime<-100 #time spans for equilibria dectection
 
-lglst<-round(seq(0, tmax, length=20)) #lags for invar test
+lglst<-round(seq(0, tmax*0.8-10, length=20)) #lags for invar test
 
 minE<-4 #minimum E for simplex algorithm
 
