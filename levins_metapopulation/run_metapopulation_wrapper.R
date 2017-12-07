@@ -622,8 +622,8 @@ estimate_rarereturn<-function(out, simtime=100, burnin=100, runtype="metapopulat
   }
   
   if(doplot) {
-    grwrare<-grwrare*1:nrow(grwrare)
-    grwrare_sd<-grwrare_sd*1:nrow(grwrare_sd)
+    grwrare<-grwrare*(1:nrow(grwrare))
+    grwrare_sd<-grwrare_sd*(1:nrow(grwrare_sd))
     
     matplot(c(1, nrow(grwrare)), range(c(grwrare[is.finite(grwrare)], 0, na.rm=T)), col=1:ncol(grwrare)+1, lty=1, xlab="time span", ylab=expression(paste("r"[0], "t")), type="n"); abline(h=0, lty=3)
     for(i in 1:ncol(grwrare)) {
@@ -631,6 +631,10 @@ estimate_rarereturn<-function(out, simtime=100, burnin=100, runtype="metapopulat
       polygon(c(1:nrow(grwrare[sbs,]), rev(1:nrow(grwrare[sbs,]))),
               c(grwrare[sbs,i]+grwrare_sd[sbs,i], rev(grwrare[sbs,i]-grwrare_sd[sbs,i])), col=adjustcolor(i+1, alpha.f = 0.1), border=NA)
     }
+    
+    
+    grwrare<-grwrare/(1:nrow(grwrare))
+    grwrare_sd<-grwrare_sd/(1:nrow(grwrare_sd))
     
     matlines(1:nrow(grwrare), grwrare, col=(1:ncol(grwrare))+1, lty=1, lwd=2)
   }
