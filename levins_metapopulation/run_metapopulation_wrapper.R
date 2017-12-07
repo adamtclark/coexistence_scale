@@ -412,9 +412,9 @@ plot_metapop<-function(output, sites=0) {
   }
 }
 
-plot_map<-function(out, gridout, grid_sub=NULL) {
+plot_map<-function(out, gridout, grid_sub=NULL, collst=2:(length(out_meta$plotdata$ceq)+1)) {
   tmp<-out$full$speciesid; tmp[tmp==out$full$pnsp]<-NA
-  plot(gridout$xpos, gridout$ypos, col=tmp+2, pch=16)
+  plot(gridout$xpos, gridout$ypos, col=collst[tmp+1], pch=16, xlab="x position", ylab="y position", cex=0.8, xaxs="i", yaxs="i")
   
   if(!is.null(grid_sub)) {
     segments(grid_sub$borders[c(1,1,2,2)]+0.5*c(-1,-1,1,1), grid_sub$borders[c(3,4,4,3)]+0.5*c(-1,1,1,-1), grid_sub$borders[c(1,2,2,1)]+0.5*c(-1,1,1,-1), grid_sub$borders[c(4,4,3,3)]+0.5*c(1,1,-1,-1), col="black", lwd=4)
@@ -549,7 +549,7 @@ estimate_eqreturn<-function(out, simtime=100, runtype="metapopulation", perturbs
   }
   
   if(doplot) {
-    eigenlst<-eigenlst*1:nrow(eigenlst)
+    eigenlst<-eigenlst*(1:nrow(eigenlst))
     eigenlst_sd<-eigenlst_sd*1:nrow(eigenlst_sd)
     
     matplot(c(1,nrow(eigenlst)), range(c(0, eigenlst), na.rm=T), col=1:ncol(eigenlst)+1, lty=1, xlab="time span", ylab=expression(paste(lambda, "t")), type="n"); abline(h=0, lty=3)
@@ -562,6 +562,9 @@ estimate_eqreturn<-function(out, simtime=100, runtype="metapopulation", perturbs
     }
     
     matlines(1:nrow(eigenlst), eigenlst, col=1:ncol(eigenlst)+1, lty=1, lwd=2)
+    
+    eigenlst<-eigenlst/(1:nrow(eigenlst))
+    eigenlst_sd<-eigenlst_sd/1:nrow(eigenlst_sd)
   }
   
   if(sum(sites_sub)!=0) {
@@ -579,16 +582,19 @@ estimate_eqreturn<-function(out, simtime=100, runtype="metapopulation", perturbs
     }
   }
   
-  return(list(eigenlst=eigenlst, eigenlst_sd=eigenlst_sd, out_lst=out_lst))
+  return(list(eigenlst=eigenlst, eigenlst_sd=eigenlst_sd, out_lst=out_lst, out_lst0=out_lst0))
 }
 
 estimate_rarereturn<-function(out, simtime=100, burnin=100, runtype="metapopulation", perturbsites=1:out$plotdata$ngrid, doplot=TRUE, talktime=0, add_amount=0.05, sites_sub=0) {
   out_lst<-NULL
+  out0_lst<-NULL
+  
   for(i in 1:length(out$plotdata$ceq)) {
     pt<-rep(0, length(out$plotdata$ceq))
     pt[i]<-1
     
     tmp<-rerunrun_metapopulation(out=out, tmax=burnin, runtype = runtype, perturb=pt, perturbsites=perturbsites, talktime=0, sites_sub=sites_sub)
+    out0_lst[[i]]<-tmp
     
     at<-rep(0, length(out$plotdata$ceq))
     at[i]<-add_amount
@@ -638,7 +644,7 @@ estimate_rarereturn<-function(out, simtime=100, burnin=100, runtype="metapopulat
     }
   }
   
-  return(list(grwrare=grwrare, grwrare_sd=grwrare_sd, out_lst=out_lst))
+  return(list(grwrare=grwrare, grwrare_sd=grwrare_sd, out_lst=out_lst, out0_lst=out0_lst))
 }
 
 
