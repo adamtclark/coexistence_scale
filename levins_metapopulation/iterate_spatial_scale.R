@@ -13,6 +13,7 @@ source("run_metapopulation_wrapper.R")
 #set up for runs
 niterations<-1000
 scalelst<-c(0.01, 0.02, 0.05, 0.1, 0.3, 0.5, 1)
+radlst<-5
 
 #set up simulations
 gridout<-makegrid(xlng = 100, ylng = 100) #grid for simulation
@@ -30,12 +31,12 @@ minE<-4 #minimum E for simplex algorithm
 clst_meta = c(0.15, 0.3, 0.8, 3)*xfac
 mlst_meta = rep(0.1, length(clst_meta))*xfac
 population_meta<-populate(gridout, nlst = floor(getceq(clst_meta, mlst_meta)*prod(gridout$lng)),
-                          clst = clst_meta, radlst = Inf, mlst = mlst_meta)
+                          clst = clst_meta, radlst = radlst, mlst = mlst_meta)
 
 clst_neut<-rep(0.5, 4)*xfac
 mlst_neut<-rep(0.1, length(clst_neut))*xfac
 population_neut<-populate(gridout, nlst = round(rep(unique(abs(getceq(clst_neut, mlst_neut)))/length(clst_neut), length(clst_neut))*prod(gridout$lng)),
-                          clst = clst_neut, radlst = Inf, mlst = mlst_neut)
+                          clst = clst_neut, radlst = radlst, mlst = mlst_neut)
 
 #open cluster
 if(!exists("cl") & niterations>1) {
