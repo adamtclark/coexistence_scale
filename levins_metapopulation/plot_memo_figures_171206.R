@@ -37,6 +37,17 @@ E_meta[E_meta<4]<-4
 
 invar_meta<-estimate_invar(out_meta_long, E=E_meta, burnin=0, doplot=FALSE)
 
+pdf("figures/memo_171206/levis_spatialsubset_map.pdf", width=5, height=5, colormodel = "cmyk")
+par(mar=c(2,2,2,2), oma=c(2,2,0,0))
+
+plot_map(out_meta, gridout = gridout, grid_sub = grid_sub, collst=collst[-1])
+
+shadowtext(50, 50, "5%", cex=2)
+mtext("x position", 1, line=2.3, cex=1.1)
+mtext("y position", 2, line=2.3, cex=1.1)
+
+dev.off()
+
 
 ##### Try Hubbell neutal model
 set.seed(171206)
@@ -141,6 +152,13 @@ put.fig.letter("c.", "topleft", offset=ofs2, cex=1.6)
 mtext("time span", 1, line=2.3, cex=1.1)
 mtext(expression(italic(paste(lambda, "t"))), 2, line=2.3, cex=1.1)
 
+dev.off()
+
+pdf("figures/memo_171206/neutral_perturbation_noreplace.pdf", width=4, height=6, colormodel = "cmyk")
+
+par(mar=c(2,2,2,2), oma=c(2,2,0,0))
+m<-t(matrix(nrow=2, c(rep(1, 4), rep(2,2), rep(3,2))))
+layout(m)
 
 #without replacing perturbation
 matplot(pmat_neut2[,1], pmat_neut2[,-1]/out_neut$plotdata$ngrid, type="l", lty=1, col=collst[c(4,3,2,5)], lwd=1.5, xlab="time", ylab="relative abundance", xaxs="i")
