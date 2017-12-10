@@ -136,6 +136,7 @@ for(adpos in c(1,2)) {
 # By Species
 ###############
 pdf("figures/stability_by_scale_iter.pdf", width=6, height=4, colormodel = "cmyk")
+#pdf("figures/stability_by_scale_iter_local.pdf", width=6, height=4, colormodel = "cmyk")
 par(mfrow=c(2,nsp), mar=c(2,2,1,1), oma=c(3,4,2,0))
 
 tmp<-c(intersect(grep("eig_", names_eigr0pos, fixed=T), grep("1.", names_eigr0pos, fixed=T)),
@@ -147,7 +148,7 @@ lwduse<-1.5
 m<-1
 for(adpos in tmp) {
   plot(range(tscalelst), range(c(0, matout_eigr0[sclsuse,,c(3),adpos]), na.rm=T), type="n", xlab="time scale", ylab=expression(italic(paste(lambda, "t"))), xaxs="i",
-       ylim=c(-2.5, 0.5))
+       ylim=c(-2.5, 1))
   abline(h=0, lty=3)
   
   if(m<=nsp) {
