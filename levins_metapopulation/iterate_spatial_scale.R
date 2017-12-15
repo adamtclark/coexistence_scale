@@ -47,7 +47,7 @@ if(!exists("cl") & niterations>1) {
 clusterExport(cl, c("gridout", "population_meta", "population_neut", "ptb",
                     "tmax", "burnin", "simtime", "lglst",
                     "clst_meta", "mlst_meta", "clst_neut", "mlst_neut",
-                    "run_metapopulation", "rerunrun_metapopulation", "getceq", "getE", "minE",
+                    "run_metapopulation", "rerunrun_metapopulation", "getceq", "getE", "minE", "loadrun",
                     "estimate_eqreturn", "estimate_rarereturn", "estimate_invar", "predict_vs_L", "test_predict_tlag")) #need to add in all functions and sub-functions here
 
 #run simulations

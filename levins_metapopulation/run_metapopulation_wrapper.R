@@ -53,9 +53,11 @@ populate<-function(gridout, nlst=0.1, clst=c(3,20), mlst=rep(0.1, length(clst)),
   return(list(spid=spid, nlst=nlst, clst=clst, mlst=mlst, radlst=radlst, pos_sp=pos_sp, patch_occupied=patch_occupied))
 }
 
-run_metapopulation<-function(tmax, nsteps=tmax, gridout, population, talktime=1, runtype="metapopulation", sites_sub=0) {
+
+loadrun<-function(runtype) {
+  trigger<-NULL
   
-  if(runtype=="metapopulation") {
+  if(runtype%in%c("metapopulation", "disturbance")) {
     system("R CMD SHLIB run_metapopulation.c", ignore.stdout = TRUE)
     if(!is.loaded("run_metapopulation")) {
       dyn.load("run_metapopulation.so")
@@ -71,7 +73,7 @@ run_metapopulation<-function(tmax, nsteps=tmax, gridout, population, talktime=1,
       dyn.unload("run_neutral_metapopulation.so")
       dyn.load("run_neutral_metapopulation.so")
     }
-  } else if(runtype=="metapopulation_spatial") {
+  } else if(runtype%in%c("metapopulation_spatial", "disturbance_spatial")) {
     system("R CMD SHLIB run_metapopulation_spatialsub.c", ignore.stdout = TRUE)
     if(!is.loaded("run_metapopulation_spatialsub")) {
       dyn.load("run_metapopulation_spatialsub.so")
@@ -88,7 +90,20 @@ run_metapopulation<-function(tmax, nsteps=tmax, gridout, population, talktime=1,
       dyn.load("run_neutral_metapopulation_spatialsub.so")
     }
   } else {
-    return("error: run type must be 'metapopulation', 'neutral', 'metapopulation_spatial', or 'neural_spatial'")
+    trigger<-"error: run type must be 'metapopulation', 'neutral', 'metapopulation_spatial', 'neural_spatial', 'disturbance', or 'disturbance_spatial'"
+  }
+  return(trigger)
+}
+
+
+
+
+
+run_metapopulation<-function(tmax, nsteps=tmax, gridout, population, talktime=1, runtype="metapopulation", sites_sub=0, prt=0, prtfrq=0) {
+
+  runtp<-loadrun(runtype)
+  if(!is.null(runtp)) {
+    return(runtp)
   }
   
   gridsize<-prod(gridout$lng); nsp<-length(population$clst); xylim<-gridout$lng; destroyed<-rep(0, gridsize)
@@ -136,63 +151,161 @@ run_metapopulation<-function(tmax, nsteps=tmax, gridout, population, talktime=1,
     print("error: must compile code with larger buffer size, or decrease grid size!")
   } else {
     
-    if(runtype=="metapopulation") {
+    if(runtype%in%c("metapopulation", "disturbance")) {
       runname<-"run_metapopulation"
     } else if(runtype=="neutral") {
       runname<-"run_neutral_metapopulation"
-    } else if(runtype=="metapopulation_spatial") {
+    } else if(runtype%in%c("metapopulation_spatial", "disturbance_spatial")) {
       runname<-"run_metapopulation_spatialsub"
     } else if(runtype=="neutral_spatial") {
       runname<-"run_neutral_metapopulation_spatialsub"
     }
     
-    if(runtype%in%c("metapopulation_spatial", "neutral_spatial")) {
+    if(runtype%in%c("disturbance", "disturbance_spatial")) {
+      tmax_sub<-prtfrq
+      nprt_cyc<-round(tmax/prtfrq)
+      nsteps_sub<-tmax_sub
+      
+      output<-numeric((nsteps_sub+1)*(nsp+1))
+    }
+    
+    if(runtype%in%c("metapopulation_spatial", "neutral_spatial", "disturbance_spatial")) {
       pnsites_sub<-length(sites_sub[sites_sub!=0])
       c_sites_sub<-sites_sub-1
       output_sub<-output
       
       abundances_sub<-unname(table(speciesid[sites_sub])[1:nsp])
       
-      cout<-.C(runname,
-               ptmax= as.double(tmax), pgridsize=as.integer(gridsize), pnsp=as.integer(nsp), xylim=as.integer(xylim), destroyed=as.integer(destroyed), #grid
-               c_sptraits=as.double(c_sptraits), m_sptraits=as.double(m_sptraits), abundances=as.integer(abundances), colsites=as.integer(colsites), pncolsites=as.integer(ncolsites), #traits
-               eventtimes_c=as.double(eventtimes_c), eventtimes_m=as.double(eventtimes_m), #events
-               speciesid=as.integer(speciesid), #species
-               output=as.double(output), pnsteps=as.integer(nsteps),
-               ptalktime=as.integer(talktime),
-               abundances_sub=as.integer(abundances_sub), sites_sub=as.integer(c_sites_sub), pnsites_sub=as.integer(pnsites_sub), output_sub=as.double(output_sub))
+      if(runtype=="disturbance_spatial") {
+        output_tot<-NULL
+        output_spatial_tot<-NULL
+        
+        cout<-.C(runname,
+                 ptmax= as.double(tmax_sub), pgridsize=as.integer(gridsize), pnsp=as.integer(nsp), xylim=as.integer(xylim), destroyed=as.integer(destroyed), #grid
+                 c_sptraits=as.double(c_sptraits), m_sptraits=as.double(m_sptraits), abundances=as.integer(abundances), colsites=as.integer(colsites), pncolsites=as.integer(ncolsites), #traits
+                 eventtimes_c=as.double(eventtimes_c), eventtimes_m=as.double(eventtimes_m), #events
+                 speciesid=as.integer(speciesid), #species
+                 output=as.double(output), pnsteps=as.integer(nsteps_sub),
+                 ptalktime=as.integer(talktime),
+                 abundances_sub=as.integer(abundances_sub), sites_sub=as.integer(c_sites_sub), pnsites_sub=as.integer(pnsites_sub), output_sub=as.double(output_sub))
+        
+        if(nprt_cyc>1) {
+          nsp<-length(population$clst)
+          ngrid<-prod(gridout$lng)
+          ceq<-numeric(nsp)
+          plotdata<-list(ceq=ceq, ngrid=ngrid)
+          
+          for(i in 1:(nprt_cyc-1)) {
+            out<-matrix(cout$output, nrow=nsteps_sub+1)
+            out<-out[out[,1]!=0 | (1:nrow(out))==1,]
+            
+            out_spatial<-matrix(cout$output_sub, nrow=nsteps_sub+1)
+            out_spatial<-out_spatial[out_spatial[,1]!=0 | (1:nrow(out_spatial))==1,]
+            
+            out_tmp<-list(output=out, full=cout, plotdata=plotdata, output_spatial=0, sites_sub=sites_sub)
+            
+            out[,1]<-out[,1]+tmax_sub*(i-1)
+            output_tot<-rbind(output_tot, out)
+            
+            out_spatial[,1]<-out_spatial[,1]+tmax_sub*(i-1)
+            output_spatial_tot<-rbind(output_spatial_tot, out_spatial)
+            
+            out_rerun<-rerunrun_metapopulation(out_tmp, tmax_sub, nsteps=tmax_sub, talktime=0, runtype="metapopulation_spatial", perturb=prt, sites_sub = sites_sub)
+            cout<-out_rerun$full
+          }
+          
+          out<-output_tot
+          out_spatial<-output_spatial_tot
+          
+        } else {
+          out_spatial<-matrix(cout$output_sub, nrow=nsteps+1)
+          out_spatial<-out_spatial[out_spatial[,1]!=0 | (1:nrow(out_spatial))==1,]
+        }
+        
+      } else {
+        cout<-.C(runname,
+                 ptmax= as.double(tmax), pgridsize=as.integer(gridsize), pnsp=as.integer(nsp), xylim=as.integer(xylim), destroyed=as.integer(destroyed), #grid
+                 c_sptraits=as.double(c_sptraits), m_sptraits=as.double(m_sptraits), abundances=as.integer(abundances), colsites=as.integer(colsites), pncolsites=as.integer(ncolsites), #traits
+                 eventtimes_c=as.double(eventtimes_c), eventtimes_m=as.double(eventtimes_m), #events
+                 speciesid=as.integer(speciesid), #species
+                 output=as.double(output), pnsteps=as.integer(nsteps),
+                 ptalktime=as.integer(talktime),
+                 abundances_sub=as.integer(abundances_sub), sites_sub=as.integer(c_sites_sub), pnsites_sub=as.integer(pnsites_sub), output_sub=as.double(output_sub))
+        
+        out_spatial<-matrix(cout$output_sub, nrow=nsteps+1)
+        out_spatial<-out_spatial[out_spatial[,1]!=0 | (1:nrow(out_spatial))==1,]
+      }
       
-      out_spatial<-matrix(cout$output_sub, nrow=nsteps+1)
-      out_spatial<-out_spatial[out_spatial[,1]!=0 | (1:nrow(out_spatial))==1,]
     } else {
-      cout<-.C(runname,
-               ptmax= as.double(tmax), pgridsize=as.integer(gridsize), pnsp=as.integer(nsp), xylim=as.integer(xylim), destroyed=as.integer(destroyed), #grid
-               c_sptraits=as.double(c_sptraits), m_sptraits=as.double(m_sptraits), abundances=as.integer(abundances), colsites=as.integer(colsites), pncolsites=as.integer(ncolsites), #traits
-               eventtimes_c=as.double(eventtimes_c), eventtimes_m=as.double(eventtimes_m), #events
-               speciesid=as.integer(speciesid), #species
-               output=as.double(output), pnsteps=as.integer(nsteps),
-               ptalktime=as.integer(talktime))
+      if(runtype=="disturbance") {
+        output_tot<-NULL
+        
+        cout<-.C(runname,
+                 ptmax= as.double(tmax_sub), pgridsize=as.integer(gridsize), pnsp=as.integer(nsp), xylim=as.integer(xylim), destroyed=as.integer(destroyed), #grid
+                 c_sptraits=as.double(c_sptraits), m_sptraits=as.double(m_sptraits), abundances=as.integer(abundances), colsites=as.integer(colsites), pncolsites=as.integer(ncolsites), #traits
+                 eventtimes_c=as.double(eventtimes_c), eventtimes_m=as.double(eventtimes_m), #events
+                 speciesid=as.integer(speciesid), #species
+                 output=as.double(output), pnsteps=as.integer(nsteps_sub),
+                 ptalktime=as.integer(talktime))
+        
+        if(nprt_cyc>1) {
+          nsp<-length(population$clst)
+          ngrid<-prod(gridout$lng)
+          ceq<-numeric(nsp)
+          plotdata<-list(ceq=ceq, ngrid=ngrid)
+          
+          for(i in 1:(nprt_cyc-1)) {
+            out<-matrix(cout$output, nrow=nsteps_sub+1)
+            out<-out[out[,1]!=0 | (1:nrow(out))==1,]
+            out_tmp<-list(output=out, full=cout, plotdata=plotdata, output_spatial=0, sites_sub=0)
+            
+            out[,1]<-out[,1]+tmax_sub*(i-1)
+            output_tot<-rbind(output_tot, out)
+            
+            out_rerun<-rerunrun_metapopulation(out_tmp, tmax_sub, nsteps=tmax_sub, talktime=0, runtype="metapopulation", perturb=prt)
+            cout<-out_rerun$full
+          }
+          
+          out<-output_tot
+        }
+        
+        
+      } else {
+        cout<-.C(runname,
+                 ptmax= as.double(tmax), pgridsize=as.integer(gridsize), pnsp=as.integer(nsp), xylim=as.integer(xylim), destroyed=as.integer(destroyed), #grid
+                 c_sptraits=as.double(c_sptraits), m_sptraits=as.double(m_sptraits), abundances=as.integer(abundances), colsites=as.integer(colsites), pncolsites=as.integer(ncolsites), #traits
+                 eventtimes_c=as.double(eventtimes_c), eventtimes_m=as.double(eventtimes_m), #events
+                 speciesid=as.integer(speciesid), #species
+                 output=as.double(output), pnsteps=as.integer(nsteps),
+                 ptalktime=as.integer(talktime))
+      }
       
       out_spatial<-NA
     }
     
-    if(runtype=="metapopulation") {
+    if(runtype%in%c("metapopulation")) {
       dyn.unload("run_metapopulation.so")
     } else if(runtype=="neutral") {
       dyn.unload("run_neutral_metapopulation.so")
-    } else if(runtype=="metapopulation_spatial") {
+    } else if(runtype%in%c("metapopulation_spatial")) {
       dyn.unload("run_metapopulation_spatialsub.so")
     } else if(runtype=="neutral_spatial") {
       dyn.unload("run_neutral_metapopulation_spatialsub.so")
     }
     
-    out<-matrix(cout$output, nrow=nsteps+1)
-    nsp<-ncol(out)-1
-    ngrid<-prod(gridout$lng)
+    if((!(runtype %in% c("disturbance", "disturbance_spatial"))) || (nprt_cyc==1)) {
+      out<-matrix(cout$output, nrow=nsteps+1)
+      nsp<-ncol(out)-1
+      ngrid<-prod(gridout$lng)
+    }
     
     ceq<-numeric(nsp)
     for(i in 1:nsp) {
       ceq[i]<-(1-population$mlst[i]/population$clst[i])-sum(ceq[0:(i-1)]*(1+population$clst[0:(i-1)]/population$clst[i]))
+      
+      if(ceq[i]<0) {
+        ceq[i]<-0
+      }
     }
     
     plotdata<-list(ceq=ceq, ngrid=ngrid)
@@ -203,49 +316,27 @@ run_metapopulation<-function(tmax, nsteps=tmax, gridout, population, talktime=1,
   }
 }
 
+
+
+
 rerunrun_metapopulation<-function(out, tmax, nsteps=tmax, talktime=1, runtype="metapopulation", perturb=rep(0, out$full$pnsp), perturbsites=1:out$plotdata$ngrid, addn=0, addsites=perturbsites, replace_perturb=0, sites_sub=0) {
   if(!all(perturb<=1 & perturb>=0)) {
     return("error!: perturb elements must be between 0 and 1")
   }
   
-  if(runtype=="metapopulation") {
-    system("R CMD SHLIB run_metapopulation.c", ignore.stdout = TRUE)
-    if(!is.loaded("run_metapopulation")) {
-      dyn.load("run_metapopulation.so")
-    } else {
-      dyn.unload("run_metapopulation.so")
-      dyn.load("run_metapopulation.so")
-    }
+  runtp<-loadrun(runtype)
+  if(!is.null(runtp)) {
+    return(runtp)
+  }
+  
+  if(runtype%in%c("metapopulation", "disturbance")) {
     runname<-"run_metapopulation"
   } else if(runtype=="neutral") {
-    system("R CMD SHLIB run_neutral_metapopulation.c", ignore.stdout = TRUE)
-    if(!is.loaded("run_neutral_metapopulation")) {
-      dyn.load("run_neutral_metapopulation.so")
-    } else {
-      dyn.unload("run_neutral_metapopulation.so")
-      dyn.load("run_neutral_metapopulation.so")
-    }
     runname<-"run_neutral_metapopulation"
-  } else if(runtype=="metapopulation_spatial") {
-    system("R CMD SHLIB run_metapopulation_spatialsub.c", ignore.stdout = TRUE)
-    if(!is.loaded("run_metapopulation_spatialsub")) {
-      dyn.load("run_metapopulation_spatialsub.so")
-    } else {
-      dyn.unload("run_metapopulation_spatialsub.so")
-      dyn.load("run_metapopulation_spatialsub.so")
-    }
+  } else if(runtype%in%c("metapopulation_spatial", "disturbance_spatial")) {
     runname<-"run_metapopulation_spatialsub"
   } else if(runtype=="neutral_spatial") {
-    system("R CMD SHLIB run_neutral_metapopulation_spatialsub.c", ignore.stdout = TRUE)
-    if(!is.loaded("run_neutral_metapopulation_spatialsub")) {
-      dyn.load("run_neutral_metapopulation_spatialsub.so")
-    } else {
-      dyn.unload("run_neutral_metapopulation_spatialsub.so")
-      dyn.load("run_neutral_metapopulation_spatialsub.so")
-    }
     runname<-"run_neutral_metapopulation_spatialsub"
-  } else {
-    return("error: run type must be 'metapopulation', 'neutral', 'metapopulation_spatial', or 'neural_spatial'")
   }
   
   eventtimes_c<-out$full$eventtimes_c-out$full$ptmax
@@ -317,7 +408,7 @@ rerunrun_metapopulation<-function(out, tmax, nsteps=tmax, talktime=1, runtype="m
   }
   
   
-  if(runtype%in%c("metapopulation_spatial", "neutral_spatial")) {
+  if(runtype%in%c("metapopulation_spatial", "neutral_spatial", "disturbance_spatial")) {
     pnsites_sub<-length(sites_sub[sites_sub!=0])
     c_sites_sub<-sites_sub-1
     output_sub<-output
@@ -378,11 +469,15 @@ getceq<-function(clst, mlst=rep(0.1, length(clst))) {
   ceq<-numeric(nsp)
   for(i in 1:nsp) {
     ceq[i]<-(1-mlst[i]/clst[i])-sum(ceq[0:(i-1)]*(1+clst[0:(i-1)]/clst[i]))
+    
+    if(ceq[i]<0) {
+      ceq[i]<-0
+    }
   }
   ceq
 }
 
-plot_metapop<-function(output, sites=0) {
+plot_metapop<-function(output, sites=0, dotot=TRUE, ylim=c(0,1)) {
   ceq<-output$plotdata$ceq
   
   if(sum(sites)==0) {
@@ -398,14 +493,22 @@ plot_metapop<-function(output, sites=0) {
     sbs<-c(1, sbs)
   }
   
-  matplot(out[sbs,1], cbind(rowSums(out[sbs,-1]/ngrid), out[sbs,-1]/ngrid), type="l", xlab="time", ylab="p",
-          col=1:(ncol(out)), lty=c(1, rep(1, ncol(out)-1)), lwd=2, ylim=c(0,1), xaxs="i", xlim=c(0, ceiling(max(out[sbs,1]))))
+  if(dotot) {
+    matplot(out[sbs,1], cbind(rowSums(out[sbs,-1]/ngrid), out[sbs,-1]/ngrid), type="l", xlab="time", ylab="p",
+            col=1:(ncol(out)), lty=c(1, rep(1, ncol(out)-1)), lwd=2, ylim=ylim, xaxs="i", xlim=c(0, ceiling(max(out[sbs,1]))))
+  } else {
+    matplot(out[sbs,1], out[sbs,-1]/ngrid, type="l", xlab="time", ylab="p",
+            col=2:(ncol(out)), lty=c(rep(1, ncol(out)-1)), lwd=2, ylim=ylim, xaxs="i", xlim=c(0, ceiling(max(out[sbs,1]))))
+  }
+  
   abline(h=c(0,1), lty=3)
   
   if(length(unique(abs(ceq)))>1) {
     abline(h=ceq,
          lty=2, col=2:ncol(out), lwd=2)
-    abline(h=sum(ceq), lwd=2, lty=2)
+    if(dotot) {
+      abline(h=sum(ceq), lwd=2, lty=2)
+    }
   } else {
     abline(h=unique(abs(ceq)),
            lty=2, col=1, lwd=2)
