@@ -440,7 +440,7 @@ rerunrun_metapopulation<-function(out, tmax, nsteps=tmax, talktime=1, runtype="m
                abundances_sub=as.integer(abundances_sub), sites_sub=as.integer(c_sites_sub), pnsites_sub=as.integer(pnsites_sub), output_sub=as.double(output_sub))
       
       if(nprt_cyc>1) {
-        nsp<-length(population$clst)
+        nsp<-length(out$full$c_sptraits)
         ngrid<-prod(gridout$lng)
         ceq<-numeric(nsp)
         plotdata<-list(ceq=ceq, ngrid=ngrid)
@@ -499,7 +499,7 @@ rerunrun_metapopulation<-function(out, tmax, nsteps=tmax, talktime=1, runtype="m
                ptalktime=as.integer(talktime))
       
       if(nprt_cyc>1) {
-        nsp<-length(population$clst)
+        nsp<-length(out$full$c_sptraits)
         ngrid<-prod(gridout$lng)
         ceq<-numeric(nsp)
         plotdata<-list(ceq=ceq, ngrid=ngrid)
@@ -694,12 +694,12 @@ getE<-function(out, Elst=2:10, doplot=FALSE, sites_sub=0) {
 }
 
 
-estimate_eqreturn<-function(out, simtime=100, runtype="metapopulation", perturbsites=1:out$plotdata$ngrid, doplot=TRUE, useeq=0, prtb=0.1, E=0, replace_perturb=0, talktime=0, sites_sub=0) {
+estimate_eqreturn<-function(out, simtime=100, runtype="metapopulation", perturbsites=1:out$plotdata$ngrid, doplot=TRUE, useeq=0, prtb=0.1, E=0, replace_perturb=0, talktime=0, sites_sub=0, prt = 0,  prtfrq = 0) {
   out_lst<-NULL
   for(i in 1:length(out$plotdata$ceq)) {
     pt<-rep(0, length(out$plotdata$ceq))
     pt[i]<-prtb
-    out_lst[[i]]<-rerunrun_metapopulation(out=out, tmax=simtime, runtype = runtype, perturb=pt, perturbsites=perturbsites, replace_perturb=replace_perturb, talktime=talktime, sites_sub = sites_sub)
+    out_lst[[i]]<-rerunrun_metapopulation(out=out, tmax=simtime, runtype = runtype, perturb=pt, perturbsites=perturbsites, replace_perturb=replace_perturb, talktime=talktime, sites_sub = sites_sub, prt=prt, prtfrq=prtfrq)
     
     if(sum(sites_sub)!=0) {
       out_lst[[i]]$tmp<-out_lst[[i]]$output
@@ -710,7 +710,7 @@ estimate_eqreturn<-function(out, simtime=100, runtype="metapopulation", perturbs
   
   if(sum(useeq)==0 & sum(E)==0) {
     pt<-rep(0, length(out$plotdata$ceq))
-    out_lst0<-rerunrun_metapopulation(out=out, tmax=simtime, runtype = runtype, perturb=pt, perturbsites=perturbsites, talktime=talktime, sites_sub = sites_sub)
+    out_lst0<-rerunrun_metapopulation(out=out, tmax=simtime, runtype = runtype, perturb=pt, perturbsites=perturbsites, talktime=talktime, sites_sub = sites_sub, prt=prt, prtfrq=prtfrq)
     
     if(sum(sites_sub)!=0) {
       out_lst0$tmp<-out_lst0$output
@@ -794,7 +794,7 @@ estimate_eqreturn<-function(out, simtime=100, runtype="metapopulation", perturbs
   return(list(eigenlst=eigenlst, eigenlst_sd=eigenlst_sd, out_lst=out_lst, out_lst0=out_lst0))
 }
 
-estimate_rarereturn<-function(out, simtime=100, burnin=100, runtype="metapopulation", perturbsites=1:out$plotdata$ngrid, doplot=TRUE, talktime=0, add_amount=0.05, sites_sub=0) {
+estimate_rarereturn<-function(out, simtime=100, burnin=100, runtype="metapopulation", perturbsites=1:out$plotdata$ngrid, doplot=TRUE, talktime=0, add_amount=0.05, sites_sub=0, prt = 0,  prtfrq = 0) {
   out_lst<-NULL
   out0_lst<-NULL
   
@@ -802,12 +802,12 @@ estimate_rarereturn<-function(out, simtime=100, burnin=100, runtype="metapopulat
     pt<-rep(0, length(out$plotdata$ceq))
     pt[i]<-1
     
-    tmp<-rerunrun_metapopulation(out=out, tmax=burnin, runtype = runtype, perturb=pt, perturbsites=perturbsites, talktime=0, sites_sub=sites_sub)
+    tmp<-rerunrun_metapopulation(out=out, tmax=burnin, runtype = runtype, perturb=pt, perturbsites=perturbsites, talktime=0, sites_sub=sites_sub, prt=prt, prtfrq=prtfrq)
     out0_lst[[i]]<-tmp
     
     at<-rep(0, length(out$plotdata$ceq))
     at[i]<-add_amount
-    out_lst[[i]]<-rerunrun_metapopulation(out=tmp, tmax=simtime, runtype = runtype, addn=at,  perturb=pt, perturbsites=perturbsites, addsites=perturbsites, talktime=0, sites_sub=sites_sub)
+    out_lst[[i]]<-rerunrun_metapopulation(out=tmp, tmax=simtime, runtype = runtype, addn=at,  perturb=pt, perturbsites=perturbsites, addsites=perturbsites, talktime=0, sites_sub=sites_sub, prt=prt, prtfrq=prtfrq)
   }
   
   if(sum(sites_sub)>0) {
@@ -1049,6 +1049,18 @@ runpar<-function(...) {
     r0_meta<-estimate_rarereturn(out_meta, simtime=simtime, burnin=burnin, runtype="metapopulation", doplot=FALSE)
     invar_meta<-estimate_invar(out_meta, E=E_meta, burnin=0, doplot=FALSE, laglst = lglst)
     
+    #run dist
+    out_dist<-run_metapopulation(tmax=tmax, gridout = gridout, population = population_dist, talktime = 0, runtype = "disturbance", prt = distlst, prtfrq = distfrq)
+    
+    getEdist<-getE(out_dist, Elst = 2:10)
+    E_dist<-getEdist$Eout
+    E_dist[E_dist<minE]<-minE
+    
+    eig_dist1<-estimate_eqreturn(out_dist, simtime=simtime, runtype="disturbance", replace_perturb = 1, talktime=0, prtb=ptb, doplot=FALSE, prt = distlst, prtfrq = distfrq)
+    eig_dist2<-estimate_eqreturn(out_dist, simtime=simtime, runtype="disturbance", replace_perturb = 0, talktime=0, prtb=ptb, doplot=FALSE, prt = distlst, prtfrq = distfrq)
+    r0_dist<-estimate_rarereturn(out_dist, simtime=simtime, burnin=burnin, runtype="disturbance", doplot=FALSE, prt = distlst, prtfrq = distfrq)
+    invar_dist<-estimate_invar(out_dist, E=E_dist, burnin=0, doplot=FALSE, laglst = lglst)
+    
     #run netural
     out_neut<-run_metapopulation(tmax=tmax, gridout = gridout, population = population_neut, talktime = 0, runtype = "neutral")
     
@@ -1074,6 +1086,19 @@ runpar<-function(...) {
     r0_meta<-estimate_rarereturn(out_meta, simtime=simtime, burnin=burnin, runtype="metapopulation_spatial", perturbsites = grid_sub$sites, sites_sub = grid_sub$sites, doplot=FALSE)
     invar_meta<-estimate_invar(out_meta, E=E_meta, burnin=0, doplot=FALSE, sites_sub = grid_sub$sites, laglst = lglst)
     
+    #run disturbance
+    out_dist<-run_metapopulation(tmax=tmax, gridout = gridout, population = population_dist, talktime = 0, runtype = "disturbance_spatial", sites_sub = grid_sub$sites, prt = distlst, prtfrq = distfrq)
+    
+    getEdist<-getE(out_dist, Elst = 2:10, sites_sub = grid_sub$sites)
+    E_dist<-getEdist$Eout
+    E_dist[E_dist<minE]<-minE
+    
+    eig_dist1<-estimate_eqreturn(out_dist, simtime=simtime, runtype="disturbance_spatial", replace_perturb = 1, talktime=0, prtb=ptb, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites, doplot=FALSE, prt = distlst, prtfrq = distfrq)
+    eig_dist2<-estimate_eqreturn(out_dist, simtime=simtime, runtype="disturbance_spatial", replace_perturb = 0, talktime=0, prtb=ptb, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites, doplot=FALSE, prt = distlst, prtfrq = distfrq)
+    r0_dist<-estimate_rarereturn(out_dist, simtime=simtime, burnin=burnin, runtype="disturbance_spatial", perturbsites = grid_sub$sites, sites_sub = grid_sub$sites, doplot=FALSE, prt = distlst, prtfrq = distfrq)
+    invar_dist<-estimate_invar(out_dist, E=E_dist, burnin=0, doplot=FALSE, sites_sub = grid_sub$sites, laglst = lglst)
+    
+    
     #run neutral
     out_neut<-run_metapopulation(tmax=tmax, gridout = gridout, population = population_neut, talktime = 0, runtype = "neutral_spatial", sites_sub = grid_sub$sites)
     
@@ -1092,23 +1117,30 @@ runpar<-function(...) {
   neq<-nrow(eig_meta1$eigenlst)
   nlg<-length(invar_meta$pdlag_list[[1]]$laglst)
   mlng<-max(c(neq, nlg))
-  matout<-matrix(nrow=mlng, ncol=nsp*10, data=NA)
+  matout<-matrix(nrow=mlng, ncol=nsp*15, data=NA)
   
   #collect and output data
   matout[1:neq,(1:nsp)+nsp*(0)]<-eig_meta1$eigenlst
   matout[1:neq,(1:nsp)+nsp*(1)]<-eig_meta2$eigenlst
   matout[1:neq,(1:nsp)+nsp*(2)]<-r0_meta$grwrare
   
-  matout[1:neq,(1:nsp)+nsp*(3)]<-eig_neut1$eigenlst
-  matout[1:neq,(1:nsp)+nsp*(4)]<-eig_neut2$eigenlst
-  matout[1:neq,(1:nsp)+nsp*(5)]<-r0_neut$grwrare
+  matout[1:neq,(1:nsp)+nsp*(3)]<-eig_dist1$eigenlst
+  matout[1:neq,(1:nsp)+nsp*(4)]<-eig_dist2$eigenlst
+  matout[1:neq,(1:nsp)+nsp*(5)]<-r0_dist$grwrare
+  
+  matout[1:neq,(1:nsp)+nsp*(6)]<-eig_neut1$eigenlst
+  matout[1:neq,(1:nsp)+nsp*(7)]<-eig_neut2$eigenlst
+  matout[1:neq,(1:nsp)+nsp*(8)]<-r0_neut$grwrare
   
   for(ii in 1:length(invar_meta$pdlag_list)) {
-    matout[1:length(invar_meta$pdlag_list[[ii]]$laglst),nsp*6+(ii)+3*(ii-1)]<-invar_meta$pdlag_list[[ii]]$laglst
-    matout[1:length(invar_meta$pdlag_list[[ii]]$laglst),nsp*6+(ii)+3*(ii-1)+1]<-invar_meta$pdlag_list[[ii]]$CVest[,3]
+    matout[1:length(invar_meta$pdlag_list[[ii]]$laglst),nsp*9+(ii)+5*(ii-1)]<-invar_meta$pdlag_list[[ii]]$laglst
+    matout[1:length(invar_meta$pdlag_list[[ii]]$laglst),nsp*9+(ii)+5*(ii-1)+1]<-invar_meta$pdlag_list[[ii]]$CVest[,3]
     
-    matout[1:length(invar_neut$pdlag_list[[ii]]$laglst),nsp*6+(ii)+3*(ii-1)+2]<-invar_neut$pdlag_list[[ii]]$laglst
-    matout[1:length(invar_neut$pdlag_list[[ii]]$laglst),nsp*6+(ii)+3*(ii-1)+3]<-invar_neut$pdlag_list[[ii]]$CVest[,3]
+    matout[1:length(invar_dist$pdlag_list[[ii]]$laglst),nsp*9+(ii)+5*(ii-1)+2]<-invar_dist$pdlag_list[[ii]]$laglst
+    matout[1:length(invar_dist$pdlag_list[[ii]]$laglst),nsp*9+(ii)+5*(ii-1)+3]<-invar_dist$pdlag_list[[ii]]$CVest[,3]
+    
+    matout[1:length(invar_neut$pdlag_list[[ii]]$laglst),nsp*9+(ii)+5*(ii-1)+4]<-invar_neut$pdlag_list[[ii]]$laglst
+    matout[1:length(invar_neut$pdlag_list[[ii]]$laglst),nsp*9+(ii)+5*(ii-1)+5]<-invar_neut$pdlag_list[[ii]]$CVest[,3]
   }
   
   return(t(matout))
