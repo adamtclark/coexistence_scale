@@ -1047,7 +1047,8 @@ runpar<-function(...) {
   require(rEDM)
   
   #run simulations
-  if(grid_sub$frac_tot==1) {   #global sclae
+  if(FALSE) {
+  #if(grid_sub$frac_tot==1) {   #global sclae
     #run levins
     out_meta<-run_metapopulation(tmax=tmax, gridout = gridout, population = population_meta, talktime = 0)
     
@@ -1169,4 +1170,26 @@ if(FALSE) {
   out<-run_metapopulation(tmax=200, nsteps = 1000, gridout, population, talktime = 0)
   
   plot_metapop(out)
+}
+
+
+
+tstfun<-function(...) {
+  #run levins
+  out_meta<-run_metapopulation(tmax=tmax, gridout = gridout, population = population_meta, talktime = 0)
+  
+  eig_meta1<-estimate_eqreturn(out_meta, simtime=simtime, runtype="metapopulation", replace_perturb = 1, talktime=0, prtb=ptb, doplot=FALSE)
+  eig_meta2<-estimate_eqreturn(out_meta, simtime=simtime, runtype="metapopulation", replace_perturb = 0, talktime=0, prtb=ptb, doplot=FALSE)
+  
+  #run dist
+  out_dist<-run_metapopulation(tmax=tmax, gridout = gridout, population = population_dist, talktime = 0, runtype = "disturbance", prt = distlst, prtfrq = distfrq)
+  
+  eig_dist1<-estimate_eqreturn(out_dist, simtime=simtime, runtype="disturbance", replace_perturb = 1, talktime=0, prtb=ptb, doplot=FALSE, prt = distlst, prtfrq = distfrq)
+  eig_dist2<-estimate_eqreturn(out_dist, simtime=simtime, runtype="disturbance", replace_perturb = 0, talktime=0, prtb=ptb, doplot=FALSE, prt = distlst, prtfrq = distfrq)
+  
+  #run netural
+  out_neut<-run_metapopulation(tmax=tmax, gridout = gridout, population = population_neut, talktime = 0, runtype = "neutral")
+  
+  eig_neut1<-estimate_eqreturn(out_neut, simtime=simtime, runtype="neutral", replace_perturb = 1, talktime=0, prtb=ptb, doplot=FALSE)
+  eig_neut2<-estimate_eqreturn(out_neut, simtime=simtime, runtype="neutral", replace_perturb = 0, talktime=0, prtb=ptb, doplot=FALSE)
 }

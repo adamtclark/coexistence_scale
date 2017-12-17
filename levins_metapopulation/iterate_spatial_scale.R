@@ -23,7 +23,7 @@ ptb<-0.2 #size of perturbations for equilibrium method (in fraction of initial v
 tmax<-1000 #timeseries length
 burnin<-100 #burning for growth rate when rare method
 simtime<-100 #time spans for equilibria dectection
-invarburn<-50
+invarburn<-0
 
 lglst<-round(seq(0, tmax*0.8-10, length=10)) #lags for invar test
 
@@ -74,7 +74,17 @@ for(i in 1:length(scalelst)) {
   #run parallel program for predicting community biomass
   clusterout<-try(parLapply(cl=cl, 1:niterations, fun=runpar))
   
+  
+  #clusterExport(cl, c("tstfun"))
+  #clusterout<-try(parLapply(cl=cl, 1:niterations, fun=tstfun))
+  
+  #TODO: Figure out what the heck is happening here...
+  #error has something to do with "out_lst[[sppos]]$output"
+  #Problem is with global, not local
+  
+  
   if(!is.character(clusterout)) {
+    
     tmp<-t(matrix(nrow=nrow(clusterout[[1]]), unlist(clusterout)))
     
     matout_tot<-rbind(matout_tot, cbind(scale=scalelst[i], tscale=1:ncol(clusterout[[1]]), iter=rep(1:niterations, each=ncol(clusterout[[1]])), tmp))

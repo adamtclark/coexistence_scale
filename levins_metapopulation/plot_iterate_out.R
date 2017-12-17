@@ -80,7 +80,7 @@ for(i in 1:length(scalslst)) {
 ###################################
 # Make Plots
 ###################################
-sclsuse<-c(1:6)
+sclsuse<-1:length(scalslst)
 collst<-c("red2", "darkorange2", "gold1", "forestgreen", "dodgerblue", "dodgerblue4", "orchid4")
 
 ###############
