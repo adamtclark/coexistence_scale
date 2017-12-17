@@ -807,6 +807,13 @@ estimate_rarereturn<-function(out, simtime=100, burnin=100, runtype="metapopulat
     
     at<-rep(0, length(out$plotdata$ceq))
     at[i]<-add_amount
+    
+    if(runtype %in% c("disturbance", "disturbance_spatial")) {
+      tmptyp<-c("metapopulation", "metapopulation_spatial")[(runtype=="disturbance_spatial")+1]
+      
+      tmp<-rerunrun_metapopulation(out=tmp, tmax=0, runtype = tmptyp, perturb=prt, perturbsites=1:tmp$plotdata$ngrid, talktime=0, sites_sub=sites_sub)
+    }
+    
     out_lst[[i]]<-rerunrun_metapopulation(out=tmp, tmax=simtime, runtype = runtype, addn=at,  perturb=pt, perturbsites=perturbsites, addsites=perturbsites, talktime=0, sites_sub=sites_sub, prt=prt, prtfrq=prtfrq)
   }
   
@@ -879,7 +886,7 @@ estimate_invar<-function(out, E=1, burnin=0, Luse=floor((seq((30), (nrow(out$out
   
   for(i in 1:length(out$plotdata$ceq)) {
     pdL_list[[i]]<-predict_vs_L(out$output[,i+1], E=E[i], burnin=burnin, Luse=Luse, niter=niter, doplot=FALSE)
-    Lusetmp<-min(c(ceiling(nrow(out$output)/5), pdL_list[[i]]$Lmin))
+    Lusetmp<-min(c(ceiling(nrow(out$output)/5), pdL_list[[i]]$Lmin), na.rm=T)
     
     if(sum(laglst)==0) {
       laglst_use<-c(floor((seq((0), ((nrow(out$output)-burnin-Lusetmp)), length=20))))
@@ -887,15 +894,19 @@ estimate_invar<-function(out, E=1, burnin=0, Luse=floor((seq((30), (nrow(out$out
       laglst_use<-laglst
       laglst_use<-laglst_use[laglst_use<=((nrow(out$output)-burnin-Lusetmp))]
     }
-    pdlag_list[[i]]<-test_predict_tlag(out$output[,i+1], Luse=Lusetmp, E=E[i], burnin=burnin, laglst=laglst_use, niter=niter, doplot=FALSE)
+    suppressWarnings(pdlag_list[[i]]<-test_predict_tlag(out$output[,i+1], Luse=Lusetmp, E=E[i], burnin=burnin, laglst=laglst_use, niter=niter, doplot=FALSE))
   }
   
   if(doplot) {
     mx<-0
     tl<-0
     for(i in 1:length(pdlag_list)) {
-      mx<-max(c(mx, max(range(pdlag_list[[i]]$CVest[,2:4], na.rm=T), na.rm=T)))
-      tl<-max(c(tl, pdlag_list[[i]]$laglst))
+      tmpmx<-max(range(pdlag_list[[i]]$CVest[,2:4], na.rm=T))
+      
+      if(is.finite(tmpmx)) {
+        mx<-max(c(mx, tmpmx, na.rm=T))
+      }
+      tl<-max(c(tl, pdlag_list[[i]]$laglst), na.rm=T)
     }
     
     plot(c(0, tl), c(0, max(c(mx), na.rm=T)), xlab="time lag", ylab="CV", type="n", xaxs="i")
@@ -963,7 +974,7 @@ predict_vs_L<-function(outcol, E=1, burnin=0, Luse=floor((seq((30), (length(outc
   CVest<-t(matrix(nrow=5, unlist(tapply(predmat[,"rmse"]/predmat[,"mean"], predmat[,"Luse"], function(x) quantile(x[is.finite(x)], c(0.025, pnorm(-1, 0, 1), 0.5, pnorm(1, 0, 1), 0.975), na.rm=T)))))
   
   #minimum library length that gives us 50% of the best predictive power
-  Lmin<-Luse[min(which((CVest[,5]-min(CVest[,5]))/(CVest[,5])<0.5))]
+  Lmin<-Luse[min(which((CVest[,5]-min(CVest[,5],na.rm=T))/(CVest[,5])<0.5),na.rm=T)]
   
   if(doplot) {
     plot(Luse, CVest[,3], type="n", xlab="library length", ylab="CV", ylim=c(0, max(c(1, CVest[,3]))), xlim=c(min(c(0, Luse)), max(Luse)), xaxs="i")
@@ -1047,7 +1058,7 @@ runpar<-function(...) {
     eig_meta1<-estimate_eqreturn(out_meta, simtime=simtime, runtype="metapopulation", replace_perturb = 1, talktime=0, prtb=ptb, doplot=FALSE)
     eig_meta2<-estimate_eqreturn(out_meta, simtime=simtime, runtype="metapopulation", replace_perturb = 0, talktime=0, prtb=ptb, doplot=FALSE)
     r0_meta<-estimate_rarereturn(out_meta, simtime=simtime, burnin=burnin, runtype="metapopulation", doplot=FALSE)
-    invar_meta<-estimate_invar(out_meta, E=E_meta, burnin=0, doplot=FALSE, laglst = lglst)
+    invar_meta<-estimate_invar(out_meta, E=E_meta, burnin=invarburn, doplot=FALSE, laglst = lglst)
     
     #run dist
     out_dist<-run_metapopulation(tmax=tmax, gridout = gridout, population = population_dist, talktime = 0, runtype = "disturbance", prt = distlst, prtfrq = distfrq)
@@ -1059,7 +1070,7 @@ runpar<-function(...) {
     eig_dist1<-estimate_eqreturn(out_dist, simtime=simtime, runtype="disturbance", replace_perturb = 1, talktime=0, prtb=ptb, doplot=FALSE, prt = distlst, prtfrq = distfrq)
     eig_dist2<-estimate_eqreturn(out_dist, simtime=simtime, runtype="disturbance", replace_perturb = 0, talktime=0, prtb=ptb, doplot=FALSE, prt = distlst, prtfrq = distfrq)
     r0_dist<-estimate_rarereturn(out_dist, simtime=simtime, burnin=burnin, runtype="disturbance", doplot=FALSE, prt = distlst, prtfrq = distfrq)
-    invar_dist<-estimate_invar(out_dist, E=E_dist, burnin=0, doplot=FALSE, laglst = lglst)
+    invar_dist<-estimate_invar(out_dist, E=E_dist, burnin=invarburn, doplot=FALSE, laglst = lglst)
     
     #run netural
     out_neut<-run_metapopulation(tmax=tmax, gridout = gridout, population = population_neut, talktime = 0, runtype = "neutral")
@@ -1071,7 +1082,7 @@ runpar<-function(...) {
     eig_neut1<-estimate_eqreturn(out_neut, simtime=simtime, runtype="neutral", replace_perturb = 1, talktime=0, prtb=ptb, doplot=FALSE)
     eig_neut2<-estimate_eqreturn(out_neut, simtime=simtime, runtype="neutral", replace_perturb = 0, talktime=0, prtb=ptb, doplot=FALSE)
     r0_neut<-estimate_rarereturn(out_neut, simtime=simtime, burnin=burnin, runtype="neutral", doplot=FALSE)
-    invar_neut<-estimate_invar(out_neut, E=E_neut, burnin=0, doplot=FALSE, laglst = lglst)
+    invar_neut<-estimate_invar(out_neut, E=E_neut, burnin=invarburn, doplot=FALSE, laglst = lglst)
     
   } else { #spatial subset
     #run levins
@@ -1084,7 +1095,7 @@ runpar<-function(...) {
     eig_meta1<-estimate_eqreturn(out_meta, simtime=simtime, runtype="metapopulation_spatial", replace_perturb = 1, talktime=0, prtb=ptb, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites, doplot=FALSE)
     eig_meta2<-estimate_eqreturn(out_meta, simtime=simtime, runtype="metapopulation_spatial", replace_perturb = 0, talktime=0, prtb=ptb, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites, doplot=FALSE)
     r0_meta<-estimate_rarereturn(out_meta, simtime=simtime, burnin=burnin, runtype="metapopulation_spatial", perturbsites = grid_sub$sites, sites_sub = grid_sub$sites, doplot=FALSE)
-    invar_meta<-estimate_invar(out_meta, E=E_meta, burnin=0, doplot=FALSE, sites_sub = grid_sub$sites, laglst = lglst)
+    invar_meta<-estimate_invar(out_meta, E=E_meta, burnin=invarburn, doplot=FALSE, sites_sub = grid_sub$sites, laglst = lglst)
     
     #run disturbance
     out_dist<-run_metapopulation(tmax=tmax, gridout = gridout, population = population_dist, talktime = 0, runtype = "disturbance_spatial", sites_sub = grid_sub$sites, prt = distlst, prtfrq = distfrq)
@@ -1096,7 +1107,7 @@ runpar<-function(...) {
     eig_dist1<-estimate_eqreturn(out_dist, simtime=simtime, runtype="disturbance_spatial", replace_perturb = 1, talktime=0, prtb=ptb, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites, doplot=FALSE, prt = distlst, prtfrq = distfrq)
     eig_dist2<-estimate_eqreturn(out_dist, simtime=simtime, runtype="disturbance_spatial", replace_perturb = 0, talktime=0, prtb=ptb, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites, doplot=FALSE, prt = distlst, prtfrq = distfrq)
     r0_dist<-estimate_rarereturn(out_dist, simtime=simtime, burnin=burnin, runtype="disturbance_spatial", perturbsites = grid_sub$sites, sites_sub = grid_sub$sites, doplot=FALSE, prt = distlst, prtfrq = distfrq)
-    invar_dist<-estimate_invar(out_dist, E=E_dist, burnin=0, doplot=FALSE, sites_sub = grid_sub$sites, laglst = lglst)
+    invar_dist<-estimate_invar(out_dist, E=E_dist, burnin=invarburn, doplot=FALSE, sites_sub = grid_sub$sites, laglst = lglst)
     
     
     #run neutral
@@ -1109,7 +1120,7 @@ runpar<-function(...) {
     eig_neut1<-estimate_eqreturn(out_neut, simtime=simtime, runtype="neutral_spatial", replace_perturb = 1, talktime=0, prtb=ptb, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites, doplot=FALSE)
     eig_neut2<-estimate_eqreturn(out_neut, simtime=simtime, runtype="neutral_spatial", replace_perturb = 0, talktime=0, prtb=ptb, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites, doplot=FALSE)
     r0_neut<-estimate_rarereturn(out_neut, simtime=simtime, burnin=burnin, runtype="neutral_spatial", perturbsites = grid_sub$sites, sites_sub = grid_sub$sites, doplot=FALSE)
-    invar_neut<-estimate_invar(out_neut, E=E_neut, burnin=0, doplot=FALSE, sites_sub = grid_sub$sites, laglst = lglst)
+    invar_neut<-estimate_invar(out_neut, E=E_neut, burnin=invarburn, doplot=FALSE, sites_sub = grid_sub$sites, laglst = lglst)
   }
   
   #make output matrix
