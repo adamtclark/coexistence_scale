@@ -20,9 +20,10 @@ gridout<-makegrid(xlng = 100, ylng = 100) #grid for simulation
 xfac<-5 #scaling factor for c and m paramters
 ptb<-0.2 #size of perturbations for equilibrium method (in fraction of initial value)
 
-tmax<-500 #timeseries length
+tmax<-1000 #timeseries length
 burnin<-100 #burning for growth rate when rare method
 simtime<-100 #time spans for equilibria dectection
+invarburn<-50
 
 lglst<-round(seq(0, tmax*0.8-10, length=10)) #lags for invar test
 
@@ -53,7 +54,8 @@ if(!exists("cl") & niterations>1) {
 }
 
 #explor needed variables
-clusterExport(cl, c("gridout", "population_meta", "population_neut", "ptb",
+clusterExport(cl, c("invarburn",
+                    "gridout", "population_meta", "population_neut", "ptb",
                     "tmax", "burnin", "simtime", "lglst",
                     "clst_meta", "mlst_meta", "clst_neut", "mlst_neut",
                     "clst_dist", "mlst_dist", "population_dist",
