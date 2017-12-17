@@ -564,6 +564,26 @@ E_neut[E_neut<4]<-4
 invar_neut<-estimate_invar(out_neut_long, E=E_neut, burnin=0, doplot=FALSE, sites_sub = grid_sub$sites)
 
 
+##### Try disturbance model
+set.seed(171217)
+ptb<-0.2
+
+out_dist<-run_metapopulation(tmax=200, gridout = gridout, population = population_dist, talktime = 0, runtype = "disturbance_spatial", sites_sub = grid_sub$sites, prt = distlst,  prtfrq = 20)
+out_dist_0<-rerunrun_metapopulation(out=out_dist, tmax=0, talktime = 0, runtype = "metapopulation_spatial", perturb = distlst, replace_perturb = 0, sites_sub = grid_sub$sites)
+
+eig_dist1<-estimate_eqreturn(out_dist_0, simtime=100, runtype="disturbance_spatial", replace_perturb = 1, talktime=0, prtb=ptb, doplot = FALSE, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites, prt = distlst,  prtfrq = 20)
+eig_dist2<-estimate_eqreturn(out_dist_0, simtime=100, runtype="disturbance_spatial", replace_perturb = 0, talktime=0, prtb=ptb, doplot = FALSE, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites, prt = distlst,  prtfrq = 20)
+
+r0_dist<-estimate_rarereturn(out_dist_0, simtime=100, burnin=100, runtype="disturbance_spatial", doplot = FALSE, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites, prt = distlst,  prtfrq = 20)
+
+out_dist_long<-run_metapopulation(tmax=1000, gridout = gridout, population = population_dist, talktime = 0, runtype = "disturbance_spatial", sites_sub = grid_sub$sites, prt = distlst,  prtfrq = 20)
+
+getEdist<-getE(out_dist_long, Elst = 2:10, sites_sub = grid_sub$sites)
+E_dist<-getEdist$Eout
+E_dist[E_dist<4]<-4
+
+invar_dist<-estimate_invar(out = out_dist_long, E=E_dist, burnin=50, doplot=FALSE, sites_sub = grid_sub$sites)
+
 
 
 
@@ -614,6 +634,44 @@ put.fig.letter("c.", "topleft", offset=ofs2, cex=1.6)
 dev.off()
 
 
+#Plot perturbation, disturb
+pdf("figures/memo_171206/disturb_perturbation_spsub.pdf", width=4, height=6, colormodel = "cmyk")
+
+par(mar=c(2,2,2,2), oma=c(2,2,0,0))
+m<-t(matrix(nrow=2, c(rep(1, 4), rep(2,2), rep(3,2))))
+layout(m)
+
+tmp<-eig_dist1$out_lst[[1]]$output_spatial
+tmp[,1]<-tmp[,1]+max(out_dist$output[,1])
+pmat_dist<-rbind(out_dist$output_spatial, tmp)
+
+matplot(pmat_dist[,1], pmat_dist[,-1]/length(grid_sub$sites), type="l", lty=1, col=collst[-1], lwd=1.5, xlab="time", ylab="relative abundance", xaxs="i")
+abline(v=max(out_dist$output[,1]), lty=2)
+ceq<-getceq(clst_dist, mlst_dist)
+abline(h=c(sum(ceq), ceq), lty=3, col=collst, lwd=1.5)
+mtext("time", 1, line=2.3, cex=1.1)
+mtext("relative abundance", 2, line=2.3, cex=1.1)
+put.fig.letter("a.", "topleft", offset=ofs1, cex=1.6)
+arrows(max(out_dist$output[,1]), 0.22+0.03,
+       max(out_dist$output[,1]), 0.22,
+       length = 0.08, lwd=2, lend=4)
+
+plot(1:nrow(eig_dist1$out_lst[[1]]$output_spatial), abs(eig_dist1$out_lst[[1]]$output_spatial[,2]-eig_dist1$out_lst0$output_spatial[,2])/length(grid_sub$sites), type="l", ylab="estimated distance", xlab="time", col=collst[2], lwd=2, xaxs="i", ylim=c(0, 0.1), cex.lab=1.5); abline(h=0, lty=3)
+mtext("time since disturbance", 1, line=2.3, cex=1.1)
+mtext("estimated distance", 2, line=2.3, cex=1.1)
+put.fig.letter("b.", "topleft", offset=ofs2, cex=1.6)
+
+plot((1:nrow(eig_dist1$eigenlst))[is.finite(eig_dist1$eigenlst[,1])], (eig_dist1$eigenlst[,1]*(1:nrow(eig_dist1$eigenlst)))[is.finite(eig_dist1$eigenlst[,1])], type="l", lwd=2, col=collst[2], xlab="time span", ylab=expression(italic(paste(lambda, "t"))), xaxs="i", ylim=c(-1.5, 4), cex.lab=1.5); abline(h=0, lty=3)
+mtext("time span", 1, line=2.3, cex=1.1)
+mtext(expression(italic(paste(lambda, "t"))), 2, line=2.3, cex=1.1)
+put.fig.letter("c.", "topleft", offset=ofs2, cex=1.6)
+
+dev.off()
+
+
+
+
+
 #Plot perturbation, Hubbell
 pdf("figures/memo_171206/neutral_perturbation_spsub.pdf", width=4, height=6, colormodel = "cmyk")
 
@@ -652,6 +710,9 @@ mtext(expression(italic(paste(lambda, "t"))), 2, line=2.3, cex=1.1)
 dev.off()
 
 
+
+
+
 #Plot rare return, Levins
 pdf("figures/memo_171206/levis_returnrare_spsub.pdf", width=4, height=4.5, colormodel = "cmyk")
 
@@ -685,6 +746,46 @@ plot(1:nrow(r0_meta$grwrare), r0_meta$grwrare[,1]*(1:nrow(r0_meta$grwrare)), col
 mtext("time span", 1, line=2.3, cex=1.1)
 mtext(expression(italic(paste(r[0], "t"))), 2, line=2.3, cex=1.1)
 put.fig.letter("b.", "topleft", offset=ofs2, cex=1.6)
+
+dev.off()
+
+#Plot rare return, dist
+pdf("figures/memo_171206/dist_returnrare_spsub.pdf", width=4, height=4.5, colormodel = "cmyk")
+
+par(mar=c(2,2,2,2), oma=c(2,2,0,0))
+m<-t(matrix(nrow=2, c(rep(1, 4), rep(2,2))))
+layout(m)
+
+mxt<-max(out_dist$output[,1])
+mxt2<-max(out_dist$output[,1])+max(r0_dist$out0_lst[[2]]$output[,1])
+
+tmp<-r0_dist$out0_lst[[2]]$output_spatial
+tmp[,1]<-tmp[,1]+mxt
+pmat_dist<-rbind(out_dist$output_spatial, tmp)
+tmp<-r0_dist$out_lst[[2]]$output_spatial
+tmp[,1]<-tmp[,1]+mxt2
+pmat_dist<-rbind(pmat_dist, tmp)
+
+matplot(pmat_dist[,1], pmat_dist[,-1]/length(grid_sub$sites), type="l", lty=1, col=collst[-1], lwd=1.5, xlab="time", ylab="relative abundance", xaxs="i")
+abline(v=c(mxt, mxt2), lty=2)
+ceq<-getceq(clst_dist, mlst_dist)
+abline(h=c(sum(ceq), ceq), lty=3, col=collst, lwd=1.5)
+abline(h=0, lty=3)
+mtext("time", 1, line=2.3, cex=1.1)
+mtext("relative abundance", 2, line=2.3, cex=1.1)
+arrows(mxt, 0.11+0.06,
+       mxt, 0.11,
+       length = 0.08, lwd=2, lend=4)
+arrows(mxt2, 0,
+       mxt2, 0.06,
+       length = 0.08, lwd=2, lend=4)
+put.fig.letter("a.", "topleft", offset=ofs1, cex=1.6)
+
+plot(1:nrow(r0_dist$grwrare), r0_dist$grwrare[,2]*(1:nrow(r0_dist$grwrare)), col=collst[3], type="l", lty=1, lwd=1.5, xlab="time span", ylab=expression(italic(paste(r[0], "t"))), xaxs="i", xlim=c(0, 80))
+mtext("time span", 1, line=2.3, cex=1.1)
+mtext(expression(italic(paste(r[0], "t"))), 2, line=2.3, cex=1.1)
+put.fig.letter("b.", "topleft", offset=ofs2, cex=1.6)
+abline(h=0, lty=3)
 
 dev.off()
 
@@ -753,6 +854,40 @@ text(750, 0.27, pos=1, labels = "testing set")
 
 
 plot(invar_meta$pdlag_list[[1]]$laglst, invar_meta$pdlag_list[[1]]$CVest[,1], xlab="time lag", ylab=expression(italic(paste("CV"))), type="l", lty=1, lwd=1.5, col=collst[2], xaxs="i", ylim=c(0, 0.1)); abline(h=0, lty=3)
+mtext("time lag", 1, line=2.3, cex=1.1)
+mtext(expression(italic("CV")), 2, line=2.3, cex=1.1)
+put.fig.letter("b.", "topleft", offset=ofs3, cex=1.6)
+
+dev.off()
+
+
+
+#Plot invar, dist
+pdf("figures/memo_171206/dist_invar_spsub.pdf", width=5, height=4, colormodel = "cmyk")
+
+par(mar=c(2,2,2,2), oma=c(2,2,0,0))
+m<-t(matrix(nrow=2, c(rep(1, 2), rep(2,2))))
+layout(m)
+
+matplot(out_dist_long$output_spatial[,1], out_dist_long$output_spatial[,2]/length(grid_sub$sites), type="l", lty=1, col=collst[-1], lwd=1.5, xlab="time", ylab="relative abundance", xaxs="i", ylim=c(0, 0.35))
+abline(h=0, lty=3, lwd=1.5)
+mtext("time", 1, line=2.3, cex=1.1)
+mtext("relative abundance", 2, line=2.3, cex=1.1)
+put.fig.letter("a.", "topleft", offset=ofs3, cex=1.6)
+
+segments(c(200, 200, 300, 300), c(0.01, 0.28, 0.28, 0.01), c(200, 300, 300, 200), c(0.28, 0.28, 0.01, 0.01), lwd=2)
+segments(c(200, 200, 300, 300)+500, c(0.01, 0.28, 0.28, 0.01), c(200, 300, 300, 200)+500, c(0.28, 0.28, 0.01, 0.01), lwd=2)
+
+arrows(500, 0.28, 690, 0.28, lwd=2, length = 0.1, lend=2)
+arrows(500, 0.28, 310, 0.28, lwd=2, length = 0.1, lend=2)
+
+text(500, 0.28, pos=3, labels = "time lag")
+
+text(250, 0.28, pos=3, labels = "training set")
+text(750, 0.28, pos=3, labels = "testing set")
+
+
+plot(invar_dist$pdlag_list[[1]]$laglst, invar_dist$pdlag_list[[1]]$CVest[,1], xlab="time lag", ylab=expression(italic(paste("CV"))), type="l", lty=1, lwd=1.5, col=collst[2], xaxs="i", ylim=c(0, 0.8)); abline(h=0, lty=3)
 mtext("time lag", 1, line=2.3, cex=1.1)
 mtext(expression(italic("CV")), 2, line=2.3, cex=1.1)
 put.fig.letter("b.", "topleft", offset=ofs3, cex=1.6)
