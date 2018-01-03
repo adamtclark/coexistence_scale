@@ -986,12 +986,40 @@ estimate_rarereturn<-function(out, simtime=100, burnin=100, runtype="metapopulat
 }
 
 
-
-estimate_invar<-function(out, E=1, burnin=0, Luse=floor((seq((30), (nrow(out$output)-burnin), length=20))), laglst=0, niter=0, doplot=TRUE, sites_sub=0) {
+estimate_invar<-function(out, E=0, burnin=0, Luse=0, laglst=0, niter=0, doplot=TRUE, sites_sub=0) {
+  #Calculates coefficient of variation comparing simulation dynamics to predictions based on subsets of past observations
+  #Basic idea is to use a historical library of observations to predict observations n timesteps into the future
+  #Theoretically, if the historical library contains enough points to define an equilibrium state, and if the system is at equilibrium,
+    #then predictive power should be high regardless of time lag between training and testing set.
+  
+  #out is result from 'run_metapopulation' function
+  #E is embedding dimension to use for simplex algorithm. If zero, then "best" E is automatically selected
+  #burnin is number of initial time steps to exclude
+  #Luse is list of library lengths to test. Defaults to zero, which attempts to choose sensible limits.
+    #These are used to try to find a window size that provides good predictions of system dynamics
+  #laglst is list of temporal lags to test. Default is zero, which automatically selects lag sizes based on training and total library sizes
+  #niter is number of different training windows to test - when set to zero, all possible windows are tested
+  #doplot is binary variable that determines whether or not results are plotted
+  #sites_sub includes subset of sites to use. Defaults to zero, which includes all sites.
+  
+  if(sum(E)==0) {
+    tmp<-getE(out)
+    E<-tmp$Eout
+  }
+  
+  if(sum(Luse)==0) {
+    Luse<-floor((seq((30), min(c(ceiling(nrow(out$output)/5), nrow(out$output)-burnin)), length=10)))
+  }
+  
+  #exclude windows that are too long to test any reasonable lag lengths
+  Luse<-Luse[Luse<((nrow(out$output)-burnin-max(E))/2)]
+  
+  #if only one E is given, expand to include one entry per species
   if(length(E)==1) {
     E<-rep(E, length(out$plotdata$ceq))
   }
   
+  #extract data if spatial subset is being analyzed
   if(sum(sites_sub)>0) {
     out$tmp_data<-out$output
     out$tmp_lng<-out$plotdata$ngrid
@@ -1000,23 +1028,30 @@ estimate_invar<-function(out, E=1, burnin=0, Luse=floor((seq((30), (nrow(out$out
     out$plotdata$ngrid<-length(out$sites_sub)
   }
   
+  #lists for storing results
   pdL_list<-NULL
   pdlag_list<-NULL
   
   for(i in 1:length(out$plotdata$ceq)) {
+    #for each species, first identify best window size to use
     pdL_list[[i]]<-predict_vs_L(out$output[,i+1], E=E[i], burnin=burnin, Luse=Luse, niter=niter, doplot=FALSE)
-    Lusetmp<-min(c(ceiling(nrow(out$output)/5), pdL_list[[i]]$Lmin), na.rm=T)
     
+    #select appropriate lag list, or test that user provided bounds are reasonable
     if(sum(laglst)==0) {
       laglst_use<-c(floor((seq((0), ((nrow(out$output)-burnin-Lusetmp)), length=20))))
     } else {
       laglst_use<-laglst
       laglst_use<-laglst_use[laglst_use<=((nrow(out$output)-burnin-Lusetmp))]
     }
-    suppressWarnings(pdlag_list[[i]]<-test_predict_tlag(out$output[,i+1], Luse=Lusetmp, E=E[i], burnin=burnin, laglst=laglst_use, niter=niter, doplot=FALSE))
+    
+    #use selected window size and lags to test predictive power of training and testing sets
+    pdlag_list[[i]]<-test_predict_tlag(out$output[,i+1], Luse=Lusetmp, E=E[i], burnin=burnin, laglst=laglst_use, niter=niter, doplot=FALSE)
   }
   
   if(doplot) {
+    #if plotting is desired, plot results
+    
+    #find range to use for plotting axes
     mx<-0
     tl<-0
     for(i in 1:length(pdlag_list)) {
@@ -1028,9 +1063,13 @@ estimate_invar<-function(out, E=1, burnin=0, Luse=floor((seq((30), (nrow(out$out
       tl<-max(c(tl, pdlag_list[[i]]$laglst), na.rm=T)
     }
     
+    #plot mean CV vs. lag
     plot(c(0, tl), c(0, max(c(mx), na.rm=T)), xlab="time lag", ylab="CV", type="n", xaxs="i")
     abline(h=0, lty=3)
     
+    #add CI's based on standard deviation of among-window variability
+    #note that for very long lags, only a few windows exist, and standard deviations are therefore not
+    #indicative of true variability
     for(i in 1:length(pdlag_list)) {
       sbs<-which(is.finite(rowSums(pdlag_list[[i]]$CVest)))
       polygon(c(pdlag_list[[i]]$laglst[sbs], rev(pdlag_list[[i]]$laglst[sbs])),
@@ -1039,15 +1078,9 @@ estimate_invar<-function(out, E=1, burnin=0, Luse=floor((seq((30), (nrow(out$out
       lines(pdlag_list[[i]]$laglst, pdlag_list[[i]]$CVest[,3], col=i+1, lwd=2, lty=1)
     }
   }
-  
-  #if(sum(sites_sub)>0) {
-  #  out$output<-out$tmp_data
-  #  out$plotdata$ngrid<-out$tmp_lng
-  #  
-  #  out$tmp_data<-NULL
-  #  out$tmp_lng<-NULL
-  #}
-  
+
+  #pdL_list includees results from window size selection
+  #pdlag_list incudes results for CV for each lag
   return(list(pdL_list=pdL_list, pdlag_list=pdlag_list))
 }
 
@@ -1059,19 +1092,27 @@ estimate_invar<-function(out, E=1, burnin=0, Luse=floor((seq((30), (nrow(out$out
 ########################################
 
 getE<-function(out, Elst=2:10, doplot=FALSE, sites_sub=0) {
+  #finds optimal embedding dimension based on predictive power (rho)
   
+  #extract data if spatial subset is being analyzed
   if(sum(sites_sub)>0) {
     out$output<-out$output_spatial
   }
   
+  #run simplex algorithm for each species
   Eout<-numeric(length(out$plotdata$ceq))
   simplout<-NULL
   for(i in 1:length(Eout)) {
     simplout[[i]]<-suppressWarnings(simplex(out$output[,i+1], E=Elst))
+    
+    #selects "best" E, which is the smallest E for which the difference between rho and the maximum
+    #rho observed is smaller than 10% of the total range observed across all rho values.
+    #this is an ad-hoc method meant to help find the "saturation" point
     Eout[i]<-Elst[min(which((max(simplout[[i]]$rho)-simplout[[i]]$rho)/diff(range(simplout[[i]]$rho))<0.1))]
   }
   
   if(doplot) {
+    #if plotting is desired, plot actual relationshisp for rho vs. E for each species
     rng<-c(NA, NA)
     for(i in 1:length(simplout)) {
       tmp<-range(simplout[[i]]$rho, na.rm=T)
@@ -1086,49 +1127,72 @@ getE<-function(out, Elst=2:10, doplot=FALSE, sites_sub=0) {
     }
   }
   
+  #Eout is a vector with the best E for each species
+  #simplout includes all rho for all E and species
   return(list(Eout=Eout, simplout=simplout))
 }
 
-predict_vs_L<-function(outcol, E=1, burnin=0, Luse=floor((seq((30), (length(outcol)-burnin), length=20))), niter=0, doplot=TRUE) {
+
+predict_vs_L<-function(outcol, E=1, burnin=0, Luse=0, niter=0, doplot=TRUE) {
+  #calculates predictive power vs. library length across window sizes.
+  #is meant to identify an optimal window size
   
-  #calculates predictive power vs. library length
-  #niter=0 calculates for all possible time windows
+  #outcol is a vector of observations, for which predictions are to be made
+  #E, burnin, Luse, niter, and doplot are as described in 'estimate_invar'
+  
+  #if Luse=0, select a reasonable range of window sizes
+  if(sum(Luse)==0) {
+    Luse<-floor((seq((30), min(c(ceiling(length(outcol)/5), length(outcol)-burnin)), length=10)))
+  }
+  
+  #variable for saving results
   predmat<-NULL
   
   for(i in 1:length(Luse)) {
-    #find windows to use for prediction
+    #for each window size, find all possible windows to use for prediction
     window_starts<-seq((burnin+1), (length(outcol)-(Luse[i]-1)), by=Luse[i])
+    
+    #select a subset of window starts to use, or use all if niter==0
     if(niter!=0 & niter<length(window_starts)) {
       window_use<-sample(window_starts, niter, replace = F)
     } else {
       window_use<-window_starts
     }
     
+    #matrix for storing prediction results
     predmat_tmp<-matrix(ncol=5, nrow=length(window_use))
     predmat_tmp[,1]<-Luse[i]
     
-    #calculate predictive power
+    #calculate predictive power using each window
     for(j in 1:length(window_use)) {
+      #for each window, apply the simplex algorithm to predict the whole time series using leave one out cross validation
       tmp<-suppressWarnings(simplex(outcol, E=E, lib=c(window_use[j], (window_use[j]+Luse[i]-1)), pred=c(1+burnin, length(outcol)), stats_only = FALSE))
       
+      #store summary statistics
       predmat_tmp[j,2]<-tmp$rho
-      predmat_tmp[j,3]<-tmp$rmse#/mean(tmp[[1]]$model_output$pred, na.rm=T)
+      predmat_tmp[j,3]<-tmp$rmse
       
       predmat_tmp[j,4]<-mean(tmp$model_output[[1]]$pred, na.rm=T)
       predmat_tmp[j,5]<-tmp$num_pred
     }
     
+    #concatenate results
     predmat<-rbind(predmat, predmat_tmp)
   }
   
+  #column names for output
   colnames(predmat)<-c("Luse", "rho", "rmse", "mean", "n")
   
+  #calculate mean CV, and confidence intervals, for each window size
+  #note, CV is simply root mean square error/mean observation
   CVest<-t(matrix(nrow=5, unlist(tapply(predmat[,"rmse"]/predmat[,"mean"], predmat[,"Luse"], function(x) quantile(x[is.finite(x)], c(0.025, pnorm(-1, 0, 1), 0.5, pnorm(1, 0, 1), 0.975), na.rm=T)))))
   
-  #minimum library length that gives us 50% of the best predictive power
+  #identify minimum library length that gives us 50% of the best predictive power
   Lmin<-Luse[min(which((CVest[,5]-min(CVest[,5],na.rm=T))/(CVest[,5])<0.5),na.rm=T)]
   
   if(doplot) {
+    #if plotting is desired, plot results (widow size vs. CV and CI's)
+    
     plot(Luse, CVest[,3], type="n", xlab="library length", ylab="CV", ylim=c(0, max(c(1, CVest[,3]))), xlim=c(min(c(0, Luse)), max(Luse)), xaxs="i")
     polygon(c(Luse, rev(Luse)), c(CVest[,1], rev(CVest[,5])), col=adjustcolor("black", alpha.f = 0.2), border=NA)
     polygon(c(Luse, rev(Luse)), c(CVest[,2], rev(CVest[,4])), col=adjustcolor("black", alpha.f = 0.2), border=NA)
@@ -1137,48 +1201,77 @@ predict_vs_L<-function(outcol, E=1, burnin=0, Luse=floor((seq((30), (length(outc
     abline(v=c(min(Luse), Lmin), h=c(0, 1), lty=3)
   }
   
+  #Lmin is minimum library length that gives 50% of best predictive power
+  #CVest is estimated CV (0.025% quantile, mean-sd, mean, mean+sd, and 0.975% quantile) for each window size
+  #Luse is list of window lengths tested
   return(list(Lmin=Lmin, CVest=CVest, predmat=predmat, Luse=Luse))
 }
 
-test_predict_tlag<-function(outcol, Luse, E=1, burnin=0, laglst=c(floor((seq((0), ((length(outcol)-burnin-Luse)), length=20)))), niter=0, doplot=TRUE) {
+
+test_predict_tlag<-function(outcol, Luse, E=1, burnin=0, laglst=0, niter=0, doplot=TRUE) {
+  #calculates predictive power vs. time distance between training and testing sets
+  #given a particular time window size, Luse.
+
+  #outcol is a vector of observations, for which predictions are to be made
+  #Luse should be calculated using the 'predict_vs_L' function
+  #E, burnin, laglst, niter, and doplot are as described in 'estimate_invar'
+  
+  #variable for storing results
   predmat<-NULL
+  
+  #if laglst is set to zero, choose a sensible set of lags to test
+  if(sum(laglst)==0) {
+    laglst<-c(floor((seq((0), ((length(outcol)-burnin-Luse)), length=20))))
+  }
   
   #Cycle through lag lengths
   for(i in 1:length(laglst)) {
-    #Find all possible comparisons
+    #Find all possible comparisons between windows
     p1full<-seq(burnin+1, length(outcol)-(Luse-1)-laglst[i], by=Luse)
     
+    #either choose subset of comparisons, or use all if niter=0
     if(niter!=0 & niter<length(p1full)) {
       p1<-sample(p1full, niter, replace = F)
     } else {
       p1<-p1full
     }
     
+    #position of test set
     p2<-p1+laglst[i]
     
+    #matrix for storing results
     predmat_tmp<-matrix(ncol=5, nrow=length(p1))
     predmat_tmp[,1]<-laglst[i]
     
     for(j in 1:length(p1)) {
+      #for each training and test set, run simplex algorithm to predict p2 using data from p1
       tmplib<-c(p1[j], (p1[j]+Luse-1))
       tmppred<-c(p2[j], (p2[j]+Luse-1))
       
       tmp<-suppressWarnings(simplex(outcol,E=E, lib=tmplib, pred=tmppred, stats_only = FALSE))
       
+      #extract summary statistics
       predmat_tmp[j,2]<-tmp$rho
-      predmat_tmp[j,3]<-tmp$rmse#/mean(tmp[[1]]$model_output$pred, na.rm=T)
+      predmat_tmp[j,3]<-tmp$rmse
       
       predmat_tmp[j,4]<-mean(tmp$model_output[[1]]$pred, na.rm=T)
       predmat_tmp[j,5]<-tmp$num_pred
     }
+    
+    #concatenate results
     predmat<-rbind(predmat, predmat_tmp)
   }
   
+  #names of result columns
   colnames(predmat)<-c("Luse", "rho", "rmse", "mean", "n")
   
+  #calculate mean CV, and confidence intervals, for each window size
+  #note, CV is simply root mean square error/mean observation
   CVest<-t(matrix(nrow=5, unlist(tapply(predmat[,"rmse"]/predmat[,"mean"], predmat[,"Luse"], function(x) quantile(x[is.finite(x)], c(0.025, pnorm(-1, 0, 1), 0.5, pnorm(1, 0, 1), 0.975), na.rm=T)))))
   
   if(doplot) {
+    #if plotting is desired, plot results (widow size vs. CV and CI's)
+    
     plot(laglst, CVest[,3], type="n", xlab="time lag", ylab="CV", ylim=c(0, max(c(1, CVest[,3]))), xlim=c(min(c(0, laglst)), max(laglst)), xaxs="i")
     polygon(c(laglst, rev(laglst)), c(CVest[,1], rev(CVest[,5])), col=adjustcolor("black", alpha.f = 0.2), border=NA)
     polygon(c(laglst, rev(laglst)), c(CVest[,2], rev(CVest[,4])), col=adjustcolor("black", alpha.f = 0.2), border=NA)
@@ -1187,6 +1280,10 @@ test_predict_tlag<-function(outcol, Luse, E=1, burnin=0, laglst=c(floor((seq((0)
     abline(v=c(min(laglst)), h=c(0, 1), lty=3)
   }
   
+  #CVest is estimated CV (0.025% quantile, mean-sd, mean, mean+sd, and 0.975% quantile) for each window size
+  #predmat is full outputs for all lags and windows tested
+  #laglst is vector of lag lengths tested
+  #Luse is window length used
   return(list(CVest=CVest, predmat=predmat, laglst=laglst, Luse=Luse))
 }
 
@@ -1196,6 +1293,9 @@ test_predict_tlag<-function(outcol, Luse, E=1, burnin=0, laglst=c(floor((seq((0)
 ########################################
 
 runpar<-function(...) {
+  #Function to automate stability tests across models
+  #Is embarrassingly parallel, and can be used to iterate runs
+  
   require(rEDM)
   
   #run simulations
@@ -1331,5 +1431,6 @@ if(FALSE) {
   #calculate stability metrics
   eqret<-estimate_eqreturn(out)
   rareret<-estimate_rarereturn(out)
+  invar<-estimate_invar(out)
 }
 
