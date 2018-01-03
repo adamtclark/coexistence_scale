@@ -47,7 +47,7 @@ static double Qt1 = TW;   //Earliest time beyond this cycle in 'Q'.
 static int *Pl, pcurr, pprev, count;
 static int (*order)(int,int);
 
-void run_neutral_metapopulation_spatialsub(double *ptmax, int *pgridsize, int *pnsp, int xylim[], int destroyed[], //grid
+void run_neutral_metapopulation_spatialsub(double *ptmax, int *pgridsize, int *pnsp, int xylim[], int destroyed[], int spdestroy[], //grid
 		double c_sptraits[], double m_sptraits[], int abundances[], int colsites[], int *pncolsites, //traits
 		double eventtimes_c[], double eventtimes_m[], //events
 		int speciesid[], //species
@@ -190,7 +190,7 @@ void run_neutral_metapopulation_spatialsub(double *ptmax, int *pgridsize, int *p
 	   
 	   ////check for habitat destruction, etc.
 	   int trigger=0; //will switch to 1 if location cannot be colonized
-	   if(destroyed[newpos+cadj]==1) {
+	   if((destroyed[newpos+cadj]==1) && (spdestroy[speciesid[sppos+cadj]]==1)) {
 	     trigger=1;
 	   } else if(speciesid[newpos+cadj]!=nsp) { ////check for superior competitor (or same species)
 	     trigger=1;

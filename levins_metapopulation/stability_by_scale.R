@@ -2,25 +2,9 @@ error
 rm(list=ls())
 setwd("~/Dropbox/Projects/032_Coexistence_mechanisms/src/levins_metapopulation/")
 
-#TODO:
-#1. Update destruction algorithm to allow limits for individual species
-
-#2. Neet to think up better "return to equilibrium" method?
-#-. Think about increasing size to decrease variability - show improvement in equilibrium model
-#-. Note that perturbation needs to be larger than stochastic variation - when large, this becomes similar to "increase when rare".
-
-#4. Add Stan's PSF model
-#-. Needs both intransitivity etc. and cycles that drop off-cycle with disturbance.
-
-#5. One example of rock-paper-scissors
-
-
-
 #load functions
 require(rEDM)
 source("run_metapopulation_wrapper.R")
-
-
 
 ############################################################
 # "Global" run
