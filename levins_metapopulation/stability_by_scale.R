@@ -3,13 +3,18 @@ rm(list=ls())
 setwd("~/Dropbox/Projects/032_Coexistence_mechanisms/src/levins_metapopulation/")
 
 #TODO:
-#2. Neet to think upbetter "return to equilibrium" method?
+#1. Update destruction algorithm to allow limits for individual species
+
+#2. Neet to think up better "return to equilibrium" method?
 #-. Think about increasing size to decrease variability - show improvement in equilibrium model
 #-. Note that perturbation needs to be larger than stochastic variation - when large, this becomes similar to "increase when rare".
 
-#4. Think about PSF model to use
+#4. Add Stan's PSF model
 #-. Needs both intransitivity etc. and cycles that drop off-cycle with disturbance.
-#-. Maybe one example can be rock-paper-scissors?
+
+#5. One example of rock-paper-scissors
+
+
 
 #load functions
 require(rEDM)

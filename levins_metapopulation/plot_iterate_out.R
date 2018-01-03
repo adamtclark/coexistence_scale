@@ -4,7 +4,8 @@ setwd("~/Dropbox/Projects/032_Coexistence_mechanisms/src/levins_metapopulation/"
 
 require(data.table)
 
-matout_tot<-data.frame(fread("output/matout_tot.csv"))
+#matout_tot<-data.frame(fread("output/matout_tot.csv"))
+matout_tot<-data.frame(fread("~/z/matout_tot.csv"))
 nsp<-(ncol(matout_tot)-3)/15
 
 colnames(matout_tot)<-c("scale", "tscale", "iter",
