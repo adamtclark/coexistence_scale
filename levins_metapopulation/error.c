@@ -179,8 +179,11 @@ typedef double dec;
 
 static int dropnum(char*);
 static int matched(char*, char*);
-static msgout(int, char*, char *pc[NPAR], char pn[NPAR][LNUM]);
-static nformat(char[], dec);
+static void msgout(int, char*, char *pc[NPAR], char pn[NPAR][LNUM]);
+static void nformat(char[], dec);
+int ErrorInit();
+int ErrorTrace();
+void Failure();
 
 int Error3(dec n, char *p1,dec v1, char *p2,dec v2, char *p3,dec v3)
 {
@@ -231,7 +234,7 @@ int Error (dec n)                  { return Error3(n, 0,0,   0,0,   0,0); }
 /*----------------------------------------------------------------------------*
 INTERNAL SERVICE ROUTINES
 
-/* ---- CHECK FOR MATCHING MESSAGE
+---- CHECK FOR MATCHING MESSAGE
 
 ENTRY: 'p' points to a message.
        'q' points to a message number, formatted as a three-digit decimal
@@ -258,9 +261,10 @@ ENTRY: 'r' defines the number of new-line codes to precede the message.
 EXIT:  The message has been displayed.
 */
 
-static msgout(int r, char *s, char *pc[NPAR], char pn[NPAR][LNUM])
+static void msgout(int r, char *s, char *pc[NPAR], char pn[NPAR][LNUM])
 {
-  char i,j, *s1,*s2;
+  int i,j;
+  char *s1,*s2;
 
   for(; r>0; r--) fprintf(stderr,"\n");      //Display any separator lines.
 
@@ -314,7 +318,7 @@ EXIT:  's' contains the formatted number.
 #define EPSILON 0.000000001
 #define OMEGA   10000000000
 
-static nformat(char s[LNUM], dec v)
+static void nformat(char s[LNUM], dec v)
 {
   if(fabs(v-(long int)v)<fabs(v)*EPSILON     //If this is a relatively small
   && fabs(v)<OMEGA)                          //integer, format it directly.
@@ -331,7 +335,7 @@ ENTRY: 'n' contains an exit code, to be returned to the operating system.
 EXIT:  The routine never exits, but rather terminates the program.
 */
 
-Failure(int n)
+void Failure(int n)
 {
   exit(n);
 }

@@ -311,7 +311,7 @@ void EventSchedule(int n, double te) {
 } 
 
 void EventCancel(int n) {
-  int i, j, jp;
+  int i;
   double tr;
 
   PINIT;                                     //Initialize if necessary.
@@ -353,7 +353,7 @@ int o1(int i, int j) {
 }
 
 int EventNext() {
-  int j, n;
+  int j;
 
   PINIT;                                     //Initialize if necessary.
 
