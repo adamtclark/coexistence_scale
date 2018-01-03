@@ -101,14 +101,8 @@ void run_metapopulation_spatialsub(double *ptmax, int *pgridsize, int *pnsp, int
 	EventStartTime(tnow);
 	for(i=0; i<gridsize; i++) {
 		if(eventtimes_c[i]!=0 || eventtimes_m[i]!=0) {
-			//if(eventtimes_c[i]<tmax) {
-	  			//fprintf(stderr, "START allocated c = %d \n", i+1);
-				EventSchedule(i+1, eventtimes_c[i]);
-			//}
-			//if(eventtimes_m[i]<tmax) {
-				//fprintf(stderr, "START allocated m = %d \n", i+1);
-				EventSchedule(i+gridsize+1, eventtimes_m[i]);
-			//}
+			EventSchedule(i+1, eventtimes_c[i]);
+			EventSchedule(i+gridsize+1, eventtimes_m[i]);
 		}
 	}
 
@@ -120,14 +114,11 @@ void run_metapopulation_spatialsub(double *ptmax, int *pgridsize, int *pnsp, int
 	  double event_info[3] = {0, 0, 0};
 
 	  //Find next event
-	  //fprintf(stderr, "TIME0 = %f \n", t);
 	  int nl = EventNext();
-	  //fprintf(stderr, "TIME1 = %f \n", t);
 
 	  if(nl==0) {
 	  	break; //out of events if all are done
 	  }
-	  //fprintf(stderr, "EventNext = %d \n", nl);
 	  nl=nl-1;
 
 	  if(nl>=gridsize && nl <= (2*gridsize-1)) {
@@ -147,15 +138,6 @@ void run_metapopulation_spatialsub(double *ptmax, int *pgridsize, int *pnsp, int
 	 sppos = (int) event_info[2+cadj]; //position of species with event
 	 eventtype = (int) event_info[0+cadj]; //type of event
 
-	 //fprintf(stderr, "TIME2 = %f \n", tnow);
-
-	 //if(eventtype==1) {
-	 //	fprintf(stderr, "EVENT removed m = %d \n", sppos+1);
-	 //}
-	 //if(eventtype==2) {
-	 //	fprintf(stderr, "EVENT removed c = %d \n", sppos+1);
-	 //}
-
 	 if(eventtype==1) { //death event
 	   
 	   //remove individual for abundane list
@@ -163,11 +145,7 @@ void run_metapopulation_spatialsub(double *ptmax, int *pgridsize, int *pnsp, int
 	   totabund=totabund-1;
 	                                          
 	   //remove events attached to species
-	   //if(eventtimes_c[sppos+cadj]!=0 && eventtimes_c[sppos+cadj]<tmax) {
-	   	//fprintf(stderr, "DEATH removed c = %d \n", sppos+1);
-	   	EventCancel(sppos+1); //cancel birth
-	   //}
-	   //EventCancel(sppos+gridsize+1); //cancel death
+	   EventCancel(sppos+1); //cancel birth
 
 	   eventtimes_c[sppos+cadj]=0;
 	   eventtimes_m[sppos+cadj]=0;
@@ -178,21 +156,15 @@ void run_metapopulation_spatialsub(double *ptmax, int *pgridsize, int *pnsp, int
 	   
 	   //Remove birth event that just happened
 	   eventtimes_c[sppos+cadj]=0;
-	   //EventCancel(sppos+1); //cancel birth
 	   
 	   ////generate new birth event for parent
 	   eventtimes_c[sppos+cadj]=tnow+make_expnential_event(c_sptraits[speciesid[sppos+cadj]+cadj]);
-
-	   //if(eventtimes_c[sppos+cadj]!=0 && eventtimes_c[sppos+cadj]<tmax) {
-	   	//fprintf(stderr, "NEWBIRTH allocated c = %d \n", sppos+1);
-	   	EventSchedule(sppos+1, eventtimes_c[sppos+cadj]);
-	   //}
+	   EventSchedule(sppos+1, eventtimes_c[sppos+cadj]);
 
 	   //make new birth location
 	   int currentx = floor(sppos/xylim[0+cadj]); // current x location of parent
 	   int currenty = sppos-xylim[0+cadj]*currentx; // current y location of parent
 	   
-	   // newlocation=floor(runif(1)*ncolsites);
 	   int newlocation=floor(runif(0,1)*ncolsites);
 	   int newx = colsites[newlocation+cadj]+currentx;
 	   int newy = colsites[newlocation+ncolsites+cadj]+currenty;
@@ -224,16 +196,9 @@ void run_metapopulation_spatialsub(double *ptmax, int *pgridsize, int *pnsp, int
 	     //if inferior, kill competitor
 	     abundances[speciesid[newpos+cadj]+cadj]=abundances[speciesid[newpos+cadj]+cadj]-1; //remove one from species abundance
 	     totabund=totabund-1;
-	     
-	     //remove events attached to species
-	     //if(eventtimes_c[newpos+cadj]!=0 && eventtimes_c[newpos+cadj]<tmax) {
-	     	//fprintf(stderr, "REPLACED removed c = %d \n", newpos+1);
-	     	EventCancel(newpos+1); //cancel birth
-	     //}
-	     //if(eventtimes_m[newpos+cadj]!=0 && eventtimes_m[newpos+cadj]<tmax) {
-	     	//fprintf(stderr, "REPLACED removed m = %d \n", newpos+1);
-	   	 	EventCancel(newpos+gridsize+1); //cancel death
-	   	 //}
+
+	     EventCancel(newpos+1); //cancel birth
+	   	 EventCancel(newpos+gridsize+1); //cancel death
 
 	     eventtimes_c[newpos+cadj]=0;
 	     eventtimes_m[newpos+cadj]=0;
@@ -246,14 +211,8 @@ void run_metapopulation_spatialsub(double *ptmax, int *pgridsize, int *pnsp, int
 	     eventtimes_c[newpos+cadj]=tnow+make_expnential_event(c_sptraits[speciesid[sppos+cadj]+cadj]);
 	     eventtimes_m[newpos+cadj]=tnow+make_expnential_event(m_sptraits[speciesid[sppos+cadj]+cadj]);
 
-	     //if(eventtimes_c[newpos+cadj]!=0 && eventtimes_c[newpos+cadj]<tmax) {
-	     	//fprintf(stderr, "NEW allocated c = %d \n", newpos+1);
-	     	EventSchedule(newpos+1, eventtimes_c[newpos+cadj]);
-	     //}
-	     //if(eventtimes_m[newpos+cadj] !=0 && eventtimes_m[newpos+cadj]<tmax) {
-	     	//fprintf(stderr, "NEW allocated m = %d \n", newpos+1);
-	     	EventSchedule(newpos+gridsize+1, eventtimes_m[newpos+cadj]);
-	     //}
+	     EventSchedule(newpos+1, eventtimes_c[newpos+cadj]);
+	     EventSchedule(newpos+gridsize+1, eventtimes_m[newpos+cadj]);
 
 	     speciesid[newpos+cadj]=speciesid[sppos+cadj];
 	     
@@ -264,13 +223,11 @@ void run_metapopulation_spatialsub(double *ptmax, int *pgridsize, int *pnsp, int
 	   
 	 //save state
 	 if((tnow > trecord)){//&&(tnow < (trecord+dt))) {
-	   //trecord=trecord+dt;
 	   trecord=tnow+dt;
 	   
 	   output[istep+cadj] = tnow; //First time step
 	   output_sub[istep+cadj] = tnow; //First time step
 	  
-	   //for(i in 0:(nsp-1)) {
 	   for(i=0; i<nsp; i++) {
 	     output[(nsteps+1)*(i+1)+istep+cadj] = abundances[i+cadj]; //Each species		
 	   }
@@ -304,10 +261,6 @@ void run_metapopulation_spatialsub(double *ptmax, int *pgridsize, int *pnsp, int
 	     R_CheckUserInterrupt();
 	 }
 	}
-	
-	//fprintf(stderr, "totabund = %d \n", totabund);
-	//fprintf(stderr, "tnow = %f \n", tnow);
-	//fprintf(stderr, "tmax = %f \n", tmax);
 }
 
 
@@ -322,55 +275,11 @@ double make_expnential_event(double lambda) {
   return(tm);
 }
 
-/*
-void minpos(double eventtimes_c[], double eventtimes_m [], int gridsize, double event_info[]) {
-  int i=0;
-  
-  int cadj = 0;
-  //Search through c and m lists to find minimum position and value
-  
-  event_info[0+cadj]=0; //start with no event type
-  event_info[1+cadj]=0; //start with no event time
-  event_info[2+cadj]=0; //start with no event position
-  
-  //for(i in 0:(gridsize-1)) {
-  for(i=0; i<gridsize; i++) {
-    if(eventtimes_c[i+cadj]!=0) {
-      if(event_info[1+cadj]==0) {
-        event_info[1+cadj]=eventtimes_c[i+cadj]; //store event time
-        event_info[0+cadj]=2; //mark as birth event
-        event_info[2+cadj]=i; //mark position
-      } else {
-        if(eventtimes_c[i+cadj]<event_info[1+cadj]) {
-          event_info[1+cadj]=eventtimes_c[i+cadj]; //store event time
-          event_info[0+cadj]=2; //mark as birth event
-          event_info[2+cadj]=i; //mark position
-        }
-      }
-    }
-    
-    if(eventtimes_m[i+cadj]!=0) {
-      if(event_info[1+cadj]==0) {
-        event_info[1+cadj]=eventtimes_m[i+cadj]; //store event time
-        event_info[0+cadj]=1; //mark as death event
-        event_info[2+cadj]=i; //mark position
-      } else {
-        if(eventtimes_m[i+cadj]<event_info[1+cadj]) {
-          event_info[1+cadj]=eventtimes_m[i+cadj]; //store event time
-          event_info[0+cadj]=1; //mark as death event
-          event_info[2+cadj]=i; //mark position
-        }
-      }
-    }
-  }
-}
-*/
-
 //Scheduling functions
 void EventInit() {
   int i;
 
-  for(i=0; i<PN; i++) P[i] = PEMPTY;         //(Explain this a little?)
+  for(i=0; i<PN; i++) P[i] = PEMPTY;
   if(run1==0) { run1 = 1; return; }
 
   for(i=0; i<PN; i++) T[i] = 0;
@@ -402,7 +311,7 @@ void EventSchedule(int n, double te) {
   if(n<1||n>=PN)   Error1(734.1, "n=",n);    //Check the index and make sure an
   if(P[n]!=PEMPTY) Error1(735.1, "n=",n);    //event is not already scheduled
   if(te>=TINF)     Error1(737.0, "n=",n);    //is not in the infinite future,
-//if(te<t) P[99999999]=P[0];                 /**/
+
   if(te<t) Error2(738.1, "t=",t, ">",te);    //and is not in the past.
 
   T[n] = te;                                 //Record the time of the new event.
