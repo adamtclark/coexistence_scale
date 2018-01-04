@@ -23,25 +23,26 @@ ptb<-0.2 #size of perturbations for equilibrium method (in fraction of initial v
 tmax<-1000 #timeseries length
 burnin<-100 #burning for growth rate when rare method
 simtime<-100 #time spans for equilibria dectection
-invarburn<-0
+invarburn<-100
 
 lglst<-round(seq(0, tmax*0.8-10, length=10)) #lags for invar test
 
 minE<-4 #minimum E for simplex algorithm
 
-clst_meta = c(0.15, 0.3, 0.8, 3)*xfac
+clst_meta = c(0.15, 0.3)*xfac
 mlst_meta = rep(0.1, length(clst_meta))*xfac
 population_meta<-populate(gridout, nlst = floor(getceq(clst_meta, mlst_meta)*prod(gridout$lng)),
                           clst = clst_meta, radlst = radlst, mlst = mlst_meta)
 
-clst_neut<-rep(0.5, 4)*xfac
+clst_neut<-rep(0.5, 2)*xfac
 mlst_neut<-rep(0.1, length(clst_neut))*xfac
-population_neut<-populate(gridout, nlst = round(rep(unique(abs(getceq(clst_neut, mlst_neut)))/length(clst_neut), length(clst_neut))*prod(gridout$lng)),
+tmp<-getceq(clst_neut, mlst_neut)
+population_neut<-populate(gridout, nlst = round(rep(unique(abs(tmp[tmp>0]))/length(clst_neut), length(clst_neut))*prod(gridout$lng)),
                           clst = clst_neut, radlst = radlst, mlst = mlst_neut)
 
-clst_dist= c(0.145, 0.16, 0.18, 0.21)*xfac
+clst_dist= c(0.145, 0.16)*xfac
 mlst_dist = rep(0.1, length(clst_dist))*xfac
-distlst<-c(0.95, 0.7, 0.2, 0)
+distlst<-c(0.95, 0)
 distfrq<-20
 population_dist<-populate(gridout, nlst = rep(floor(prod(gridout$lng)/length(clst_dist)*0.8), length(clst_dist)),
                           clst = clst_dist, radlst = radlst, mlst = mlst_dist)
@@ -73,15 +74,6 @@ for(i in 1:length(scalelst)) {
   
   #run parallel program for predicting community biomass
   clusterout<-try(parLapply(cl=cl, 1:niterations, fun=runpar))
-  
-  
-  #clusterExport(cl, c("tstfun"))
-  #clusterout<-try(parLapply(cl=cl, 1:niterations, fun=tstfun))
-  
-  #TODO: Figure out what the heck is happening here...
-  #error has something to do with "out_lst[[sppos]]$output"
-  #Problem is with global, not local
-  
   
   if(!is.character(clusterout)) {
     
