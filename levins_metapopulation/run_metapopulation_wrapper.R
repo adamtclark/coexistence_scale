@@ -1302,6 +1302,8 @@ test_predict_tlag<-function(outcol, Luse, E=1, burnin=0, laglst=0, niter=0, dopl
 # Parallel functions
 ########################################
 
+#TODO: NEED TO UPDATE BELOW CODE BEFORE RUNNING!!!#
+
 runpar<-function(...) {
   #Function to automate stability tests across models
   #Is embarrassingly parallel, and can be used to iterate runs
