@@ -19,7 +19,7 @@ collst<-c("black", brewer.pal(4, "Dark2"))
 
 set.seed(171205)
 #clst_meta = c(0.15, 0.3, 0.8, 3)*xfac
-clst_meta = c(0.15, 0.35, 0.9, 2.8)*xfac
+clst_meta = c(0.15, 0.35)*xfac
 mlst_meta = rep(0.1, length(clst_meta))*xfac
 getceq(clst_meta, mlst_meta)
 
@@ -33,7 +33,7 @@ r0_meta<-estimate_rarereturn(out_meta, simtime=100, burnin=100, runtype="metapop
 out_meta_long<-run_metapopulation(tmax=1000, gridout = gridout, population = population_meta, talktime = 0)
 getEmeta<-getE(out_meta_long, Elst = 2:10)
 E_meta<-getEmeta$Eout
-E_meta[E_meta<4]<-4
+#E_meta[E_meta<4]<-4
 
 invar_meta<-estimate_invar(out_meta_long, E=E_meta, burnin=0, doplot=FALSE)
 
@@ -51,21 +51,23 @@ dev.off()
 ##### Try Hubbell neutal model
 set.seed(171206)
 
-clst_neut<-rep(0.5, 4)*xfac
+clst_neut<-rep(0.5, 2)*xfac
 mlst_neut<-rep(0.1, length(clst_neut))*xfac
-population_neut<-populate(gridout, nlst = round(rep(unique(abs(getceq(clst_neut, mlst_neut)))/length(clst_neut), length(clst_neut))*prod(gridout$lng)),
+tmp<-abs(getceq(clst_neut, mlst_neut))
+population_neut<-populate(gridout, nlst = round(rep(unique(tmp[tmp>0])/length(clst_neut), length(clst_neut))*prod(gridout$lng)),
                           clst = clst_neut, radlst = Inf, mlst = mlst_neut)
 out_neut<-run_metapopulation(tmax=200, gridout = gridout, population = population_neut, talktime = 0, runtype = "neutral")
 
 eig_neut1<-estimate_eqreturn(out_neut, simtime=100, runtype="neutral", replace_perturb = 1, talktime=0, prtb=ptb, doplot = FALSE)
 eig_neut2<-estimate_eqreturn(out_neut, simtime=100, runtype="neutral", replace_perturb = 0, talktime=0, prtb=ptb, doplot = FALSE)
 
-r0_neut<-estimate_rarereturn(out_neut, simtime=100, burnin=100, runtype="neutral", doplot = FALSE)
+r0_neut<-estimate_rarereturn(out = out_neut, simtime=100, burnin=100, runtype="neutral", doplot = FALSE)
 
+set.seed(180104)
 out_neut_long<-run_metapopulation(tmax=1000, gridout = gridout, population = population_neut, talktime = 0, runtype = "neutral")
 getEneut<-getE(out_neut_long, Elst = 2:10)
 E_neut<-getEneut$Eout
-E_neut[E_neut<4]<-4
+#E_neut[E_neut<4]<-4
 
 invar_neut<-estimate_invar(out_neut_long, E=E_neut, burnin=0, doplot=FALSE)
 
@@ -74,9 +76,9 @@ invar_neut<-estimate_invar(out_neut_long, E=E_neut, burnin=0, doplot=FALSE)
 ##### Try disturbance model
 set.seed(171217)
 
-clst_dist= c(0.145, 0.16, 0.18, 0.21)*xfac
+clst_dist= c(0.145, 0.16)*xfac
 mlst_dist = rep(0.1, length(clst_dist))*xfac
-distlst<-c(0.95, 0.7, 0.2, 0)
+distlst<-c(0.95, 0)
 
 population_dist<-populate(gridout, nlst = rep(floor(prod(gridout$lng)/length(clst_dist)*0.8), length(clst_dist)),
                           clst = clst_dist, radlst = Inf, mlst = mlst_dist)
@@ -92,9 +94,9 @@ r0_dist<-estimate_rarereturn(out_dist_0, simtime=100, burnin=100, runtype="distu
 out_dist_long<-run_metapopulation(tmax=1000, gridout = gridout, population = population_dist, talktime = 0, runtype = "disturbance", prt = distlst,  prtfrq = 20)
 getEdist<-getE(out_dist_long, Elst = 2:10)
 E_dist<-getEdist$Eout
-E_dist[E_dist<4]<-4
+#E_dist[E_dist<4]<-4
 
-invar_dist<-estimate_invar(out_dist_long, E=E_dist, burnin=0, doplot=FALSE)
+invar_dist<-estimate_invar(out_dist_long, E=E_dist, burnin=100, doplot=FALSE)
 
 
 out_dist_nodist<-run_metapopulation(tmax=200, gridout = gridout, population = population_dist, talktime = 0, runtype = "metapopulation")
@@ -149,11 +151,11 @@ par(mar=c(2,2,2,2), oma=c(2,2,0,0))
 m<-t(matrix(nrow=2, c(rep(1, 4), rep(2,2), rep(3,2))))
 layout(m)
 
-tmp<-eig_neut1$out_lst[[3]]$output
+tmp<-eig_neut1$out_lst[[1]]$output
 tmp[,1]<-tmp[,1]+200
 pmat_neut1<-rbind(out_neut$output, tmp)
 
-tmp<-eig_neut2$out_lst[[3]]$output
+tmp<-eig_neut2$out_lst[[1]]$output
 tmp[,1]<-tmp[,1]+200
 pmat_neut2<-rbind(out_neut$output, tmp)
 
@@ -162,23 +164,23 @@ m<-t(matrix(nrow=2, c(rep(1, 4), rep(2,2), rep(3,2))))
 layout(m)
 
 #with replacing perturbation
-matplot(pmat_neut1[,1], pmat_neut1[,-1]/out_neut$plotdata$ngrid, type="l", lty=1, col=collst[c(4,3,2,5)], lwd=1.5, xlab="time", ylab="relative abundance", xaxs="i")
+matplot(pmat_neut1[,1], pmat_neut1[,-1]/out_neut$plotdata$ngrid, type="l", lty=1, col=collst[-1], lwd=1.5, xlab="time", ylab="relative abundance", xaxs="i")
 abline(v=200, lty=2)
 ceq<-getceq(clst_neut, mlst_neut)
 put.fig.letter("a.", "topleft", offset=ofs1, cex=1.6)
 mtext("time", 1, line=2.3, cex=1.1)
 mtext("relative abundance", 2, line=2.3, cex=1.1)
-arrows(200, 0.32+0.02,
-       200, 0.32,
+arrows(200, 0.27+0.02,
+       200, 0.27,
        length = 0.08, lwd=2, lend=4)
 
 
-plot(1:nrow(eig_neut1$out_lst[[3]]$output), abs(eig_neut1$out_lst[[3]]$output[,4]-eig_neut1$out_lst0$output[,4])/out_neut$plotdata$ngrid, type="l", ylab="estimated distance", xlab="time", col=collst[2], lwd=2, xaxs="i", ylim=c(0, 0.1)); abline(h=0, lty=3)
+plot(1:nrow(eig_neut1$out_lst[[1]]$output), abs(eig_neut1$out_lst[[1]]$output[,2]-eig_neut1$out_lst0$output[,2])/out_neut$plotdata$ngrid, type="l", ylab="estimated distance", xlab="time", col=collst[2], lwd=2, xaxs="i", ylim=c(0, 0.04)); abline(h=0, lty=3)
 put.fig.letter("b.", "topleft", offset=ofs2, cex=1.6)
 mtext("time since disturbance", 1, line=2.3, cex=1.1)
 mtext("estimated distance", 2, line=2.3, cex=1.1)
 
-plot(1:nrow(eig_neut1$eigenlst), eig_neut1$eigenlst[,3]*(1:nrow(eig_neut1$eigenlst)), type="l", lwd=2, col=collst[2], xlab="time span", ylab=expression(italic(paste(lambda, "t"))), xaxs="i", ylim=c(-4, 2)); abline(h=0, lty=3)
+plot(1:nrow(eig_neut1$eigenlst), eig_neut1$eigenlst[,1]*(1:nrow(eig_neut1$eigenlst)), type="l", lwd=2, col=collst[2], xlab="time span", ylab=expression(italic(paste(lambda, "t"))), xaxs="i", ylim=c(-6, 2)); abline(h=0, lty=3)
 put.fig.letter("c.", "topleft", offset=ofs2, cex=1.6)
 mtext("time span", 1, line=2.3, cex=1.1)
 mtext(expression(italic(paste(lambda, "t"))), 2, line=2.3, cex=1.1)
@@ -192,21 +194,21 @@ m<-t(matrix(nrow=2, c(rep(1, 4), rep(2,2), rep(3,2))))
 layout(m)
 
 #without replacing perturbation
-matplot(pmat_neut2[,1], pmat_neut2[,-1]/out_neut$plotdata$ngrid, type="l", lty=1, col=collst[c(4,3,2,5)], lwd=1.5, xlab="time", ylab="relative abundance", xaxs="i")
+matplot(pmat_neut2[,1], pmat_neut2[,-1]/out_neut$plotdata$ngrid, type="l", lty=1, col=collst[c(-1)], lwd=1.5, xlab="time", ylab="relative abundance", xaxs="i")
 abline(v=200, lty=2)
 put.fig.letter("a.", "topleft", offset=ofs1, cex=1.6)
 mtext("time", 1, line=2.3, cex=1.1)
 mtext("relative abundance", 2, line=2.3, cex=1.1)
-arrows(200, 0.32+0.02,
-       200, 0.32,
+arrows(200, 0.27+0.02,
+       200, 0.27,
        length = 0.08, lwd=2, lend=4)
 
-plot(1:nrow(eig_neut2$out_lst[[3]]$output), abs(eig_neut2$out_lst[[3]]$output[,4]-eig_neut2$out_lst0$output[,4])/out_neut$plotdata$ngrid, type="l", ylab="estimated distance", xlab="time", col=collst[2], lwd=2, xaxs="i", ylim=c(0, 0.1)); abline(h=0, lty=3)
+plot(1:nrow(eig_neut2$out_lst[[1]]$output), abs(eig_neut2$out_lst[[1]]$output[,2]-eig_neut2$out_lst0$output[,2])/out_neut$plotdata$ngrid, type="l", ylab="estimated distance", xlab="time", col=collst[2], lwd=2, xaxs="i", ylim=c(0, 0.06)); abline(h=0, lty=3)
 put.fig.letter("b.", "topleft", offset=ofs2, cex=1.6)
 mtext("time since disturbance", 1, line=2.3, cex=1.1)
 mtext("estimated distance", 2, line=2.3, cex=1.1)
 
-plot((1:nrow(eig_neut2$eigenlst))[is.finite(eig_neut2$eigenlst[,3])], eig_neut2$eigenlst[is.finite(eig_neut2$eigenlst[,3]),3]*(1:nrow(eig_neut2$eigenlst))[is.finite(eig_neut2$eigenlst[,3])], type="l", lwd=2, col=collst[2], xlab="time span", ylab=expression(italic(paste(lambda, "t"))), xaxs="i", ylim=c(-4, 2)); abline(h=0, lty=3)
+plot((1:nrow(eig_neut2$eigenlst))[is.finite(eig_neut2$eigenlst[,1])], eig_neut2$eigenlst[is.finite(eig_neut2$eigenlst[,1]),1]*(1:nrow(eig_neut2$eigenlst))[is.finite(eig_neut2$eigenlst[,1])], type="l", lwd=2, col=collst[2], xlab="time span", ylab=expression(italic(paste(lambda, "t"))), xaxs="i", ylim=c(-6, 2)); abline(h=0, lty=3)
 put.fig.letter("c.", "topleft", offset=ofs2, cex=1.6)
 mtext("time span", 1, line=2.3, cex=1.1)
 mtext(expression(italic(paste(lambda, "t"))), 2, line=2.3, cex=1.1)
@@ -220,7 +222,7 @@ par(mar=c(2,2,2,2), oma=c(2,2,0,0))
 
 matplot(pmat_neut2[,1], rowSums(pmat_neut2[,-1])/out_neut$plotdata$ngrid, type="l", lty=1, col=collst[1], lwd=1.5, xlab="time", ylab="relative abundance", xaxs="i")
 abline(v=200, lty=2)
-abline(h=c(mean(abs(ceq))/c(1, 4)), lty=3, col=1, lwd=1.5)
+abline(h=c(abs(unique(out_neut$plotdata$ceq))), lty=3, col=1, lwd=1.5)
 mtext("time", 1, line=2.3, cex=1.1)
 mtext("relative abundance", 2, line=2.3, cex=1.1)
 
@@ -447,19 +449,24 @@ mtext("time", 1, line=2.3, cex=1.1)
 mtext("relative abundance", 2, line=2.3, cex=1.1)
 put.fig.letter("a.", "topleft", offset=ofs3, cex=1.6)
 
-segments(c(200, 200, 300, 300), c(0.22, 0.29, 0.29, 0.22), c(200, 300, 300, 200), c(0.29, 0.29, 0.22, 0.22), lwd=2)
-segments(c(200, 200, 300, 300)+500, c(0.054, 0.11, 0.11, 0.054), c(200, 300, 300, 200)+500, c(0.11, 0.11, 0.054, 0.054), lwd=2)
+tmp<-out_neut_long$output[,2]/out_neut_long$plotdata$ngrid
+tmptm<-out_neut_long$output[,1]
 
-arrows(500, 0.165, 690, 0.11, lwd=2, length = 0.1, lend=2)
-arrows(500, 0.165, 310, 0.22, lwd=2, length = 0.1, lend=2)
+y11<-min(tmp[tmptm>200 & tmptm<300]); y12<-max(tmp[tmptm>200 & tmptm<300])
+y21<-min(tmp[tmptm>700 & tmptm<800]); y22<-max(tmp[tmptm>700 & tmptm<800])
+segments(c(200, 200, 300, 300), c(y11, y12, y12, y11), c(200, 300, 300, 200), c(y12, y12, y11, y11), lwd=2)
+segments(c(200, 200, 300, 300)+500, c(y22, y21, y21, y22), c(200, 300, 300, 200)+500, c(y21, y21, y22, y22), lwd=2)
 
-text(500, 0.175, pos=3, labels = "time lag")
+arrows(500, (y11+y21)/2, 690, y21, lwd=2, length = 0.1, lend=2)
+arrows(500, (y11+y21)/2, 310, y11, lwd=2, length = 0.1, lend=2)
 
-text(250, 0.22, pos=1, labels = "training set")
-text(750, 0.11, pos=3, labels = "testing set")
+text(500, (y11+y21)/2, pos=1, labels = "time lag")
+
+text(250, y11, pos=1, labels = "training set")
+text(750, y21, pos=1, labels = "testing set")
 
 
-plot(invar_neut$pdlag_list[[1]]$laglst, invar_neut$pdlag_list[[1]]$CVest[,1], xlab="time lag", ylab=expression(italic(paste("CV"))), type="l", lty=1, lwd=1.5, col=collst[2], xaxs="i", ylim=c(0, 0.65)); abline(h=0, lty=3)
+plot(invar_neut$pdlag_list[[1]]$laglst, invar_neut$pdlag_list[[1]]$CVest[,1], xlab="time lag", ylab=expression(italic(paste("CV"))), type="l", lty=1, lwd=1.5, col=collst[2], xaxs="i", ylim=c(0, 0.3)); abline(h=0, lty=3)
 mtext("time lag", 1, line=2.3, cex=1.1)
 mtext(expression(italic("CV")), 2, line=2.3, cex=1.1)
 put.fig.letter("b.", "topleft", offset=ofs3, cex=1.6)
@@ -475,31 +482,35 @@ par(mar=c(2,2,2,2), oma=c(2,2,0,0))
 m<-t(matrix(nrow=2, c(rep(1, 2), rep(2,2))))
 layout(m)
 
-matplot(out_dist_long$output[,1], out_dist_long$output[,3]/out_dist_long$plotdata$ngrid, type="l", lty=1, col=collst[3], lwd=1.5, xlab="time", ylab="relative abundance", xaxs="i", ylim=c(-0.05, 0.22))
+matplot(out_dist_long$output[,1], out_dist_long$output[,3]/out_dist_long$plotdata$ngrid, type="l", lty=1, col=collst[2], lwd=1.5, xlab="time", ylab="relative abundance", xaxs="i", ylim=c(-0.05, 0.31))
 abline(h=getceq(clst_dist, mlst_dist)[1], col=collst[-1], lty=2, lwd=1.5)
 abline(h=0, lty=3)
 mtext("time", 1, line=2.3, cex=1.1)
 mtext("relative abundance", 2, line=2.3, cex=1.1)
 put.fig.letter("a.", "topleft", offset=ofs3, cex=1.6)
 
-segments(c(200, 200, 300, 300), c(0.02, 0.2, 0.2, 0.02), c(200, 300, 300, 200), c(0.2, 0.2, 0.02, 0.02), lwd=2)
-segments(c(200, 200, 300, 300)+500, c(0.015, 0.17, 0.17, 0.015), c(200, 300, 300, 200)+500, c(0.17, 0.17, 0.015, 0.015), lwd=2)
+y11<-0.06; y12<-0.27
+y21<-0.09; y22<-0.30
+segments(c(200, 200, 300, 300), c(y11, y12, y12, y11), c(200, 300, 300, 200), c(y12, y12, y11, y11), lwd=2)
+segments(c(200, 200, 300, 300)+500, c(y21, y22, y22, y21), c(200, 300, 300, 200)+500, c(y22, y22, y21, y21), lwd=2)
 
-arrows(500, 0.0175, 690, 0.015, lwd=2, length = 0.1, lend=2)
-arrows(500, 0.0175, 310, 0.02, lwd=2, length = 0.1, lend=2)
+arrows(500, (y11+y21)/2, 690, y21, lwd=2, length = 0.1, lend=2)
+arrows(500, (y11+y21)/2, 310, y11, lwd=2, length = 0.1, lend=2)
 
-text(500, 0.0175, pos=1, labels = "time lag")
+text(500, (y11+y21)/2, pos=1, labels = "time lag")
 
-text(250, 0.02, pos=1, labels = "training set")
-text(750, 0.015, pos=1, labels = "testing set")
+text(250, y11, pos=1, labels = "training set")
+text(750, y21, pos=1, labels = "testing set")
 
 
-plot(invar_dist$pdlag_list[[2]]$laglst, invar_dist$pdlag_list[[2]]$CVest[,1], xlab="time lag", ylab=expression(italic(paste("CV"))), type="l", lty=1, lwd=1.5, col=collst[3], xaxs="i", ylim=c(0, 0.175)); abline(h=0, lty=3)
+plot(invar_dist$pdlag_list[[2]]$laglst, invar_dist$pdlag_list[[2]]$CVest[,1], xlab="time lag", ylab=expression(italic(paste("CV"))), type="l", lty=1, lwd=1.5, col=collst[-1], xaxs="i", ylim=c(0, 0.175)); abline(h=0, lty=3)
 mtext("time lag", 1, line=2.3, cex=1.1)
 mtext(expression(italic("CV")), 2, line=2.3, cex=1.1)
 put.fig.letter("b.", "topleft", offset=ofs3, cex=1.6)
 
 dev.off()
+
+
 
 
 
@@ -519,7 +530,7 @@ grid_sub<-grid_subset(gridout, size = 0.05)
 set.seed(171205)
 ptb<-0.2
 
-out_meta<-run_metapopulation(tmax=200, gridout = gridout, population = population_meta, talktime = 0, sites_sub = grid_sub$sites, runtype = "metapopulation_spatial")
+out_meta<-run_metapopulation(tmax=200, gridout = gridout, population = population_meta, talktime = 0, sites_sub = grid_sub$sites, runtype = "metapopulation")
 
 pdf("figures/memo_171206/levis_spatialsubset_map.pdf", width=5, height=5, colormodel = "cmyk")
 par(mar=c(2,2,2,2), oma=c(2,2,0,0))
@@ -532,14 +543,14 @@ mtext("y position", 2, line=2.3, cex=1.1)
 
 dev.off()
 
-eig_meta1<-estimate_eqreturn(out_meta, simtime=100, runtype="metapopulation_spatial", replace_perturb = 1, talktime=0, prtb=ptb, doplot = FALSE, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites)
-r0_meta<-estimate_rarereturn(out_meta, simtime=100, burnin=100, runtype="metapopulation_spatial", doplot = FALSE, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites)
+eig_meta1<-estimate_eqreturn(out_meta, simtime=100, runtype="metapopulation", replace_perturb = 1, talktime=0, prtb=ptb, doplot = FALSE, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites)
+r0_meta<-estimate_rarereturn(out_meta, simtime=100, burnin=100, runtype="metapopulation", doplot = FALSE, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites)
 
-out_meta_long<-run_metapopulation(tmax=1000, gridout = gridout, population = population_meta, talktime = 0, sites_sub = grid_sub$sites, runtype = "metapopulation_spatial")
+out_meta_long<-run_metapopulation(tmax=1000, gridout = gridout, population = population_meta, talktime = 0, sites_sub = grid_sub$sites, runtype = "metapopulation")
 
 getEmeta<-getE(out_meta_long, Elst = 2:10, sites_sub = grid_sub$sites)
 E_meta<-getEmeta$Eout
-E_meta[E_meta<4]<-4
+#E_meta[E_meta<4]<-4
 
 invar_meta<-estimate_invar(out_meta_long, E=E_meta, burnin=0, doplot=FALSE, sites_sub = grid_sub$sites)
 
@@ -548,18 +559,18 @@ invar_meta<-estimate_invar(out_meta_long, E=E_meta, burnin=0, doplot=FALSE, site
 set.seed(171206)
 ptb<-0.2
 
-out_neut<-run_metapopulation(tmax=200, gridout = gridout, population = population_neut, talktime = 0, runtype = "neutral_spatial", sites_sub = grid_sub$sites)
+out_neut<-run_metapopulation(tmax=200, gridout = gridout, population = population_neut, talktime = 0, runtype = "neutral", sites_sub = grid_sub$sites)
 
-eig_neut1<-estimate_eqreturn(out_neut, simtime=100, runtype="neutral_spatial", replace_perturb = 1, talktime=0, prtb=ptb, doplot = FALSE, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites)
-eig_neut2<-estimate_eqreturn(out_neut, simtime=100, runtype="neutral_spatial", replace_perturb = 0, talktime=0, prtb=ptb, doplot = FALSE, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites)
+eig_neut1<-estimate_eqreturn(out = out_neut, simtime=100, runtype="neutral", replace_perturb = 1, talktime=0, prtb=ptb, doplot = FALSE, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites)
+eig_neut2<-estimate_eqreturn(out = out_neut, simtime=100, runtype="neutral", replace_perturb = 0, talktime=0, prtb=ptb, doplot = FALSE, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites)
 
-r0_neut<-estimate_rarereturn(out_neut, simtime=100, burnin=100, runtype="neutral_spatial", doplot = FALSE, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites)
+r0_neut<-estimate_rarereturn(out = out_neut, simtime=100, burnin=20, runtype="neutral", doplot = FALSE, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites)
 
-out_neut_long<-run_metapopulation(tmax=1000, gridout = gridout, population = population_neut, talktime = 0, runtype = "neutral_spatial", sites_sub = grid_sub$sites)
+out_neut_long<-run_metapopulation(tmax=1000, gridout = gridout, population = population_neut, talktime = 0, runtype = "neutral", sites_sub = grid_sub$sites)
 
 getEneut<-getE(out_neut_long, Elst = 2:10, sites_sub = grid_sub$sites)
 E_neut<-getEneut$Eout
-E_neut[E_neut<4]<-4
+#E_neut[E_neut<4]<-4
 
 invar_neut<-estimate_invar(out_neut_long, E=E_neut, burnin=0, doplot=FALSE, sites_sub = grid_sub$sites)
 
@@ -568,21 +579,21 @@ invar_neut<-estimate_invar(out_neut_long, E=E_neut, burnin=0, doplot=FALSE, site
 set.seed(171217)
 ptb<-0.2
 
-out_dist<-run_metapopulation(tmax=200, gridout = gridout, population = population_dist, talktime = 0, runtype = "disturbance_spatial", sites_sub = grid_sub$sites, prt = distlst,  prtfrq = 20)
-out_dist_0<-rerunrun_metapopulation(out=out_dist, tmax=0, talktime = 0, runtype = "metapopulation_spatial", perturb = distlst, replace_perturb = 0, sites_sub = grid_sub$sites)
+out_dist<-run_metapopulation(tmax=200, gridout = gridout, population = population_dist, talktime = 0, runtype = "disturbance", sites_sub = grid_sub$sites, prt = distlst,  prtfrq = 20)
+out_dist_0<-rerunrun_metapopulation(out=out_dist, tmax=0, talktime = 0, runtype = "metapopulation", perturb = distlst, replace_perturb = 0, sites_sub = grid_sub$sites)
 
-eig_dist1<-estimate_eqreturn(out_dist_0, simtime=100, runtype="disturbance_spatial", replace_perturb = 1, talktime=0, prtb=ptb, doplot = FALSE, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites, prt = distlst,  prtfrq = 20)
-eig_dist2<-estimate_eqreturn(out_dist_0, simtime=100, runtype="disturbance_spatial", replace_perturb = 0, talktime=0, prtb=ptb, doplot = FALSE, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites, prt = distlst,  prtfrq = 20)
+eig_dist1<-estimate_eqreturn(out_dist_0, simtime=100, runtype="disturbance", replace_perturb = 1, talktime=0, prtb=ptb, doplot = FALSE, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites, prt = distlst,  prtfrq = 20)
+eig_dist2<-estimate_eqreturn(out_dist_0, simtime=100, runtype="disturbance", replace_perturb = 0, talktime=0, prtb=ptb, doplot = FALSE, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites, prt = distlst,  prtfrq = 20)
 
-r0_dist<-estimate_rarereturn(out_dist_0, simtime=100, burnin=100, runtype="disturbance_spatial", doplot = FALSE, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites, prt = distlst,  prtfrq = 20)
+r0_dist<-estimate_rarereturn(out_dist_0, simtime=100, burnin=100, runtype="disturbance", doplot = FALSE, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites, prt = distlst,  prtfrq = 20)
 
-out_dist_long<-run_metapopulation(tmax=1000, gridout = gridout, population = population_dist, talktime = 0, runtype = "disturbance_spatial", sites_sub = grid_sub$sites, prt = distlst,  prtfrq = 20)
+out_dist_long<-run_metapopulation(tmax=1000, gridout = gridout, population = population_dist, talktime = 0, runtype = "disturbance", sites_sub = grid_sub$sites, prt = distlst,  prtfrq = 20)
 
 getEdist<-getE(out_dist_long, Elst = 2:10, sites_sub = grid_sub$sites)
 E_dist<-getEdist$Eout
-E_dist[E_dist<4]<-4
+#E_dist[E_dist<4]<-4
 
-invar_dist<-estimate_invar(out = out_dist_long, E=E_dist, burnin=50, doplot=FALSE, sites_sub = grid_sub$sites)
+invar_dist<-estimate_invar(out = out_dist_long, E=E_dist, burnin=100, doplot=FALSE, sites_sub = grid_sub$sites)
 
 
 
@@ -626,7 +637,7 @@ mtext("time since disturbance", 1, line=2.3, cex=1.1)
 mtext("estimated distance", 2, line=2.3, cex=1.1)
 put.fig.letter("b.", "topleft", offset=ofs2, cex=1.6)
 
-plot((1:nrow(eig_meta1$eigenlst))[is.finite(eig_meta1$eigenlst[,1])], (eig_meta1$eigenlst[,1]*(1:nrow(eig_meta1$eigenlst)))[is.finite(eig_meta1$eigenlst[,1])], type="l", lwd=2, col=collst[2], xlab="time span", ylab=expression(italic(paste(lambda, "t"))), xaxs="i", ylim=c(-4, 2), cex.lab=1.5); abline(h=0, lty=3)
+plot((1:nrow(eig_meta1$eigenlst))[is.finite(eig_meta1$eigenlst[,1])], (eig_meta1$eigenlst[,1]*(1:nrow(eig_meta1$eigenlst)))[is.finite(eig_meta1$eigenlst[,1])], type="l", lwd=2, col=collst[2], xlab="time span", ylab=expression(italic(paste(lambda, "t"))), xaxs="i", ylim=c(-3, 3), cex.lab=1.5); abline(h=0, lty=3)
 mtext("time span", 1, line=2.3, cex=1.1)
 mtext(expression(italic(paste(lambda, "t"))), 2, line=2.3, cex=1.1)
 put.fig.letter("c.", "topleft", offset=ofs2, cex=1.6)
@@ -656,12 +667,12 @@ arrows(max(out_dist$output[,1]), 0.22+0.03,
        max(out_dist$output[,1]), 0.22,
        length = 0.08, lwd=2, lend=4)
 
-plot(1:nrow(eig_dist1$out_lst[[1]]$output_spatial), abs(eig_dist1$out_lst[[1]]$output_spatial[,2]-eig_dist1$out_lst0$output_spatial[,2])/length(grid_sub$sites), type="l", ylab="estimated distance", xlab="time", col=collst[2], lwd=2, xaxs="i", ylim=c(0, 0.1), cex.lab=1.5); abline(h=0, lty=3)
+plot(1:nrow(eig_dist1$out_lst[[1]]$output_spatial), abs(eig_dist1$out_lst[[1]]$output_spatial[,2]-eig_dist1$out_lst0$output_spatial[,2])/length(grid_sub$sites), type="l", ylab="estimated distance", xlab="time", col=collst[2], lwd=2, xaxs="i", ylim=c(0, 0.2), cex.lab=1.5); abline(h=0, lty=3)
 mtext("time since disturbance", 1, line=2.3, cex=1.1)
 mtext("estimated distance", 2, line=2.3, cex=1.1)
 put.fig.letter("b.", "topleft", offset=ofs2, cex=1.6)
 
-plot((1:nrow(eig_dist1$eigenlst))[is.finite(eig_dist1$eigenlst[,1])], (eig_dist1$eigenlst[,1]*(1:nrow(eig_dist1$eigenlst)))[is.finite(eig_dist1$eigenlst[,1])], type="l", lwd=2, col=collst[2], xlab="time span", ylab=expression(italic(paste(lambda, "t"))), xaxs="i", ylim=c(-1.5, 4), cex.lab=1.5); abline(h=0, lty=3)
+plot((1:nrow(eig_dist1$eigenlst))[is.finite(eig_dist1$eigenlst[,1])], (eig_dist1$eigenlst[,1]*(1:nrow(eig_dist1$eigenlst)))[is.finite(eig_dist1$eigenlst[,1])], type="l", lwd=2, col=collst[2], xlab="time span", ylab=expression(italic(paste(lambda, "t"))), xaxs="i", ylim=c(-2.5, 6.5), cex.lab=1.5); abline(h=0, lty=3)
 mtext("time span", 1, line=2.3, cex=1.1)
 mtext(expression(italic(paste(lambda, "t"))), 2, line=2.3, cex=1.1)
 put.fig.letter("c.", "topleft", offset=ofs2, cex=1.6)
@@ -679,15 +690,15 @@ par(mar=c(2,2,2,2), oma=c(2,2,0,0))
 m<-t(matrix(nrow=2, c(rep(1, 4), rep(2,2), rep(3,2))))
 layout(m)
 
-tmp<-eig_neut1$out_lst[[3]]$output_spatial
+tmp<-eig_neut1$out_lst[[1]]$output_spatial
 tmp[,1]<-tmp[,1]+200
 pmat_neut1<-rbind(out_neut$output_spatial, tmp)
 
-tmp<-eig_neut2$out_lst[[3]]$output_spatial
+tmp<-eig_neut2$out_lst[[1]]$output_spatial
 tmp[,1]<-tmp[,1]+200
 pmat_neut2<-rbind(out_neut$output_spatial, tmp)
 
-matplot(pmat_neut1[,1], pmat_neut1[,-1]/length(grid_sub$sites), type="l", lty=1, col=collst[c(3,4,2,5)], lwd=1.5, xlab="time", ylab="relative abundance", xaxs="i")
+matplot(pmat_neut1[,1], pmat_neut1[,-1]/length(grid_sub$sites), type="l", lty=1, col=collst[-1], lwd=1.5, xlab="time", ylab="relative abundance", xaxs="i")
 abline(v=200, lty=2)
 ceq<-getceq(clst_neut, mlst_neut)
 put.fig.letter("a.", "topleft", offset=ofs1, cex=1.6)
@@ -697,12 +708,12 @@ arrows(200, 0.28+0.04,
        200, 0.28,
        length = 0.08, lwd=2, lend=4)
 
-plot(1:nrow(eig_neut1$out_lst[[3]]$output_spatial), abs(eig_neut1$out_lst[[3]]$output_spatial[,4]-eig_neut1$out_lst0$output_spatial[,4])/length(grid_sub$sites), type="l", ylab="estimated distance", xlab="time", col=collst[2], lwd=2, xaxs="i", ylim=c(0, 0.1)); abline(h=0, lty=3)
+plot(1:nrow(eig_neut1$out_lst[[1]]$output_spatial), abs(eig_neut1$out_lst[[1]]$output_spatial[,2]-eig_neut1$out_lst0$output_spatial[,2])/length(grid_sub$sites), type="l", ylab="estimated distance", xlab="time", col=collst[-1], lwd=2, xaxs="i", ylim=c(0, 0.1)); abline(h=0, lty=3)
 put.fig.letter("b.", "topleft", offset=ofs2, cex=1.6)
 mtext("time since disturbance", 1, line=2.3, cex=1.1)
 mtext("estimated distance", 2, line=2.3, cex=1.1)
 
-plot((1:nrow(eig_neut1$eigenlst))[is.finite(eig_neut1$eigenlst[,3])], (eig_neut1$eigenlst[,3]*(1:nrow(eig_neut1$eigenlst)))[is.finite(eig_neut1$eigenlst[,3])], type="l", lwd=2, col=collst[2], xlab="time span", ylab=expression(italic(paste(lambda, "t"))), xaxs="i", ylim=c(-4, 2)); abline(h=0, lty=3)
+plot((1:nrow(eig_neut1$eigenlst))[is.finite(eig_neut1$eigenlst[,1])], (eig_neut1$eigenlst[,1]*(1:nrow(eig_neut1$eigenlst)))[is.finite(eig_neut1$eigenlst[,1])], type="l", lwd=2, col=collst[-1], xlab="time span", ylab=expression(italic(paste(lambda, "t"))), xaxs="i", ylim=c(-4, 2)); abline(h=0, lty=3)
 put.fig.letter("c.", "topleft", offset=ofs2, cex=1.6)
 mtext("time span", 1, line=2.3, cex=1.1)
 mtext(expression(italic(paste(lambda, "t"))), 2, line=2.3, cex=1.1)
@@ -801,11 +812,11 @@ tmp<-r0_neut$out0_lst[[1]]$output_spatial
 tmp[,1]<-tmp[,1]+200
 pmat_neut<-rbind(out_neut$output_spatial, tmp)
 tmp<-r0_neut$out_lst[[1]]$output_spatial
-tmp[,1]<-tmp[,1]+300
+tmp[,1]<-tmp[,1]+220
 pmat_neut<-rbind(pmat_neut, tmp)
 
 matplot(pmat_neut[,1], pmat_neut[,-1]/length(grid_sub$sites), type="l", lty=1, col=collst[-1], lwd=1.5, xlab="time", ylab="relative abundance", xaxs="i")
-abline(v=c(200, 300), lty=2)
+abline(v=c(200, 220), lty=2)
 ceq<-getceq(clst_meta, mlst_meta)
 abline(h=c(sum(ceq), ceq), lty=3, col=collst, lwd=1.5)
 abline(h=0, lty=3)
@@ -814,8 +825,8 @@ mtext("relative abundance", 2, line=2.3, cex=1.1)
 arrows(200, ceq[1]+0.035,
        200, ceq[1],
        length = 0.08, lwd=2, lend=4)
-arrows(300, 0,
-       300, 0.035,
+arrows(220, 0,
+       220, 0.035,
        length = 0.08, lwd=2, lend=4)
 put.fig.letter("a.", "topleft", offset=ofs1, cex=1.6)
 
@@ -907,16 +918,21 @@ mtext("time", 1, line=2.3, cex=1.1)
 mtext("relative abundance", 2, line=2.3, cex=1.1)
 put.fig.letter("a.", "topleft", offset=ofs3, cex=1.6)
 
-segments(c(200, 200, 300, 300), c(0.22, 0.29, 0.29, 0.22), c(200, 300, 300, 200), c(0.29, 0.29, 0.22, 0.22), lwd=2)
-segments(c(200, 200, 300, 300)+500, c(0.26, 0.32, 0.32, 0.26), c(200, 300, 300, 200)+500, c(0.32, 0.32, 0.26, 0.26), lwd=2)
+tmp<-out_neut_long$output[,2]/out_neut_long$plotdata$ngrid
+tmptm<-out_neut_long$output[,1]
 
-arrows(500, 0.24, 690, 0.26, lwd=2, length = 0.1)
-arrows(500, 0.24, 310, 0.22, lwd=2, length = 0.1)
+y11<-min(tmp[tmptm>200 & tmptm<300]); y12<-max(tmp[tmptm>200 & tmptm<300])
+y21<-min(tmp[tmptm>700 & tmptm<800]); y22<-max(tmp[tmptm>700 & tmptm<800])
+segments(c(200, 200, 300, 300), c(y11, y12, y12, y11), c(200, 300, 300, 200), c(y12, y12, y11, y11), lwd=2)
+segments(c(200, 200, 300, 300)+500, c(y22, y21, y21, y22), c(200, 300, 300, 200)+500, c(y21, y21, y22, y22), lwd=2)
 
-text(500, 0.24, pos=1, labels = "time lag")
+arrows(500, (y11+y21)/2, 690, y21, lwd=2, length = 0.1, lend=2)
+arrows(500, (y11+y21)/2, 310, y11, lwd=2, length = 0.1, lend=2)
 
-text(250, 0.22, pos=1, labels = "training set")
-text(750, 0.26, pos=1, labels = "testing set")
+text(500, (y11+y21)/2, pos=1, labels = "time lag")
+
+text(250, y11, pos=1, labels = "training set")
+text(750, y22, pos=3, labels = "testing set")
 
 
 plot(invar_neut$pdlag_list[[1]]$laglst, invar_neut$pdlag_list[[1]]$CVest[,1], xlab="time lag", ylab=expression(italic(paste("CV"))), type="l", lty=1, lwd=1.5, col=collst[2], xaxs="i", ylim=c(0, 0.4)); abline(h=0, lty=3)
