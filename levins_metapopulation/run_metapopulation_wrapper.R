@@ -292,7 +292,7 @@ run_metapopulation<-function(tmax, nsteps=tmax, gridout, population, talktime=1,
             
             #rerun to next disturbance event
             #(see script for description of variables)
-            out_rerun<-rerunrun_metapopulation(out_tmp, tmax_sub, nsteps=tmax_sub, talktime=0, runtype="metapopulation_spatial", perturb=prt, sites_sub = sites_sub)
+            out_rerun<-rerunrun_metapopulation(out_tmp, tmax_sub, nsteps=tmax_sub, talktime=0, runtype="metapopulation", perturb=prt, sites_sub = sites_sub)
             cout<-out_rerun$full
             
             cout_lst[[1+i]]<-cout
@@ -362,7 +362,7 @@ run_metapopulation<-function(tmax, nsteps=tmax, gridout, population, talktime=1,
 
 
 
-rerunrun_metapopulation<-function(out, tmax, nsteps=tmax, talktime=1, runtype="metapopulation", perturb=rep(0, out$full$pnsp), perturbsites=1:out$plotdata$ngrid, addn=0, addsites=perturbsites, replace_perturb=0, sites_sub=0, prt=0, prtfrq=0, habitatdestructsites=0, habitatdestruct_species=rep(0, out$full$pnsp)) {
+rerunrun_metapopulation<-function(out, tmax, nsteps=tmax, talktime=1, runtype="metapopulation", perturb=rep(0, length(out$plotdata$ceq)), perturbsites=1:out$plotdata$ngrid, addn=0, addsites=perturbsites, replace_perturb=0, sites_sub=0, prt=0, prtfrq=0, habitatdestructsites=0, habitatdestruct_species=rep(0, length(out$plotdata$ceq))) {
   #reruns the simulation models in "run_metapopulation", starting at the last event in the previous simulation.
   #useful for iterating the model - e.g. for simulating disturbance events.
   
@@ -378,6 +378,11 @@ rerunrun_metapopulation<-function(out, tmax, nsteps=tmax, talktime=1, runtype="m
   #individual species from colonizing a particular region
   
   ################ Extract data
+  #pull out last full observation, if there are multiple in the list
+  if(!length(unique(names(out$full)))>1) {
+    out$full<-out$full[[length(out$full)]]
+  }
+  
   #make sure perturbations are of correct magnitude
   if(!all(perturb<=1 & perturb>=0) | !all(addn<=1 & addn>=0)) {
     return("error!: perturb and addn elements must be between 0 and 1")
@@ -392,7 +397,7 @@ rerunrun_metapopulation<-function(out, tmax, nsteps=tmax, talktime=1, runtype="m
   #names of c functions for runs
   if(runtype%in%c("metapopulation", "disturbance")) {
     runname<-"run_metapopulation_spatialsub"
-  } else if(runtype%in%c("neutral_spatial")) {
+  } else if(runtype%in%c("neutral")) {
     runname<-"run_neutral_metapopulation_spatialsub"
   }
   
@@ -436,7 +441,7 @@ rerunrun_metapopulation<-function(out, tmax, nsteps=tmax, talktime=1, runtype="m
   #conduct positive perturbation, or replace removed individuals
   if(sum(abs(addn))>0 | replace_perturb!=0) {
     #extract number of individuals of each species to perturb
-    add_abund<-ceiling((length(addsites)-sum(table(speciesid[addsites][speciesid[addsites]!=out$full$pnsp])))*addn)
+    add_abund<-ceiling((pmax(0, length(addsites)-sum(table(factor(speciesid[addsites][speciesid[addsites]!=out$full$pnsp], levels=0:out$full$pnsp))[1:out$full$pnsp]))*addn))
     #if selected number is zero, but desired size is >0, add at least one individual
     add_abund[addn>0 & add_abund==0]<-1
     
@@ -445,7 +450,11 @@ rerunrun_metapopulation<-function(out, tmax, nsteps=tmax, talktime=1, runtype="m
       tmp<-numeric(length(pert_abund))
       for(i in 1:length(pert_abund)) {
         if(pert_abund[i]>0) {
-          tmp[sample((1:length(pert_abund))[-i],1)]<-pert_abund[i]
+          if(length(pert_abund)>2) {
+            tmp[sample((1:length(pert_abund))[-i],1)]<-pert_abund[i]
+          } else {
+            tmp[-i]<-pert_abund[i]
+          }
         }
       }
       
@@ -1035,6 +1044,7 @@ estimate_invar<-function(out, E=0, burnin=0, Luse=0, laglst=0, niter=0, doplot=T
   for(i in 1:length(out$plotdata$ceq)) {
     #for each species, first identify best window size to use
     pdL_list[[i]]<-predict_vs_L(out$output[,i+1], E=E[i], burnin=burnin, Luse=Luse, niter=niter, doplot=FALSE)
+    Lusetmp<-pdL_list[[i]]$Lmin
     
     #select appropriate lag list, or test that user provided bounds are reasonable
     if(sum(laglst)==0) {
