@@ -43,8 +43,8 @@ void sis_R (int *psp1dis, int *psp2dis, int *psp1fb, int *psp2fb, int *psp1m, in
 	// de-pointerize input from R...
 	int sp1dis = *psp1dis;
 	int sp2dis = *psp2dis;
-	int sp1fb = *psp1fb;
-	int sp2fb = *psp2fb;
+	int sp1fb = abs(*psp1fb);
+	int sp2fb = abs(*psp2fb);
 	int sp1m = *psp1m;
 	int sp2m = *psp2m;
 	int scenario = *pscenario;
@@ -55,18 +55,19 @@ void sis_R (int *psp1dis, int *psp2dis, int *psp1fb, int *psp2fb, int *psp1m, in
 	int tmax = *ptmax;
 	double pr_nocol= *ppr_nocol;
 	
-	int trigger = 0;
-
 	GetRNGstate();  // Load seed for random number generation, R base
 
 	// import user defined parameters
 	// Note: current error handling only checks for out-of-bounds values - doesn't change flow control
 	//		species 1=exotic, species 2=native
 	//			if( argc<14) fprintf( outlog, "ERROR: too few parameters %d\n", argc );
+	
+	int trigger = 0; // triggers exit if parameter inputs are outside of bounds
+
 	if( !( sp1dis == 0 || sp1dis == 1) ) {trigger=1; 			fprintf(stderr, "ERROR: sp1dis must be 0 or 1");}
 	if( !( sp2dis == 0 || sp2dis == 1) ) {trigger=1; 			fprintf(stderr, "ERROR: sp2dis must be 0 or 1");}
-	if( ( sp1fb < 0 || sp1fb > 100) ) {trigger=1;	  			fprintf(stderr, "ERROR: sp1fb must be >= 0 and <=100");}
-	if( ( sp2fb < 0 || sp2fb > 100) ) {trigger=1;  				fprintf(stderr, "ERROR: sp2fb must be >= 0 and <=100");}
+	if( ( sp1fb < 0 || sp1fb > 100) ) {trigger=1;	  			fprintf(stderr, "ERROR: sp1fb must be >= -100 and <=100");}
+	if( ( sp2fb < 0 || sp2fb > 100) ) {trigger=1;  				fprintf(stderr, "ERROR: sp2fb must be >= -100 and <=100");}
 	if( ( sp1m < 0 || sp1m > 100) ) {trigger=1;  				fprintf(stderr, "ERROR: sp1m must be >= 0 and <=100");}
 	if( ( sp2m < 0 || sp2m > 100) ) {trigger=1; 				fprintf(stderr, "ERROR: sp2m must be >= 0 and <=100");}
 	if(!(scenario==0||scenario==1||scenario==2)) {trigger=1; 	fprintf(stderr, "ERROR: scenario must be 0, 1, or 2");}
@@ -89,6 +90,22 @@ void sis_R (int *psp1dis, int *psp2dis, int *psp1fb, int *psp2fb, int *psp1m, in
 		int all[(*ptmax)+1][3];			// counts of all cells: empty, spp1, and spp2
 		int state[*pdim+2][*pdim+2];// cell state, indicating effect of plant-soil feedback
 		double tmpp;				// stores random number
+		int stepsize = 10;			// size of step to take in soil feedbacks
+
+		// get direction of feedbacks
+		int signsp1fb; // sign of feedback
+		int signsp2fb; // sign of feedback
+
+		if((*psp1fb)<0) {
+			signsp1fb = -1;
+		} else {
+			signsp1fb = 1;
+		}
+		if((*psp2fb)<0) {
+			signsp2fb = -1;
+		} else {
+			signsp2fb = 1;
+		}
 
 
 		// initialize species matrix
@@ -156,8 +173,8 @@ void sis_R (int *psp1dis, int *psp2dis, int *psp1fb, int *psp2fb, int *psp1m, in
 				for (j=1; j<dim+1 ; ++j){
 				
 					// count 8 nearest neighbors plus current cell using previous time t0 matrix (empty, spp1 or spp2)
-
-					if((sp1dis== 0 && xt0[i][j]==1)||(sp2dis== 0 && xt0[i][j]==2)) { //only calculate if dispersal is local
+					// BUT only calculate if dispersal is local
+					if((sp1dis== 0 && xt0[i][j]==1)||(sp2dis== 0 && xt0[i][j]==2)) { 
 						near[0]=0;
 						near[1]=0;
 						near[2]=0;
@@ -174,19 +191,33 @@ void sis_R (int *psp1dis, int *psp2dis, int *psp1fb, int *psp2fb, int *psp1m, in
 					}
 					
 					// feedback state effect on survival probabilities
-					s1= s2= 1. ;
-					if( state[i][j]>0 ) // positive state value decreases s1
-						s1= (1-abs(state[i][j])/100.) ;  
-					if ( state[i][j]<0 ) // negative state value decreases s2
-						s2= (1-abs(state[i][j])/100.) ;
+					//s1= s2= 1. ;
+					//if( state[i][j]>0 ) // positive state value decreases s1, given positive feedback
+						//s1= (1-abs(state[i][j])/100.) ;
+					//if ( state[i][j]<0 ) // negative state value decreases s2, given positive feedback
+						//s2= (1-abs(state[i][j])/100.) ;
+
+					// code follows paper:
+					// given POSITIVE feedback, s1 is maximized when state = -100; s2 is maximized when state = 100;
+					// given NEGATIVE feedback, s1 is maximized when state = 100; s2 is maximized when state = -100;
+					// NOTE: species 1 always makes soils more negative; species 2 always makes soils more positive
+					s1= (1-signsp1fb*(state[i][j])/100.)/2 ;  
+					s2= (1+signsp2fb*(state[i][j])/100.)/2 ;  
 						
 					// Species survival
 					switch( xt1[i][j] ) {
 						case 0:      // cell is empty, move feedback back towards zero
-							if( state[i][j] > 0 ) // decrement cell state in favor of species 1, up to max state 0
-								state[i][j] = state[i][j]-10  ; // species 1 has NEGATIVE values
-							if( state[i][j] < 0 ) // increment cell state in favor of species 1, up to max state 0
-								state[i][j] = state[i][j]+10  ;
+							if( state[i][j] > 0 ) { // decrement cell state in favor of species 1, up to max state 0
+								state[i][j] = state[i][j]-stepsize  ; // species 1 has NEGATIVE values
+								if(state[i][j] < 0) {
+									state[i][j] = 0;
+								}
+							} else if( state[i][j] < 0 ) { // increment cell state in favor of species 1, up to max state 0
+								state[i][j] = state[i][j]+stepsize  ;
+								if(state[i][j] > 0) {
+									state[i][j] = 0;
+								}
+							}
 						break;
 
 						case 1:      // species 1 occupies cell, m% mortality + additional feedback effect
@@ -194,15 +225,15 @@ void sis_R (int *psp1dis, int *psp2dis, int *psp1fb, int *psp2fb, int *psp1m, in
 							{
 								xt1[i][j]= 0;
 							}
-							if( state[i][j] > -sp1fb ) // decrement cell state in favor of species 1, up to max state -10
-								state[i][j] = state[i][j]-10  ; // species 1 has NEGATIVE values
+							if( state[i][j] > -sp1fb ) // decrement cell state in favor of species 1, up to (max state -10)
+								state[i][j] = state[i][j]-stepsize  ; // species 1 has NEGATIVE values
 						break; 
 						
 						case 2: 	// species 2
 							if((runif(0,1)) < (sp2m/100. + (1-s2)) )
 								xt1[i][j]= 0;
-							if( state[i][j] < sp2fb ) // increment cell state in favor of species 2, up to max state 10
-								state[i][j] = state[i][j]+10  ; // species 2 has POSITIVE values
+							if( state[i][j] < sp2fb ) // increment cell state in favor of species 2, up to (max state +10)
+								state[i][j] = state[i][j]+stepsize  ; // species 2 has POSITIVE values
 						break;
 					}
 

@@ -1,7 +1,7 @@
 #int *psp1dis, int *psp2dis, int *psp1fb, int *psp2fb, int *psp1m, int *psp2m, int *pscenario,
 #int *pinitabund, float *pseed, int *pedge, int *pdim, int *ptmax, double outmat[], double outmap0[], double outmap[])  {
 #  //sp1dis, sp2dis;		species dispersal: 0=local, 1=global
-#  //sp1fb, sp2fb;			species feedback strength: 0=none, 100=overwhelmingly strong
+#  //sp1fb, sp2fb;			species feedback strength: 0=none, 100=overwhelmingly strong; sign determines sign of feedback
 #  //sp1m, sp2m;			species percent mortality: 0=immortal, <100=perennial, 100=annual
 #  //scenario;				initial soil feedback state: 0=neutral, 1=exotic (spp1), 2=native (spp2)
 #  //initabund; 			initial percent natives
@@ -10,23 +10,24 @@
 #  //dim;					dimension of matrix (not counting the edges)
 #  //tmax;					time steps
 
-sp1dis=1; sp2dis=1    #global dispersal
-sp1fb=20; sp2fb=20      #moderate feedback
-sp1m=20; sp2m=20        #20% mortality
-scenario=2              #neutral feedback
-initabund=40            #initial native abundance (sp1)
-seed=1                  #ratio of seed production
-edge=0                  #edge conditions
-dim=100                 #grid edge size
-tmax=1000                #maximum time
+#Paramter settings...
+sp1dis=1; sp2dis=1          #global dispersal
+sp1fb=-60; sp2fb=-60        #moderate negative feedback
+sp1m=5; sp2m=5              #5% stochastic mortality
+scenario=0                  #begin with neutral soils
+initabund=50                #initial native abundance (sp1)
+seed=1.5                    #ratio of seed production (exotic:native)
+edge=0                      #absorbing edge conditions
+dim=100                     #grid edge size
+tmax=1000                   #maximum time
 outmat=numeric((tmax+1)*3)  #matrix for storing species abundances
 outmap0=numeric((dim+2)^2)  #matrix for storing initial conditions
-outmap=outmap0          #matrix for storing end conditions
-pr_nocol=0              #reduction in probability of colonization event - allows for empty cells
+outmap=outmap0              #matrix for storing end conditions
+pr_nocol=0.2                #reduction in probability of colonization event - allows for empty cells
 
 setwd("~/Dropbox/Projects/032_Coexistence_mechanisms/src/levins_metapopulation/")
 
-
+#compile and load C code
 system("R CMD SHLIB sis_R.c")
 if(is.loaded("sis_R")) {
   dyn.unload("sis_R.so")
@@ -34,7 +35,7 @@ if(is.loaded("sis_R")) {
 
 dyn.load("sis_R.so")
 
-
+#Run C code
 out<-.C("sis_R",
         psp1dis=as.integer(sp1dis), psp2dis=as.integer(sp2dis),
         ps1fb=as.integer(sp1fb), psp2fb=as.integer(sp2fb), 
@@ -45,19 +46,27 @@ out<-.C("sis_R",
         ppr_nocol=as.double(pr_nocol),
         outmat=as.integer(outmat), outmap0=as.integer(outmap0), outmap=as.integer(outmap))
 
+#Store abundance v.s time output in a matrix
 m<-matrix(out$outmat, ncol=3)
-m[,1]<-m[,1]-(4*(dim+2)-4)
-#m
+#Exclude empty cells or invaded cells from the periphery
+if(edge==0) {
+  m[,1]<-m[,1]-(4*(dim+2)-4)
+} else {
+  m[,1]<-m[,1]-(3*(dim+2)-2)
+  m[,2]<-m[,2]-(dim)
+}
 
-matplot(0:(tmax), m[,-1]/(dim^2), type="l", lty=1, lwd=2, col=1:2, xlab="time", ylab="p", ylim=c(0,1))
+#Plot result
+matplot(0:(tmax), m[,-1]/(dim^2), type="l", lty=1, lwd=2, col=2:1, xlab="time", ylab="p", ylim=c(0,1))
 abline(h=c(0, 1), v=0, lty=3)
 
 
 
+#Sanity check -- 
+mean(rowSums(m[,-1])/(dim^2)) # if pr_nocol=0, then this should = 1
+mean(rowSums(m)/(dim^2))      # this should always = 1
 
-rowSums(m[,-1])/(dim^2)
-rowSums(m)/(dim^2)
-
+#Show starting and ending states
 matrix(out$outmap0, nrow=(dim+2))
 matrix(out$outmap, nrow=(dim+2))
 
