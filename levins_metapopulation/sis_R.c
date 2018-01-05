@@ -156,17 +156,20 @@ void sis_R (int *psp1dis, int *psp2dis, int *psp1fb, int *psp2fb, int *psp1m, in
 				for (j=1; j<dim+1 ; ++j){
 				
 					// count 8 nearest neighbors plus current cell using previous time t0 matrix (empty, spp1 or spp2)
-					near[0]=0;
-					near[1]=0;
-					near[2]=0;
-					for (k =0; k<9; ++k){
-						switch ( xt0[i+(k - 3*(k/3) -1)][j+(k/3-1)] ) { 
-							case 0: near[0]++ ; 
-							break;
-							case 1: near[1]++ ; 
-							break;
-							case 2: near[2]++ ; 
-							break;
+
+					if((sp1dis== 0 && xt0[i][j]==1)||(sp2dis== 0 && xt0[i][j]==2)) { //only calculate if dispersal is local
+						near[0]=0;
+						near[1]=0;
+						near[2]=0;
+						for (k =0; k<9; ++k){
+							switch ( xt0[i+(k - 3*(k/3) -1)][j+(k/3-1)] ) { 
+								case 0: near[0]++ ; 
+								break;
+								case 1: near[1]++ ; 
+								break;
+								case 2: near[2]++ ; 
+								break;
+							}
 						}
 					}
 					
@@ -197,6 +200,11 @@ void sis_R (int *psp1dis, int *psp2dis, int *psp1fb, int *psp2fb, int *psp1m, in
 					}
 
 					//TODO: Need to think about what to do about state in empty cells...
+					//
+					//
+					//
+					//
+					//
 
 					
 					if( xt1[i][j]==0){ 	// empty cell: colonization probability proportional to local or global neighborhood
