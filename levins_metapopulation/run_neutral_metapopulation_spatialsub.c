@@ -252,6 +252,7 @@ void run_neutral_metapopulation_spatialsub(double *ptmax, int *pgridsize, int *p
 	     R_CheckUserInterrupt();
 	 }
 	}
+	PutRNGstate();  // Unload seed for random number generation, R base
 }
 
 double make_expnential_event(double lambda) {

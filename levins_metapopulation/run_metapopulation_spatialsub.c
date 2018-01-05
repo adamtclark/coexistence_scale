@@ -261,6 +261,7 @@ void run_metapopulation_spatialsub(double *ptmax, int *pgridsize, int *pnsp, int
 	     R_CheckUserInterrupt();
 	 }
 	}
+	PutRNGstate();  // Unload seed for random number generation, R base
 }
 
 
