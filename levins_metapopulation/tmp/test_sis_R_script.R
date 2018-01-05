@@ -11,19 +11,20 @@
 #  //tmax;					time steps
 
 #Paramter settings...
-sp1dis=1; sp2dis=1          #global dispersal
-sp1fb=-60; sp2fb=-60        #moderate negative feedback
+sp1dis=1; sp2dis=1          #local dispersal
+sp1fb=-80; sp2fb=-80        #feedback
 sp1m=5; sp2m=5              #5% stochastic mortality
 scenario=0                  #begin with neutral soils
 initabund=50                #initial native abundance (sp1)
-seed=1.5                    #ratio of seed production (exotic:native)
+seed=1.5                   #ratio of seed production (exotic:native)
 edge=0                      #absorbing edge conditions
 dim=100                     #grid edge size
 tmax=1000                   #maximum time
 outmat=numeric((tmax+1)*3)  #matrix for storing species abundances
 outmap0=numeric((dim+2)^2)  #matrix for storing initial conditions
 outmap=outmap0              #matrix for storing end conditions
-pr_nocol=0.2                #reduction in probability of colonization event - allows for empty cells
+pr_nocol=0.5                #reduction in probability of colonization event - allows for empty cells
+stepsize=1                  #step size in by which changes in soil occur (in percent)
 
 setwd("~/Dropbox/Projects/032_Coexistence_mechanisms/src/levins_metapopulation/")
 
@@ -43,7 +44,7 @@ out<-.C("sis_R",
         pscenario=as.integer(scenario), 
         pinitabund=as.integer(initabund), pseed=as.double(seed),
         pedge=as.integer(edge), pdim=as.integer(dim), ptmax=as.integer(tmax),
-        ppr_nocol=as.double(pr_nocol),
+        ppr_nocol=as.double(pr_nocol), pstepsize=as.integer(stepsize),
         outmat=as.integer(outmat), outmap0=as.integer(outmap0), outmap=as.integer(outmap))
 
 #Store abundance v.s time output in a matrix
@@ -68,5 +69,6 @@ mean(rowSums(m)/(dim^2))      # this should always = 1
 
 #Show starting and ending states
 matrix(out$outmap0, nrow=(dim+2))
-matrix(out$outmap, nrow=(dim+2))
 
+tmp<-matrix(out$outmap, nrow=(dim+2))
+plot(row(tmp), col(tmp), col=tmp, pch=16, cex=0.5)

@@ -25,7 +25,7 @@
 #include <stdio.h>
 
 void sis_R (int *psp1dis, int *psp2dis, int *psp1fb, int *psp2fb, int *psp1m, int *psp2m, int *pscenario,
-	int *pinitabund, double *pseed, int *pedge, int *pdim, int *ptmax, double *ppr_nocol, int outmat[], int outmap0[], int outmap[])  {
+	int *pinitabund, double *pseed, int *pedge, int *pdim, int *ptmax, double *ppr_nocol, int *pstepsize, int outmat[], int outmap0[], int outmap[])  {
 	//sp1dis, sp2dis;		species dispersal: 0=local, 1=global
 	//sp1fb, sp2fb;			species feedback strength: 0=none, 100=overwhelmingly strong
 	//sp1m, sp2m;			species percent mortality: 0=immortal, <100=perennial, 100=annual
@@ -35,7 +35,8 @@ void sis_R (int *psp1dis, int *psp2dis, int *psp1fb, int *psp2fb, int *psp1m, in
 	//edge;					0=absorbing boundaries, 1=one edge all exotics (spp1)
 	//dim;					dimension of matrix (not counting the edges)
 	//tmax;					time steps
-	//ppr_nocol;			probability reduction in colonization success (allows for failed colonization events)
+	//pr_nocol;				probability reduction in colonization success (allows for failed colonization events)
+	//stepsize				step size towards feeback limit
 	//outmat				matrix for storing abundances through time
 	//outmap0				initial positions for all individuals
 	//outmap 				final positions for all individuals
@@ -54,6 +55,7 @@ void sis_R (int *psp1dis, int *psp2dis, int *psp1fb, int *psp2fb, int *psp1m, in
 	int dim = *pdim;
 	int tmax = *ptmax;
 	double pr_nocol= *ppr_nocol;
+	int stepsize = *pstepsize;
 	
 	GetRNGstate();  // Load seed for random number generation, R base
 
@@ -77,6 +79,7 @@ void sis_R (int *psp1dis, int *psp2dis, int *psp1fb, int *psp2fb, int *psp1m, in
 	if( ( dim <= 0 || dim > 1000) ) {trigger=1;  				fprintf(stderr, "ERROR: dim must be > 0 and <=1000]");}
 	if( ( tmax <= 0 || tmax > 10000) ) {trigger=1;  			fprintf(stderr, "ERROR: tmax must be > 0 and <=10000");}
 	if( ( pr_nocol < 0 || pr_nocol > 1) ) {trigger=1;  			fprintf(stderr, "ERROR: pr_nocol must be >= 0 and <=1");}
+	if( ( stepsize < 0 || stepsize > 100) ) {trigger=1;  			fprintf(stderr, "ERROR: stepsize must be >= 0 and <=100");}
 
 	if(trigger == 0) { // only run function if no error
 		// declarations of internal variables
@@ -90,7 +93,6 @@ void sis_R (int *psp1dis, int *psp2dis, int *psp1fb, int *psp2fb, int *psp1m, in
 		int all[(*ptmax)+1][3];			// counts of all cells: empty, spp1, and spp2
 		int state[*pdim+2][*pdim+2];// cell state, indicating effect of plant-soil feedback
 		double tmpp;				// stores random number
-		int stepsize = 10;			// size of step to take in soil feedbacks
 
 		// get direction of feedbacks
 		int signsp1fb; // sign of feedback
