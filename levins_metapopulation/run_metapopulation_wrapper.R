@@ -136,10 +136,40 @@ loadrun<-function(runtype) {
       dyn.unload("run_neutral_metapopulation_spatialsub.so")
       dyn.load("run_neutral_metapopulation_spatialsub.so")
     }
-  } else {
-    trigger<-"error: run type must be 'metapopulation', 'neutral', or disturbance'"
+  } else if(runtype%in%c("psf")) {
+    if(!is.loaded("sis_metapopulation")) {
+      dyn.load("sis_metapopulation.so")
+    } else {
+      dyn.unload("sis_metapopulation.so")
+      dyn.load("sis_metapopulation.so")
+    }
+  }else {
+    trigger<-"error: run type must be 'disturbance', 'metapopulation', 'neutral', or 'psf'"
   }
   return(trigger)
+}
+
+unloadrun<-function(runtype, nprt_cyc) {
+  #unload loaded fxns
+  if(runtype=="metapopulation"  || (runtype=="disturbance" && nprt_cyc==1)) {
+    dyn.unload("run_metapopulation_spatialsub.so")
+  } else if(runtype=="neutral") {
+    dyn.unload("run_neutral_metapopulation_spatialsub.so")
+  } else if(runtype%in%c("psf")) {
+    dyn.unload("sis_metapopulation.so")
+  }
+}
+
+getrunname<-function(runtype) {
+  #extract name of c file
+  if(runtype%in%c("metapopulation", "disturbance")) {
+    runname<-"run_metapopulation_spatialsub"
+  } else if(runtype%in%c("neutral")) {
+    runname<-"run_neutral_metapopulation_spatialsub"
+  } else {
+    runname<-"sis_metapopulation"
+  }
+  return(runname)
 }
 
 run_metapopulation<-function(tmax, nsteps=tmax, gridout, population, talktime=1, runtype="metapopulation", sites_sub=0, prt=0, prtfrq=0) {
@@ -329,11 +359,7 @@ run_metapopulation<-function(tmax, nsteps=tmax, gridout, population, talktime=1,
     #unload c code after run this is necesary because of an aparent bug,
     #that seems to prevent R from succesfully closing down c scripts
     #with large memory allocations
-    if(runtype=="metapopulation"  || (runtype=="disturbance" && nprt_cyc==1)) {
-      dyn.unload("run_metapopulation_spatialsub.so")
-    } else if(runtype=="neutral") {
-      dyn.unload("run_neutral_metapopulation_spatialsub.so")
-    }
+    unloadrun(runtype, nprt_cyc)
     
     #update ouput and plotting data
     if((!(runtype %in% c("disturbance"))) || (nprt_cyc==1)) {
@@ -395,11 +421,7 @@ rerunrun_metapopulation<-function(out, tmax, nsteps=tmax, talktime=1, runtype="m
   }
   
   #names of c functions for runs
-  if(runtype%in%c("metapopulation", "disturbance")) {
-    runname<-"run_metapopulation_spatialsub"
-  } else if(runtype%in%c("neutral")) {
-    runname<-"run_neutral_metapopulation_spatialsub"
-  }
+  runname<-getrunname(runtype)
   
   #extract event times from previous simulation (these have not yet occurred)
   eventtimes_c<-out$full$eventtimes_c-out$full$ptmax
@@ -619,11 +641,7 @@ rerunrun_metapopulation<-function(out, tmax, nsteps=tmax, talktime=1, runtype="m
   #unload c code after run this is necesary because of an aparent bug,
   #that seems to prevent R from succesfully closing down c scripts
   #with large memory allocations
-  if(runtype=="metapopulation"  || (runtype=="disturbance" && nprt_cyc==1)) {
-    dyn.unload("run_metapopulation_spatialsub.so")
-  } else if(runtype%in%c("neutral")) {
-    dyn.unload("run_neutral_metapopulation_spatialsub.so")
-  }
+  unloadrun(runtype, nprt_cyc)
   
   #update ouput and plotting data
   if((!(runtype %in% c("disturbance"))) || (nprt_cyc==1)) {
@@ -1400,6 +1418,8 @@ if(FALSE) {
   #calculate stability metrics
   eqret<-estimate_eqreturn(out)
   rareret<-estimate_rarereturn(out)
+  
+  require(rEDM)
   invar<-estimate_invar(out)
 }
 

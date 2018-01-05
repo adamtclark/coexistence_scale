@@ -1,22 +1,24 @@
 #int *psp1dis, int *psp2dis, int *psp1fb, int *psp2fb, int *psp1m, int *psp2m, int *pscenario,
 #int *pinitabund, float *pseed, int *pedge, int *pdim, int *ptmax, double outmat[], double outmap0[], double outmap[])  {
 #  //sp1dis, sp2dis;		species dispersal: 0=local, 1=global
-#  //sp1fb, sp2fb;			species feedback strength: 0=none, 100=overwhelmingly strong; sign determines sign of feedback
-#  //sp1m, sp2m;			species percent mortality: 0=immortal, <100=perennial, 100=annual
-#  //scenario;				initial soil feedback state: 0=neutral, 1=exotic (spp1), 2=native (spp2)
-#  //initabund; 			initial percent natives
-#  //seed; 				ratio of exotic to native seed production: 1= default (values: 1000, 100, 10, 1, 0.1, 0.01, 0.001)
-#  //edge;					0=absorbing boundaries, 1=one edge all exotics (spp1)
-#  //dim;					dimension of matrix (not counting the edges)
-#  //tmax;					time steps
+#  //sp1fb, sp2fb;	 species feedback strength: 0=none, 100=overwhelmingly strong; sign determines sign of feedback
+#  //sp1m, sp2m;		 species percent mortality: 0=immortal, <100=perennial, 100=annual
+#  //scenario;			 initial soil feedback state: 0=neutral, 1=exotic (spp1), 2=native (spp2)
+#  //initabund; 		 initial percent natives
+#  //seed; 				   ratio of exotic to native seed production: 1= default (values: 1000, 100, 10, 1, 0.1, 0.01, 0.001)
+#  //edge;					 0=absorbing boundaries, 1=one edge all exotics (spp1)
+#  //dim;					   dimension of matrix (not counting the edges)
+#  //tmax;					 time steps
+#  //pr_nocol;       reduction in probability of colonization event - allows for empty cells
+#  //stepsize;       step size in by which changes in soil occur (in percent)
 
 #Paramter settings...
-sp1dis=1; sp2dis=1          #local dispersal
+sp1dis=1; sp2dis=1          #dispersal
 sp1fb=-80; sp2fb=-80        #feedback
-sp1m=5; sp2m=5              #5% stochastic mortality
+sp1m=5; sp2m=5              #stochastic mortality
 scenario=0                  #begin with neutral soils
 initabund=50                #initial native abundance (sp1)
-seed=1.5                   #ratio of seed production (exotic:native)
+seed=1.5                    #ratio of seed production (exotic:native)
 edge=0                      #absorbing edge conditions
 dim=100                     #grid edge size
 tmax=1000                   #maximum time
@@ -58,7 +60,7 @@ if(edge==0) {
 }
 
 #Plot result
-matplot(0:(tmax), m[,-1]/(dim^2), type="l", lty=1, lwd=2, col=2:1, xlab="time", ylab="p", ylim=c(0,1))
+matplot(0:(tmax), cbind(m[,-1], rowSums(m[,-1]))/(dim^2), type="l", lty=1, lwd=2, col=c(3,2,1), xlab="time", ylab="p", ylim=c(0,1))
 abline(h=c(0, 1), v=0, lty=3)
 
 
