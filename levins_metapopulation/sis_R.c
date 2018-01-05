@@ -182,6 +182,13 @@ void sis_R (int *psp1dis, int *psp2dis, int *psp1fb, int *psp2fb, int *psp1m, in
 						
 					// Species survival
 					switch( xt1[i][j] ) {
+						case 0:      // cell is empty, move feedback back towards zero
+							if( state[i][j] > 0 ) // decrement cell state in favor of species 1, up to max state 0
+								state[i][j] = state[i][j]-10  ; // species 1 has NEGATIVE values
+							if( state[i][j] < 0 ) // increment cell state in favor of species 1, up to max state 0
+								state[i][j] = state[i][j]+10  ;
+						break;
+
 						case 1:      // species 1 occupies cell, m% mortality + additional feedback effect
 							if((runif(0,1)) < (sp1m/100. + (1-s1)) )
 							{
@@ -194,17 +201,10 @@ void sis_R (int *psp1dis, int *psp2dis, int *psp1fb, int *psp2fb, int *psp1m, in
 						case 2: 	// species 2
 							if((runif(0,1)) < (sp2m/100. + (1-s2)) )
 								xt1[i][j]= 0;
-							if( state[i][j] < sp2fb ) // increment cell state in favor of species 1, up to max state 10
-								state[i][j] = state[i][j]+10  ;
+							if( state[i][j] < sp2fb ) // increment cell state in favor of species 2, up to max state 10
+								state[i][j] = state[i][j]+10  ; // species 2 has POSITIVE values
 						break;
 					}
-
-					//TODO: Need to think about what to do about state in empty cells...
-					//
-					//
-					//
-					//
-					//
 
 					
 					if( xt1[i][j]==0){ 	// empty cell: colonization probability proportional to local or global neighborhood

@@ -14,7 +14,7 @@ sp1dis=1; sp2dis=1    #global dispersal
 sp1fb=20; sp2fb=20      #moderate feedback
 sp1m=20; sp2m=20        #20% mortality
 scenario=2              #neutral feedback
-initabund=30            #initial native abundance (sp1)
+initabund=40            #initial native abundance (sp1)
 seed=1                  #ratio of seed production
 edge=0                  #edge conditions
 dim=100                 #grid edge size
@@ -22,7 +22,7 @@ tmax=1000                #maximum time
 outmat=numeric((tmax+1)*3)  #matrix for storing species abundances
 outmap0=numeric((dim+2)^2)  #matrix for storing initial conditions
 outmap=outmap0          #matrix for storing end conditions
-pr_nocol=0.8              #reduction in probability of colonization event - allows for empty cells
+pr_nocol=0              #reduction in probability of colonization event - allows for empty cells
 
 setwd("~/Dropbox/Projects/032_Coexistence_mechanisms/src/levins_metapopulation/")
 
