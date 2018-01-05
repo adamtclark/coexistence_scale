@@ -25,7 +25,7 @@
 #include <stdio.h>
 
 void sis_R (int *psp1dis, int *psp2dis, int *psp1fb, int *psp2fb, int *psp1m, int *psp2m, int *pscenario,
-	int *pinitabund, double *pseed, int *pedge, int *pdim, int *ptmax, int outmat[], int outmap0[], int outmap[])  {
+	int *pinitabund, double *pseed, int *pedge, int *pdim, int *ptmax, double *ppr_nocol, int outmat[], int outmap0[], int outmap[])  {
 	//sp1dis, sp2dis;		species dispersal: 0=local, 1=global
 	//sp1fb, sp2fb;			species feedback strength: 0=none, 100=overwhelmingly strong
 	//sp1m, sp2m;			species percent mortality: 0=immortal, <100=perennial, 100=annual
@@ -35,6 +35,10 @@ void sis_R (int *psp1dis, int *psp2dis, int *psp1fb, int *psp2fb, int *psp1m, in
 	//edge;					0=absorbing boundaries, 1=one edge all exotics (spp1)
 	//dim;					dimension of matrix (not counting the edges)
 	//tmax;					time steps
+	//ppr_nocol;			probability reduction in colonization success (allows for failed colonization events)
+	//outmat				matrix for storing abundances through time
+	//outmap0				initial positions for all individuals
+	//outmap 				final positions for all individuals
 
 	// de-pointerize input from R...
 	int sp1dis = *psp1dis;
@@ -49,6 +53,7 @@ void sis_R (int *psp1dis, int *psp2dis, int *psp1fb, int *psp2fb, int *psp1m, in
 	int edge = *pedge;
 	int dim = *pdim;
 	int tmax = *ptmax;
+	double pr_nocol= *ppr_nocol;
 	
 	int trigger = 0;
 
@@ -70,18 +75,20 @@ void sis_R (int *psp1dis, int *psp2dis, int *psp1fb, int *psp2fb, int *psp1m, in
 	if( !( edge == 0 || edge == 1) ) {trigger=1;  				fprintf(stderr, "ERROR: edge must be 0 or 1]");}
 	if( ( dim <= 0 || dim > 1000) ) {trigger=1;  				fprintf(stderr, "ERROR: dim must be > 0 and <=1000]");}
 	if( ( tmax <= 0 || tmax > 10000) ) {trigger=1;  			fprintf(stderr, "ERROR: tmax must be > 0 and <=10000");}
+	if( ( pr_nocol < 0 || pr_nocol > 1) ) {trigger=1;  			fprintf(stderr, "ERROR: pr_nocol must be >= 0 and <=1");}
 
 	if(trigger == 0) { // only run function if no error
 		// declarations of internal variables
 		int i, j, k, t;				// matrix and time indexes
 		double s1, s2;				// species 1 and 2 survival probabilities
 		double c1, c2;				// species 1 and 2 colonization probabilities
-		double p1, p2;				// species 1 and 2 establishment probabilities
+		double p1, p2, p3;				// species 1 and 2 establishment probabilities
 		int xt0[*pdim+2][*pdim+2];	// time t generation, a dim x dim lattice with 1-cell edge boundaries
 		int xt1[*pdim+2][*pdim+2];	// time t+1 generation, a dim x dim lattice with 1-cell edge boundaries
 		int near[3];				// counts of 8 nearest neighbors+cell[i][j]: empty, spp1, and spp2
 		int all[(*ptmax)+1][3];			// counts of all cells: empty, spp1, and spp2
 		int state[*pdim+2][*pdim+2];// cell state, indicating effect of plant-soil feedback
+		double tmpp;				// stores random number
 
 
 		// initialize species matrix
@@ -188,6 +195,9 @@ void sis_R (int *psp1dis, int *psp2dis, int *psp1fb, int *psp2fb, int *psp1m, in
 								state[i][j] = state[i][j]+10  ;
 						break;
 					}
+
+					//TODO: Need to think about what to do about state in empty cells...
+
 					
 					if( xt1[i][j]==0){ 	// empty cell: colonization probability proportional to local or global neighborhood
 									//		weighted by ratio of exotic to native seed production
@@ -204,10 +214,21 @@ void sis_R (int *psp1dis, int *psp2dis, int *psp1fb, int *psp2fb, int *psp1m, in
 							// probabilities of establishment: Psurvival x Pcolonization
 							p1= c1*s1/(c1*s1+c2*s2) ;
 							p2= 1-p1 ;
-							if ( (runif(0,1)) < p1) 
+							
+							// add probability of no colonization
+							p1=(1-pr_nocol)*p1;
+							p2=(1-pr_nocol)*p2;
+							p3= 1-p1-p2;
+
+							tmpp=runif(0,1);
+
+							if ( tmpp < p1) {
 								xt1[i][j] = 1; // set to species 1
-							else
-								xt1[i][j] = 2;
+							} else if( (tmpp>=p1 & tmpp < (p1+p2)) ) {
+								xt1[i][j] = 2; // set to species 2
+							} else {
+								xt1[i][j] = 0; // set to empty
+							}
 					}
 				}
 			}
