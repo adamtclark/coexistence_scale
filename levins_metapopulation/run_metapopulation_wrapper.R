@@ -364,7 +364,8 @@ run_metapopulation<-function(tmax, nsteps=tmax, gridout, population, talktime=1,
         out_spatial<-matrix(cout$output_sub, nrow=nsteps+1)
         out_spatial<-out_spatial[out_spatial[,1]!=0 | (1:nrow(out_spatial))==1,]
       } else if(runtype=="psf") {
-        cout<-psfwrapper(population, gridout, grid_sub, abundances, gridsize, c_sptraits, tmax, speciesid)
+        cout<-psfwrapper(population=population, gridout=gridout, sites_sub=sites_sub, abundances=abundances,
+                         gridsize=gridsize, c_sptraits=c_sptraits, tmax=tmax, speciesid=speciesid, xylim = xylim, nsteps = nsteps, destroyed=destroyed, tmpspdestroy=rep(0, nsp))
         
         #save output
         out_spatial<-matrix(cout$output_sub, nrow=nsteps+1)
@@ -417,7 +418,7 @@ rerunrun_metapopulation<-function(out, tmax, nsteps=tmax, talktime=1, runtype="m
   #replace_perturb=1 replaces removed individuals with those from a randomly chosen (other species); =0 does not replace individuals
   
   #habitatdestructsites and habitatdestruct_species are internal variables used in the "invasion when rare" routine, and prevent
-  #individual species from colonizing a particular region
+  #individual species from colonizing a particular region)
   
   ################ Extract data
   #pull out last full observation, if there are multiple in the list
@@ -537,7 +538,7 @@ rerunrun_metapopulation<-function(out, tmax, nsteps=tmax, talktime=1, runtype="m
   
   #note, for now, conditional below includes all potential run types
   #rock/paper/scissors etc. would fall in an "else" loop
-  if(runtype%in%c("metapopulation", "neutral", "disturbance")) {
+  if(runtype%in%c("metapopulation", "neutral", "disturbance", "psf")) {
     
     #get lengths, outputs, and abundances for subsets - note, this may be of length zero
     pnsites_sub<-length(sites_sub[sites_sub!=0])
@@ -550,14 +551,14 @@ rerunrun_metapopulation<-function(out, tmax, nsteps=tmax, talktime=1, runtype="m
       abundances_sub<-rep(0, out$full$pnsp)
     }
     
-    #set up "destoryed" habitat for individual species
+    #set up "destroyed" habitat for individual species
     #this routine is automatically controlled by the invasion when rare function
-    tmpdestory<-out$full$destroyed
+    tmpdestroy<-out$full$destroyed
     if(sum(habitatdestructsites)==0) {
       tmpspdestroy<-rep(0, out$full$pnsp)
     } else {
       tmpspdestroy<-habitatdestruct_species
-      tmpdestory[habitatdestructsites]<-1
+      tmpdestroy[habitatdestructsites]<-1
     }
     
     if(runtype=="disturbance") {
@@ -571,14 +572,14 @@ rerunrun_metapopulation<-function(out, tmax, nsteps=tmax, talktime=1, runtype="m
       #complete first run before first disturbance event
       #(see c script for description of variables)
       cout<-.C(runname,
-               ptmax= as.double(tmax_sub), pgridsize=as.integer(out$full$pgridsize), pnsp=as.integer(out$full$pnsp), xylim=as.integer(out$full$xylim), destroyed=as.integer(tmpdestory), spdestroy=as.integer(tmpspdestroy), #grid
+               ptmax= as.double(tmax_sub), pgridsize=as.integer(out$full$pgridsize), pnsp=as.integer(out$full$pnsp), xylim=as.integer(out$full$xylim), destroyed=as.integer(tmpdestroy), spdestroy=as.integer(tmpspdestroy), #grid
                c_sptraits=as.double(out$full$c_sptraits), m_sptraits=as.double(out$full$m_sptraits), abundances=as.integer(abundances), colsites=as.integer(out$full$colsites), pncolsites=as.integer(out$full$pncolsites), #traits
                eventtimes_c=as.double(eventtimes_c), eventtimes_m=as.double(eventtimes_m), #events
                speciesid=as.integer(speciesid), #species
                output=as.double(output), pnsteps=as.integer(nsteps_sub),
                ptalktime=as.integer(talktime),
                abundances_sub=as.integer(abundances_sub), sites_sub=as.integer(c_sites_sub), pnsites_sub=as.integer(pnsites_sub), output_sub=as.double(output_sub))
-      #replace destoryed sites
+      #replace destroyed sites
       if(sum(habitatdestructsites)!=0) {
         cout$destroyed[]<-0
       }
@@ -631,18 +632,30 @@ rerunrun_metapopulation<-function(out, tmax, nsteps=tmax, talktime=1, runtype="m
         out_spatial<-out_spatial[out_spatial[,1]!=0 | (1:nrow(out_spatial))==1,]
       }
       
-    } else {
+    } else if(runtype%in%c("metapopulation", "neutral")) {
       #run c script
       #(see c script for description of variables)
       cout<-.C(runname,
-               ptmax= as.double(tmax), pgridsize=as.integer(out$full$pgridsize), pnsp=as.integer(out$full$pnsp), xylim=as.integer(out$full$xylim), destroyed=as.integer(tmpdestory), spdestroy=as.integer(tmpspdestroy), #grid
+               ptmax= as.double(tmax), pgridsize=as.integer(out$full$pgridsize), pnsp=as.integer(out$full$pnsp), xylim=as.integer(out$full$xylim), destroyed=as.integer(tmpdestroy), spdestroy=as.integer(tmpspdestroy), #grid
                c_sptraits=as.double(out$full$c_sptraits), m_sptraits=as.double(out$full$m_sptraits), abundances=as.integer(abundances), colsites=as.integer(out$full$colsites), pncolsites=as.integer(out$full$pncolsites), #traits
                eventtimes_c=as.double(eventtimes_c), eventtimes_m=as.double(eventtimes_m), #events
                speciesid=as.integer(speciesid), #species
                output=as.double(output), pnsteps=as.integer(nsteps),
                ptalktime=as.integer(talktime),
                abundances_sub=as.integer(abundances_sub), sites_sub=as.integer(c_sites_sub), pnsites_sub=as.integer(pnsites_sub), output_sub=as.double(output_sub))
-      #replace destoryed sites
+      #replace destroyed sites
+      if(sum(habitatdestructsites)!=0) {
+        cout$destroyed[]<-0
+      }
+      
+      #save output
+      out_spatial<-matrix(cout$output_sub, nrow=nsteps+1)
+      out_spatial<-out_spatial[out_spatial[,1]!=0 | (1:nrow(out_spatial))==1,]
+    }  else if(runtype=="psf") {
+      cout<-psfwrapper(population=out$full$population, gridout=out$full$gridout, sites_sub=sites_sub, abundances=abundances,
+                       gridsize=out$full$pgridsize, c_sptraits=out$full$c_sptraits, tmax=tmax, speciesid=speciesid,
+                       xylim = out$full$xylim, nsteps = nsteps, destroyed=tmpdestroy, tmpspdestroy=tmpspdestroy, soilstart = out$full$soilstate)
+      #replace destroyed sites
       if(sum(habitatdestructsites)!=0) {
         cout$destroyed[]<-0
       }
@@ -683,7 +696,7 @@ rerunrun_metapopulation<-function(out, tmax, nsteps=tmax, talktime=1, runtype="m
 ########################################
 # Extra wrappers
 ########################################
-psfwrapper<-function(population, gridout, grid_sub, abundances, gridsize, c_sptraits, tmax, speciesid) {
+psfwrapper<-function(population, gridout, sites_sub, abundances, gridsize, c_sptraits, tmax, speciesid, xylim, nsteps, destroyed, tmpspdestroy, soilstart=0) {
   ##### Prepare run
   
   if(is.infinite(population$radlst)) {
@@ -699,7 +712,7 @@ psfwrapper<-function(population, gridout, grid_sub, abundances, gridsize, c_sptr
   tmax=tmax                   #maximum time
   outmat=numeric((tmax+1)*3)  #matrix for storing species abundances
   outmat_sub=outmat           #matrix for storing species abundances in subset
-  outmap0=numeric((dim)^2)  #matrix for storing initial conditions
+  outmap0=numeric((dim)^2)    #matrix for storing initial conditions
   outmap=outmap0              #matrix for storing end conditions
   
   #Fixed model parameters
@@ -718,16 +731,20 @@ psfwrapper<-function(population, gridout, grid_sub, abundances, gridsize, c_sptr
   speciesiduse[speciesiduse==3]<-0 #now, zero means "empty"
   
   #Soil conditions for each species
-  soilstate<-matrix(nrow=(dim+2), ncol=(dim+2), data=0)
-  if(scenario==0) {
-    soilstate[]<-0
-  } else if(scenario==1) {
-    soilstate[]<-(-abs(sp1fb))
-  } else if(scenario==2) {
-    soilstate[]<-abs(sp2fb)
-  } else if(scenario==3) {
-    #start with state of occupied species
-    soilstate[cbind(gridout$xpos+1, gridout$ypos+1)]<-c(0, (-abs(sp1fb)), abs(sp2fb))[speciesid+1]
+  if(sum(abs(soilstart))==0) {
+    soilstate<-matrix(nrow=(dim+2), ncol=(dim+2), data=0)
+    if(scenario==0) {
+      soilstate[]<-0
+    } else if(scenario==1) {
+      soilstate[]<-(-abs(sp1fb))
+    } else if(scenario==2) {
+      soilstate[]<-abs(sp2fb)
+    } else if(scenario==3) {
+      #start with state of occupied species
+      soilstate[cbind(gridout$xpos+1, gridout$ypos+1)]<-c(0, (-abs(sp1fb)), abs(sp2fb))[speciesid+1]
+    }
+  } else {
+    soilstate<-soilstart
   }
   
   #expand vectors to include edges
@@ -748,8 +765,9 @@ psfwrapper<-function(population, gridout, grid_sub, abundances, gridsize, c_sptr
           outmat=as.integer(outmat), outmat_sub=as.integer(outmat_sub),
           outmap0=as.integer(outmap0), outmap=as.integer(outmap),
           speciesid=as.integer(c(speciesiduse_m)), 
-          c_sites_sub=as.integer(grid_sub$sites), plngsub=as.integer(length(grid_sub$sites)),
-          soilstate=as.integer(c(soilstate)))
+          c_sites_sub=as.integer(sites_sub-1), plngsub=as.integer(length(sites_sub)),
+          soilstate=as.integer(c(soilstate)),
+          destroyed=as.integer(destroyed), spdestroy=as.integer(tmpspdestroy))
   
   ##### repack output
   #total abundance
@@ -770,13 +788,14 @@ psfwrapper<-function(population, gridout, grid_sub, abundances, gridsize, c_sptr
   speciesid<-speciesid-1
   speciesid[speciesid==-1]<-2 #now 2 is "empty"
   
-  cout<-list(ptmax=tmax, pgridsize=gridsize, pnsp=nsp, xylim=xylim, destroyed=destroyed, spdestroy=rep(0, nsp), #grid
-             c_sptraits=c_sptraits, m_sptraits=m_sptraits, abundances=m[nrow(m),-1], colsites=NA, pncolsites=NA, #traits
-             eventtimes_c=NA, eventtimes_m=NA, #events
+  cout<-list(ptmax=tmax, pgridsize=gridsize, pnsp=length(population$nlst), xylim=xylim, destroyed=destroyed, spdestroy=tmpspdestroy, #grid
+             c_sptraits=population$clst, m_sptraits=population$mlst, abundances=m[nrow(m),-1], colsites=NA, pncolsites=NA, #traits
+             eventtimes_c=rep(NA, gridsize), eventtimes_m=rep(NA, gridsize), #events
              speciesid=speciesid, #species
              output=c(cbind(1:(tmax+1), m[,-1])), pnsteps=nsteps,
-             ptalktime=talktime,
-             abundances_sub=m_sub[nrow(m_sub),-1], sites_sub=c_sites_sub, pnsites_sub=pnsites_sub, output_sub=c(cbind(1:(tmax+1), m_sub[,-1])))
+             ptalktime=NA,
+             abundances_sub=m_sub[nrow(m_sub),-1], sites_sub=(sites_sub-1), pnsites_sub=length(sites_sub), output_sub=c(cbind(1:(tmax+1), m_sub[,-1])),
+             population=population, gridout=gridout, soilstate=out$soilstate)
   
   return(cout)
 }
@@ -1521,12 +1540,15 @@ runpar<-function(...) {
 ########################################
 
 if(FALSE) {
+  #runtype
+  runtype = "psf"
+  
   #make grid and population
   gridout<-makegrid(xlng = 100, ylng = 100)
   population<-populate(gridout, nlst = 0.1, clst = c(0.12, 0.8), mlst = rep(0.1, 4), radlst = Inf)
   
   #run initial simulation
-  out<-run_metapopulation(tmax=200, nsteps = 1000, gridout, population, talktime = 0)
+  out<-run_metapopulation(tmax=200, nsteps = 1000, gridout, population, talktime = 0, runtype=runtype)
   plot_metapop(out)
   
   #rerun simulation
@@ -1539,5 +1561,11 @@ if(FALSE) {
   
   require(rEDM)
   invar<-estimate_invar(out)
+  
+  #subset of sites
+  grid_sub<-grid_subset(gridout, size = 0.05)
+  out<-run_metapopulation(tmax=200, nsteps = 1000, gridout, population, talktime = 0, sites_sub = grid_sub$sites)
+  plot_metapop(out, sites = 0)
+  plot_metapop(out, sites = 1)
 }
 

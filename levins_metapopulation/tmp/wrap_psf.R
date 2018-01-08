@@ -99,7 +99,7 @@ psfwrapper<-function(population, gridout, grid_sub, abundances, gridsize, c_sptr
           outmat=as.integer(outmat), outmat_sub=as.integer(outmat_sub),
           outmap0=as.integer(outmap0), outmap=as.integer(outmap),
           speciesid=as.integer(c(speciesiduse_m)), 
-          c_sites_sub=as.integer(grid_sub$sites), plngsub=as.integer(length(grid_sub$sites)),
+          c_sites_sub=as.integer(grid_sub$sites-1), plngsub=as.integer(length(grid_sub$sites)),
           soilstate=as.integer(c(soilstate)))
   
   ##### repack output

@@ -27,7 +27,8 @@
 void sis_metapopulation (int *psp1dis, int *psp2dis, int *psp1fb, int *psp2fb, int *psp1m, int *psp2m,
 	int *pinitabund, double *pseed, int *pedge, int *pdim, int *ptmax, double *ppr_nocol, int *pstepsize,
 	int outmat[], int outmat_sub[], int outmap0[], int outmap[],
-	int speciesid[], int c_sites_sub[], int *plngsub, int soilstate[])  {
+	int speciesid[], int c_sites_sub[], int *plngsub, int soilstate[],
+	int destroyed[], int spdestroy[])  {
 	//sp1dis, sp2dis;		species dispersal: 0=local, 1=global
 	//sp1fb, sp2fb;			species feedback strength: 0=none, 100=overwhelmingly strong
 	//sp1m, sp2m;			species percent mortality: 0=immortal, <100=perennial, 100=annual
@@ -46,6 +47,8 @@ void sis_metapopulation (int *psp1dis, int *psp2dis, int *psp1fb, int *psp2fb, i
 	//c_sites_sub			spatial positions of subset sites
 	//lngsub				number of positions in spatial subset
 	//soilstate				starting soil states
+	//destroyed				list of sites that are destroyed
+	//spdestroy				list of species that cannot colonized destroyed sites
 
 	// de-pointerize input from R...
 	int sp1dis = *psp1dis;
@@ -175,8 +178,8 @@ void sis_metapopulation (int *psp1dis, int *psp2dis, int *psp1fb, int *psp2fb, i
 			}
 
 			for (k =0; k< lngsub ; ++k) {
-				i = ((c_sites_sub[k]-1) % (dim)) +1 ;
-				j = (floor((c_sites_sub[k]-1.) / (dim)))+1 ;
+				i = ((c_sites_sub[k]) % (dim)) +1 ;
+				j = (floor((c_sites_sub[k]) / (dim)))+1 ;
 
 				// subset abundance
 				if (xt0[i][j]==0){ all_sub[t][0]++ ; }
@@ -271,10 +274,16 @@ void sis_metapopulation (int *psp1dis, int *psp2dis, int *psp1fb, int *psp2fb, i
 
 							tmpp=runif(0,1);
 
+							//Colonization, conditional on habitat destruction
+							k = (i-1)+(j-1)*dim; // linear index
 							if ( tmpp < p1) {
-								xt1[i][j] = 1; // set to species 1
+								if((destroyed[k]==0) || !((spdestroy[0]==0))) {
+									xt1[i][j] = 1; // set to species 1
+								}
 							} else if( (tmpp>=p1 & tmpp < (p1+p2)) ) {
-								xt1[i][j] = 2; // set to species 2
+								if((destroyed[k]==0) || !((spdestroy[1]==0))) {
+									xt1[i][j] = 2; // set to species 2
+								}
 							} else {
 								xt1[i][j] = 0; // set to empty
 							}
@@ -298,17 +307,13 @@ void sis_metapopulation (int *psp1dis, int *psp2dis, int *psp1fb, int *psp2fb, i
 		}
 
 		for (k =0; k< lngsub ; ++k) {
-			i = ((c_sites_sub[k]-1) % (dim)) +1 ;
-			j = (floor((c_sites_sub[k]-1.) / (dim)))+1 ;
+			i = ((c_sites_sub[k]) % (dim)) +1 ;
+			j = (floor((c_sites_sub[k]) / (dim)))+1 ;
 
 			// subset abundance
 			if (xt0[i][j]==0){ all_sub[t][0]++ ; }
 			if (xt0[i][j]==1){ all_sub[t][1]++ ; }
 			if (xt0[i][j]==2){ all_sub[t][2]++ ; }
-
-			//fprintf(stderr, "site = %d ", c_sites_sub[k]);
-			//fprintf(stderr, "i = %d ", i);
-			//fprintf(stderr, "j = %d \n", j);
 		}
 
 		// save abundance vs. time
@@ -329,6 +334,15 @@ void sis_metapopulation (int *psp1dis, int *psp2dis, int *psp1fb, int *psp2fb, i
 				//fprintf(stderr, "i = %d \n", i);
 				outmap[k] = (xt0[i][j]);
 				k++;
+			}
+		}
+
+
+		// save soil state
+		for (i =1; i< dim+1 ; ++i) {
+			for (j=1; j< dim+1 ; ++j) {
+				//set soil states
+				soilstate[(j*(dim+2))+i] = state[i][j];
 			}
 		}
 	}
