@@ -81,7 +81,7 @@ void sis_metapopulation (int *psp1dis, int *psp2dis, int *psp1fb, int *psp2fb, i
 	if( ( sp2fb < 0 || sp2fb > 100) ) {trigger=1;  				fprintf(stderr, "ERROR: sp2fb must be >= -100 and <=100");}
 	if( ( sp1m < 0 || sp1m > 100) ) {trigger=1;  				fprintf(stderr, "ERROR: sp1m must be >= 0 and <=100");}
 	if( ( sp2m < 0 || sp2m > 100) ) {trigger=1; 				fprintf(stderr, "ERROR: sp2m must be >= 0 and <=100");}
-	if( ( initabund <= 0 || initabund > 100) ) {trigger=1;  	fprintf(stderr, "ERROR: initabund must be >0 and <=100");}
+	if( ( initabund < 0 || initabund > 100) ) {trigger=1;  	fprintf(stderr, "ERROR: initabund must be >=0 and <=100");}
 	if( ( seed < 0.001 || seed > 1000) ) {trigger=1;  			fprintf(stderr, "ERROR: seed must be between 0.001 and 1000");}
 	if( !( edge == 0 || edge == 1) ) {trigger=1;  				fprintf(stderr, "ERROR: edge must be 0 or 1]");}
 	if( ( dim <= 0 || dim > 1000) ) {trigger=1;  				fprintf(stderr, "ERROR: dim must be > 0 and <=1000]");}
@@ -277,11 +277,11 @@ void sis_metapopulation (int *psp1dis, int *psp2dis, int *psp1fb, int *psp2fb, i
 							//Colonization, conditional on habitat destruction
 							k = (i-1)+(j-1)*dim; // linear index
 							if ( tmpp < p1) {
-								if((destroyed[k]==0) || !((spdestroy[0]==0))) {
+								if((destroyed[k]==0) || ((spdestroy[0]==0))) {
 									xt1[i][j] = 1; // set to species 1
 								}
 							} else if( (tmpp>=p1 & tmpp < (p1+p2)) ) {
-								if((destroyed[k]==0) || !((spdestroy[1]==0))) {
+								if((destroyed[k]==0) || ((spdestroy[1]==0))) {
 									xt1[i][j] = 2; // set to species 2
 								}
 							} else {
