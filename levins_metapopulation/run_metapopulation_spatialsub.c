@@ -19,7 +19,7 @@ int imerge(int p, int q);
 
 //Initialize scheduling functions
 #define PINIT  if(run1==0) EventInit();
-#define indiv 2000000   //Maximum population size.
+#define indiv 20000   //Maximum population size.
 #define INDIV indiv       //Maximum population size.
 
 #define PEMPTY -1      //Marker for bins containing no linkages.

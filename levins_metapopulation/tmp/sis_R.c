@@ -113,23 +113,25 @@ void sis_R (int *psp1dis, int *psp2dis, int *psp1fb, int *psp2fb, int *psp1m, in
 		// initialize species matrix
 		for (i =1; i< dim+1 ; ++i) {
 			for (j=1; j< dim+1 ; ++j) {
-			xt1[i][j] = 1 ; // set to species 1
-			if ( (runif(0,1)) < initabund/100. )
-				xt1[i][j] = 2; // set to species 2 with P=initial abundance/100
+				xt1[i][j] = 1 ; // set to species 1
+				if ( (runif(0,1)) < initabund/100. ) {
+					xt1[i][j] = 2; // set to species 2 with P=initial abundance/100
+				}
 				switch (scenario) {
 					case 0:  // initially neutral soils
 						state[i][j] = 0; 
 						break;
 					case 1:  // initially exotic soils (species 1 values are NEGATIVE)
-						state[i][j] = -sp1fb; 
+						state[i][j] = -abs(sp1fb); 
 						break;
 					case 2:  // initially native soils
-						state[i][j] = sp2fb; 
+						state[i][j] = abs(sp2fb); 
 						break;
 				}
+				//fprintf(stderr, "state = %d \n", state[i][j]);
 			}
 		}
-			
+		
 		// absorbing edges
 		for (i =0; i< dim+2 ; ++i) {
 			xt1[0][i]	  =0;

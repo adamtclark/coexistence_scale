@@ -31,12 +31,12 @@ stepsize=1                  #step size in by which changes in soil occur (in per
 setwd("~/Dropbox/Projects/032_Coexistence_mechanisms/src/levins_metapopulation/")
 
 #compile and load C code
-system("R CMD SHLIB sis_R.c")
+system("R CMD SHLIB tmp/sis_R.c")
 if(is.loaded("sis_R")) {
-  dyn.unload("sis_R.so")
+  dyn.unload("tmp/sis_R.so")
 }
 
-dyn.load("sis_R.so")
+dyn.load("tmp/sis_R.so")
 
 #Run C code
 out<-.C("sis_R",
@@ -60,7 +60,9 @@ if(edge==0) {
 }
 
 #Plot result
-matplot(0:(tmax), cbind(m[,-1], rowSums(m[,-1]))/(dim^2), type="l", lty=1, lwd=2, col=c(3,2,1), xlab="time", ylab="p", ylim=c(0,1))
+matplot(0:(tmax), cbind(m[,-1], rowSums(m[,-1]))/(dim^2), type="l", lty=1, lwd=2, col=c(2,3,1), xlab="time", ylab="p", ylim=c(0,1))
+matplot(0:(tmax), cbind(m_sub[,-1], rowSums(m_sub[,-1]))/(length(grid_sub$sites)), type="l", lty=1, lwd=2, col=c(2,3,1), xlab="time", ylab="p", ylim=c(0,1))
+
 abline(h=c(0, 1), v=0, lty=3)
 
 

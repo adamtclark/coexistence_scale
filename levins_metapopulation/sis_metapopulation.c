@@ -24,12 +24,13 @@
 #include <Rmath.h>
 #include <stdio.h>
 
-void sis_R (int *psp1dis, int *psp2dis, int *psp1fb, int *psp2fb, int *psp1m, int *psp2m, int *pscenario,
-	int *pinitabund, double *pseed, int *pedge, int *pdim, int *ptmax, double *ppr_nocol, int *pstepsize, int outmat[], int outmap0[], int outmap[])  {
+void sis_metapopulation (int *psp1dis, int *psp2dis, int *psp1fb, int *psp2fb, int *psp1m, int *psp2m,
+	int *pinitabund, double *pseed, int *pedge, int *pdim, int *ptmax, double *ppr_nocol, int *pstepsize,
+	int outmat[], int outmat_sub[], int outmap0[], int outmap[],
+	int speciesid[], int c_sites_sub[], int *plngsub, int soilstate[])  {
 	//sp1dis, sp2dis;		species dispersal: 0=local, 1=global
 	//sp1fb, sp2fb;			species feedback strength: 0=none, 100=overwhelmingly strong
 	//sp1m, sp2m;			species percent mortality: 0=immortal, <100=perennial, 100=annual
-	//scenario;				initial soil feedback state: 0=neutral, 1=exotic (spp1), 2=native (spp2)
 	//initabund; 			initial percent natives
 	//seed; 				ratio of exotic to native seed production: 1= default (values: 1000, 100, 10, 1, 0.1, 0.01, 0.001)
 	//edge;					0=absorbing boundaries, 1=one edge all exotics (spp1)
@@ -38,8 +39,13 @@ void sis_R (int *psp1dis, int *psp2dis, int *psp1fb, int *psp2fb, int *psp1m, in
 	//pr_nocol;				probability reduction in colonization success (allows for failed colonization events)
 	//stepsize				step size towards feeback limit
 	//outmat				matrix for storing abundances through time
+	//outmat_sub			matrix for storing abundances through time in spatial subset of sites
 	//outmap0				initial positions for all individuals
 	//outmap 				final positions for all individuals
+	//speciesid				starting positions of individuals
+	//c_sites_sub			spatial positions of subset sites
+	//lngsub				number of positions in spatial subset
+	//soilstate				starting soil states
 
 	// de-pointerize input from R...
 	int sp1dis = *psp1dis;
@@ -48,7 +54,6 @@ void sis_R (int *psp1dis, int *psp2dis, int *psp1fb, int *psp2fb, int *psp1m, in
 	int sp2fb = abs(*psp2fb);
 	int sp1m = *psp1m;
 	int sp2m = *psp2m;
-	int scenario = *pscenario;
 	int initabund = *pinitabund;
 	double seed = *pseed;
 	int edge = *pedge;
@@ -56,6 +61,7 @@ void sis_R (int *psp1dis, int *psp2dis, int *psp1fb, int *psp2fb, int *psp1m, in
 	int tmax = *ptmax;
 	double pr_nocol= *ppr_nocol;
 	int stepsize = *pstepsize;
+	int lngsub = *plngsub;
 	
 	GetRNGstate();  // Load seed for random number generation, R base
 
@@ -72,27 +78,27 @@ void sis_R (int *psp1dis, int *psp2dis, int *psp1fb, int *psp2fb, int *psp1m, in
 	if( ( sp2fb < 0 || sp2fb > 100) ) {trigger=1;  				fprintf(stderr, "ERROR: sp2fb must be >= -100 and <=100");}
 	if( ( sp1m < 0 || sp1m > 100) ) {trigger=1;  				fprintf(stderr, "ERROR: sp1m must be >= 0 and <=100");}
 	if( ( sp2m < 0 || sp2m > 100) ) {trigger=1; 				fprintf(stderr, "ERROR: sp2m must be >= 0 and <=100");}
-	if(!(scenario==0||scenario==1||scenario==2)) {trigger=1; 	fprintf(stderr, "ERROR: scenario must be 0, 1, or 2");}
 	if( ( initabund <= 0 || initabund > 100) ) {trigger=1;  	fprintf(stderr, "ERROR: initabund must be >0 and <=100");}
 	if( ( seed < 0.001 || seed > 1000) ) {trigger=1;  			fprintf(stderr, "ERROR: seed must be between 0.001 and 1000");}
 	if( !( edge == 0 || edge == 1) ) {trigger=1;  				fprintf(stderr, "ERROR: edge must be 0 or 1]");}
 	if( ( dim <= 0 || dim > 1000) ) {trigger=1;  				fprintf(stderr, "ERROR: dim must be > 0 and <=1000]");}
 	if( ( tmax <= 0 || tmax > 10000) ) {trigger=1;  			fprintf(stderr, "ERROR: tmax must be > 0 and <=10000");}
 	if( ( pr_nocol < 0 || pr_nocol > 1) ) {trigger=1;  			fprintf(stderr, "ERROR: pr_nocol must be >= 0 and <=1");}
-	if( ( stepsize < 0 || stepsize > 100) ) {trigger=1;  			fprintf(stderr, "ERROR: stepsize must be >= 0 and <=100");}
+	if( ( stepsize < 0 || stepsize > 100) ) {trigger=1;  		fprintf(stderr, "ERROR: stepsize must be >= 0 and <=100");}
 
 	if(trigger == 0) { // only run function if no error
 		// declarations of internal variables
-		int i, j, k, t;				// matrix and time indexes
-		double s1, s2;				// species 1 and 2 survival probabilities
-		double c1, c2;				// species 1 and 2 colonization probabilities
+		int i, j, k, t;					// matrix and time indexes
+		double s1, s2;					// species 1 and 2 survival probabilities
+		double c1, c2;					// species 1 and 2 colonization probabilities
 		double p1, p2, p3;				// species 1 and 2 establishment probabilities
-		int xt0[*pdim+2][*pdim+2];	// time t generation, a dim x dim lattice with 1-cell edge boundaries
-		int xt1[*pdim+2][*pdim+2];	// time t+1 generation, a dim x dim lattice with 1-cell edge boundaries
-		int near[3];				// counts of 8 nearest neighbors+cell[i][j]: empty, spp1, and spp2
+		int xt0[*pdim+2][*pdim+2];		// time t generation, a dim x dim lattice with 1-cell edge boundaries
+		int xt1[*pdim+2][*pdim+2];		// time t+1 generation, a dim x dim lattice with 1-cell edge boundaries
+		int near[3];					// counts of 8 nearest neighbors+cell[i][j]: empty, spp1, and spp2
 		int all[(*ptmax)+1][3];			// counts of all cells: empty, spp1, and spp2
-		int state[*pdim+2][*pdim+2];// cell state, indicating effect of plant-soil feedback
-		double tmpp;				// stores random number
+		int all_sub[(*ptmax)+1][3];		// counts of all cells: empty, spp1, and spp2
+		int state[*pdim+2][*pdim+2];	// cell state, indicating effect of plant-soil feedback
+		double tmpp;					// stores random number
 
 		// get direction of feedbacks
 		int signsp1fb; // sign of feedback
@@ -113,36 +119,29 @@ void sis_R (int *psp1dis, int *psp2dis, int *psp1fb, int *psp2fb, int *psp1m, in
 		// initialize species matrix
 		for (i =1; i< dim+1 ; ++i) {
 			for (j=1; j< dim+1 ; ++j) {
-			xt1[i][j] = 1 ; // set to species 1
-			if ( (runif(0,1)) < initabund/100. )
-				xt1[i][j] = 2; // set to species 2 with P=initial abundance/100
-				switch (scenario) {
-					case 0:  // initially neutral soils
-						state[i][j] = 0; 
-						break;
-					case 1:  // initially exotic soils (species 1 values are NEGATIVE)
-						state[i][j] = -sp1fb; 
-						break;
-					case 2:  // initially native soils
-						state[i][j] = sp2fb; 
-						break;
-				}
+				//set species id's
+				xt1[i][j] = speciesid[(j*(dim+2))+i];
+				
+				//set soil states
+				state[i][j] = soilstate[(j*(dim+2))+i];
 			}
 		}
-			
+		
 		// absorbing edges
 		for (i =0; i< dim+2 ; ++i) {
 			xt1[0][i]	  =0;
-			if( edge==1 && i<dim+1 ) xt1[0][i]=1; // set one edge to all exotics (spp1)
+			if( edge==1 & i<dim+1 ) xt1[0][i]=1; // set one edge to all exotics (spp1)
 			xt1[dim+1][i] =0;
 			xt1[i][0]	  =0;
 			xt1[i][dim+1] =0;
 		}
 		
 		// save initial matrix
-		for (i =0; i<dim+2 ; ++i) {
-			for (j=0; j<dim+2 ; ++j){
-				outmap0[i*(dim+2)+j] = xt1[i][j];
+		k=0;
+		for (i =1; i<dim+1 ; ++i) {
+			for (j=1; j<dim+1 ; ++j){
+				outmap0[k] = xt1[i][j];
+				k++;
 			}
 		}
 
@@ -152,6 +151,10 @@ void sis_R (int *psp1dis, int *psp2dis, int *psp1fb, int *psp2fb, int *psp1m, in
 			all[t][0]=0;
 			all[t][1]=0;
 			all[t][2]=0;
+
+			all_sub[t][0]=0;
+			all_sub[t][1]=0;
+			all_sub[t][2]=0;
 		}
 
 
@@ -163,11 +166,22 @@ void sis_R (int *psp1dis, int *psp2dis, int *psp1fb, int *psp2fb, int *psp1m, in
 				for (j=0; j< dim+2 ; ++j) {
 					// set previous t0 matrix to current t1 matrix 
 					xt0[i][j] = xt1[i][j] ;
+
 					// global abundance			
 					if (xt0[i][j]==0){ all[t][0]++ ; }
 					if (xt0[i][j]==1){ all[t][1]++ ; }
 					if (xt0[i][j]==2){ all[t][2]++ ; }
 				}
+			}
+
+			for (k =0; k< lngsub ; ++k) {
+				i = ((c_sites_sub[k]-1) % (dim)) +1 ;
+				j = (floor((c_sites_sub[k]-1.) / (dim)))+1 ;
+
+				// subset abundance
+				if (xt0[i][j]==0){ all_sub[t][0]++ ; }
+				if (xt0[i][j]==1){ all_sub[t][1]++ ; }
+				if (xt0[i][j]==2){ all_sub[t][2]++ ; }
 			}
 
 			// update current matrix (mortality then colonization)
@@ -193,12 +207,6 @@ void sis_R (int *psp1dis, int *psp2dis, int *psp1fb, int *psp2fb, int *psp1m, in
 					}
 					
 					// feedback state effect on survival probabilities
-					//s1= s2= 1. ;
-					//if( state[i][j]>0 ) // positive state value decreases s1, given positive feedback
-						//s1= (1-abs(state[i][j])/100.) ;
-					//if ( state[i][j]<0 ) // negative state value decreases s2, given positive feedback
-						//s2= (1-abs(state[i][j])/100.) ;
-
 					// code follows paper:
 					// given POSITIVE feedback, s1 is maximized when state = -100; s2 is maximized when state = 100;
 					// given NEGATIVE feedback, s1 is maximized when state = 100; s2 is maximized when state = -100;
@@ -289,18 +297,38 @@ void sis_R (int *psp1dis, int *psp2dis, int *psp1fb, int *psp2fb, int *psp1m, in
 			}
 		}
 
+		for (k =0; k< lngsub ; ++k) {
+			i = ((c_sites_sub[k]-1) % (dim)) +1 ;
+			j = (floor((c_sites_sub[k]-1.) / (dim)))+1 ;
+
+			// subset abundance
+			if (xt0[i][j]==0){ all_sub[t][0]++ ; }
+			if (xt0[i][j]==1){ all_sub[t][1]++ ; }
+			if (xt0[i][j]==2){ all_sub[t][2]++ ; }
+
+			//fprintf(stderr, "site = %d ", c_sites_sub[k]);
+			//fprintf(stderr, "i = %d ", i);
+			//fprintf(stderr, "j = %d \n", j);
+		}
+
 		// save abundance vs. time
 		for(t=0; t<=tmax; ++t){
 			outmat[t] = all[t][0];
 			outmat[(tmax+1)+t] = all[t][1];
 			outmat[(tmax+1)*2+t] = all[t][2];
+		
+			outmat_sub[t] = all_sub[t][0];
+			outmat_sub[(tmax+1)+t] = all_sub[t][1];
+			outmat_sub[(tmax+1)*2+t] = all_sub[t][2];
 		}
 
-		// save final matrix 
-		for (i =0; i<dim+2 ; ++i) {
-			for (j=0; j<dim+2 ; ++j){
-				//fprintf(stderr, "i = %d ", i);
-				outmap[i*(dim+2)+j] = (xt1[i][j]);
+		// save final matrix
+		k=0;
+		for (i =1; i<dim+1 ; ++i) {
+			for (j=1; j<dim+1 ; ++j){
+				//fprintf(stderr, "i = %d \n", i);
+				outmap[k] = (xt0[i][j]);
+				k++;
 			}
 		}
 	}

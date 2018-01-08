@@ -5,6 +5,8 @@
 #4. Add Stan's PSF model
 #5. Example of rock-paper-scissors
 
+#PERTURB: think about testing ceq as well?
+#look through memo and notes...
 
 
 ########################################
@@ -143,7 +145,7 @@ loadrun<-function(runtype) {
       dyn.unload("sis_metapopulation.so")
       dyn.load("sis_metapopulation.so")
     }
-  }else {
+  } else {
     trigger<-"error: run type must be 'disturbance', 'metapopulation', 'neutral', or 'psf'"
   }
   return(trigger)
@@ -193,6 +195,12 @@ run_metapopulation<-function(tmax, nsteps=tmax, gridout, population, talktime=1,
     return(runtp)
   }
   
+  #update nsteps
+  if(runtype=="psf") {
+    #c code only handles integer steps
+    nsteps<-tmax
+  }
+  
   #extract information from grid and population
   gridsize<-prod(gridout$lng); nsp<-length(population$clst); xylim<-gridout$lng; destroyed<-rep(0, gridsize)
   c_sptraits<-population$clst; m_sptraits<-population$mlst; abundances<-population$nlst
@@ -200,42 +208,47 @@ run_metapopulation<-function(tmax, nsteps=tmax, gridout, population, talktime=1,
   #vector for output
   output<-numeric((nsteps+1)*(nsp+1))
   
-  #make colsites vector
-  #shows potential sites available for colonization based on rad
-  if(is.infinite(population$radlst)) {
-    colsites<-cbind(gridout$xpos, gridout$ypos)-1
-    colsites<-colsites[!(colsites[,1]==0 & colsites[,2]==0),]
-  } else {
-    dists<-seq(-population$radlst, population$radlst)
-    colsites<-expand.grid(dists, dists)
-    colsites<-colsites[!(colsites[,1]==0 & colsites[2]==0),]
-    colsites<-colsites[sqrt(colsites[,1]^2+colsites[,2]^2)<=population$radlst,]
-    colsites<-unname(unlist(colsites))
-  }
-  ncolsites<-length(colsites)/2
-  
   #populate sites with individuals
   speciesid<-rep(nsp, gridsize)
   speciesid[population$pos_sp]<-as.numeric(population$spid)-1
   
-  #specify times for next birth and death events, using random exponential distribution
-  eventtimes_c<-numeric(gridsize)
-  eventtimes_m<-numeric(gridsize)
   
-  n<-1
-  for(i in 1:length(population$spid)) {
-    x<-runif(1)
-    eventtimes_c[population$pos_sp[i]]<-log(-x+1)/(-c(population$clst[population$spid[i]]))
+  if(runtype!="psf") {
+    #psf model is iterated, not event-based - arguments below are not needed
     
-    x<-runif(1)
-    eventtimes_m[population$pos_sp[i]]<-log(-x+1)/(-c(population$mlst[population$spid[i]]))
+    #make colsites vector
+    #shows potential sites available for colonization based on rad
+    if(is.infinite(population$radlst)) {
+      colsites<-cbind(gridout$xpos, gridout$ypos)-1
+      colsites<-colsites[!(colsites[,1]==0 & colsites[,2]==0),]
+    } else {
+      dists<-seq(-population$radlst, population$radlst)
+      colsites<-expand.grid(dists, dists)
+      colsites<-colsites[!(colsites[,1]==0 & colsites[2]==0),]
+      colsites<-colsites[sqrt(colsites[,1]^2+colsites[,2]^2)<=population$radlst,]
+      colsites<-unname(unlist(colsites))
+    }
+    ncolsites<-length(colsites)/2
+    
+    #specify times for next birth and death events, using random exponential distribution
+    eventtimes_c<-numeric(gridsize)
+    eventtimes_m<-numeric(gridsize)
+    
+    n<-1
+    for(i in 1:length(population$spid)) {
+      x<-runif(1)
+      eventtimes_c[population$pos_sp[i]]<-log(-x+1)/(-c(population$clst[population$spid[i]]))
+      
+      x<-runif(1)
+      eventtimes_m[population$pos_sp[i]]<-log(-x+1)/(-c(population$mlst[population$spid[i]]))
+    }
+    
+    #truncate infinite time spans
+    eventtimes_c[!is.finite(eventtimes_c)]<-tmax+1
+    eventtimes_m[!is.finite(eventtimes_m)]<-tmax+1
   }
   
-  #truncate infinite time spans
-  eventtimes_c[!is.finite(eventtimes_c)]<-tmax+1
-  eventtimes_m[!is.finite(eventtimes_m)]<-tmax+1
-  
-  if(gridsize>1e6) {
+  if(gridsize>1e4) {
     #error if memory allocation in compiled file needs to be increased (variable "indiv" in .c code)
     #we use this error, rather than a malloc command, because of a bug in malloc for very large vectors
     #in some older compilers
@@ -243,11 +256,7 @@ run_metapopulation<-function(tmax, nsteps=tmax, gridout, population, talktime=1,
   } else {
     
     #script names for runs
-    if(runtype%in%c("metapopulation", "disturbance")) {
-      runname<-"run_metapopulation_spatialsub"
-    } else if(runtype%in%c("neutral")) {
-      runname<-"run_neutral_metapopulation_spatialsub"
-    }
+    runname<-getrunname(runtype)
     
     #create extra output data for disturbance
     if(runtype%in%c("disturbance")) {
@@ -260,11 +269,12 @@ run_metapopulation<-function(tmax, nsteps=tmax, gridout, population, talktime=1,
     
     #note, for now, conditional below includes all potential run types
     #rock/paper/scissors etc. would fall in an "else" loop
-    if(runtype%in%c("metapopulation", "neutral", "disturbance")) {
+    if(runtype%in%c("metapopulation", "neutral", "disturbance", "psf")) {
       
       #get lengths, outputs, and abundances for subsets - note, this may be of length zero
       pnsites_sub<-length(sites_sub[sites_sub!=0])
       output_sub<-output
+      
       if(sum(sites_sub)>0) {
         c_sites_sub<-sites_sub-1
         abundances_sub<-unname(table(speciesid[sites_sub])[1:nsp])
@@ -338,7 +348,7 @@ run_metapopulation<-function(tmax, nsteps=tmax, gridout, population, talktime=1,
           out_spatial<-out_spatial[out_spatial[,1]!=0 | (1:nrow(out_spatial))==1,]
         }
         
-      } else {
+      } else if(runtype%in%c("metapopulation", "neutral")) {
         #run c script
         #(see c script for description of variables)
         cout<-.C(runname,
@@ -349,6 +359,12 @@ run_metapopulation<-function(tmax, nsteps=tmax, gridout, population, talktime=1,
                  output=as.double(output), pnsteps=as.integer(nsteps),
                  ptalktime=as.integer(talktime),
                  abundances_sub=as.integer(abundances_sub), sites_sub=as.integer(c_sites_sub), pnsites_sub=as.integer(pnsites_sub), output_sub=as.double(output_sub))
+        
+        #save output
+        out_spatial<-matrix(cout$output_sub, nrow=nsteps+1)
+        out_spatial<-out_spatial[out_spatial[,1]!=0 | (1:nrow(out_spatial))==1,]
+      } else if(runtype=="psf") {
+        cout<-psfwrapper(population, gridout, grid_sub, abundances, gridsize, c_sptraits, tmax, speciesid)
         
         #save output
         out_spatial<-matrix(cout$output_sub, nrow=nsteps+1)
@@ -663,6 +679,108 @@ rerunrun_metapopulation<-function(out, tmax, nsteps=tmax, talktime=1, runtype="m
   
   return(list(output=outnew, full=cout, plotdata=plotdata, output_spatial=out_spatial, sites_sub=sites_sub))
 }
+
+########################################
+# Extra wrappers
+########################################
+psfwrapper<-function(population, gridout, grid_sub, abundances, gridsize, c_sptraits, tmax, speciesid) {
+  ##### Prepare run
+  
+  if(is.infinite(population$radlst)) {
+    sp1dis=1; sp2dis=1        #global dispersal
+  } else {
+    sp1dis=0; sp2dis=0        #local dispersal
+  }
+  initabund=(abundances/gridsize)*100   #initial native abundance (sp1)
+  seed=c_sptraits[1]/c_sptraits[2]      #ratio of seed production (exotic:native)
+  
+  #extract parameters from simulation run
+  dim=ceiling(sqrt(gridsize)) #grid edge size
+  tmax=tmax                   #maximum time
+  outmat=numeric((tmax+1)*3)  #matrix for storing species abundances
+  outmat_sub=outmat           #matrix for storing species abundances in subset
+  outmap0=numeric((dim)^2)  #matrix for storing initial conditions
+  outmap=outmap0              #matrix for storing end conditions
+  
+  #Fixed model parameters
+  sp1fb=-80; sp2fb=-80        #feedback
+  sp1m=5; sp2m=5              #stochastic mortality
+  scenario=3                  #begin with neutral soils
+  pr_nocol=0.5                #reduction in probability of colonization event - allows for empty cells
+  stepsize=1                  #step size in by which changes in soil occur (in percent)
+  edge=0                      #absorbing edge conditions
+  
+  #Set up starting conditions
+  #locations of species
+  speciesiduse<-speciesid #initially, largest number means "empty"
+  speciesiduse[speciesiduse>2]<-2
+  speciesiduse<-speciesiduse+1
+  speciesiduse[speciesiduse==3]<-0 #now, zero means "empty"
+  
+  #Soil conditions for each species
+  soilstate<-matrix(nrow=(dim+2), ncol=(dim+2), data=0)
+  if(scenario==0) {
+    soilstate[]<-0
+  } else if(scenario==1) {
+    soilstate[]<-(-abs(sp1fb))
+  } else if(scenario==2) {
+    soilstate[]<-abs(sp2fb)
+  } else if(scenario==3) {
+    #start with state of occupied species
+    soilstate[cbind(gridout$xpos+1, gridout$ypos+1)]<-c(0, (-abs(sp1fb)), abs(sp2fb))[speciesid+1]
+  }
+  
+  #expand vectors to include edges
+  speciesiduse_m<-matrix(speciesiduse, nrow=dim)
+  speciesiduse_m<-rbind(speciesiduse_m, rep(0, dim))
+  speciesiduse_m<-cbind(speciesiduse_m, rep(0, dim+1))
+  speciesiduse_m<-cbind(rep(0, dim+1), speciesiduse_m)
+  speciesiduse_m<-rbind(rep(0, dim+2), speciesiduse_m)
+  
+  ##### Run C code
+  out<-.C("sis_metapopulation",
+          psp1dis=as.integer(sp1dis), psp2dis=as.integer(sp2dis),
+          ps1fb=as.integer(sp1fb), psp2fb=as.integer(sp2fb), 
+          psp1m=as.integer(sp1m), psp2m=as.integer(sp2m),
+          pinitabund=as.integer(initabund), pseed=as.double(seed),
+          pedge=as.integer(edge), pdim=as.integer(dim), ptmax=as.integer(tmax),
+          ppr_nocol=as.double(pr_nocol), pstepsize=as.integer(stepsize),
+          outmat=as.integer(outmat), outmat_sub=as.integer(outmat_sub),
+          outmap0=as.integer(outmap0), outmap=as.integer(outmap),
+          speciesid=as.integer(c(speciesiduse_m)), 
+          c_sites_sub=as.integer(grid_sub$sites), plngsub=as.integer(length(grid_sub$sites)),
+          soilstate=as.integer(c(soilstate)))
+  
+  ##### repack output
+  #total abundance
+  m<-matrix(out$outmat, ncol=3)
+  #Exclude empty cells or invaded cells from the periphery
+  if(edge==0) {
+    m[,1]<-m[,1]-(4*(dim+2)-4)
+  } else {
+    m[,1]<-m[,1]-(3*(dim+2)-2)
+    m[,2]<-m[,2]-(dim)
+  }
+  
+  #subset abundance
+  m_sub<-matrix(out$outmat_sub, ncol=3)
+  
+  #species locations
+  speciesid<-c(out$outmap)
+  speciesid<-speciesid-1
+  speciesid[speciesid==-1]<-2 #now 2 is "empty"
+  
+  cout<-list(ptmax=tmax, pgridsize=gridsize, pnsp=nsp, xylim=xylim, destroyed=destroyed, spdestroy=rep(0, nsp), #grid
+             c_sptraits=c_sptraits, m_sptraits=m_sptraits, abundances=m[nrow(m),-1], colsites=NA, pncolsites=NA, #traits
+             eventtimes_c=NA, eventtimes_m=NA, #events
+             speciesid=speciesid, #species
+             output=c(cbind(1:(tmax+1), m[,-1])), pnsteps=nsteps,
+             ptalktime=talktime,
+             abundances_sub=m_sub[nrow(m_sub),-1], sites_sub=c_sites_sub, pnsites_sub=pnsites_sub, output_sub=c(cbind(1:(tmax+1), m_sub[,-1])))
+  
+  return(cout)
+}
+
 
 
 ########################################
