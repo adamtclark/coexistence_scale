@@ -370,6 +370,7 @@ run_metapopulation<-function(tmax, nsteps=tmax, gridout, population, talktime=1,
         #save output
         out_spatial<-matrix(cout$output_sub, nrow=nsteps+1)
         out_spatial<-out_spatial[out_spatial[,1]!=0 | (1:nrow(out_spatial))==1,]
+        out_spatial<-out_spatial[1:tmax,]
       }
     }
     
@@ -393,6 +394,9 @@ run_metapopulation<-function(tmax, nsteps=tmax, gridout, population, talktime=1,
     
     #remove empty output data
     out<-out[out[,1]!=0 | (1:nrow(out))==1,]
+    if(runtype=="psf") {
+      out<-out[1:tmax,]
+    }
     
     #out is matrix of times and abundances
     #full is total data from c run
@@ -663,6 +667,7 @@ rerunrun_metapopulation<-function(out, tmax, nsteps=tmax, talktime=1, runtype="m
       #save output
       out_spatial<-matrix(cout$output_sub, nrow=nsteps+1)
       out_spatial<-out_spatial[out_spatial[,1]!=0 | (1:nrow(out_spatial))==1,]
+      out_spatial<-out_spatial[1:tmax,]
     }
   }
   
@@ -687,6 +692,9 @@ rerunrun_metapopulation<-function(out, tmax, nsteps=tmax, talktime=1, runtype="m
   
   #remove empty output data
   outnew<-outnew[outnew[,1]!=0 | (1:nrow(outnew))==1,]
+  if(runtype=="psf") {
+    outnew<-outnew[1:tmax,]
+  }
   
   #output is identical to that from 'run_metapopulation'
   
@@ -698,6 +706,10 @@ rerunrun_metapopulation<-function(out, tmax, nsteps=tmax, talktime=1, runtype="m
 ########################################
 psfwrapper<-function(population, gridout, sites_sub, abundances, gridsize, c_sptraits, tmax, speciesid, xylim, nsteps, destroyed, tmpspdestroy, soilstart=0) {
   ##### Prepare run
+  
+  #adjust for extra time step in this function
+  #tmax<-(tmax-1)
+  #nsteps<-(nsteps-1)
   
   if(is.infinite(population$radlst)) {
     sp1dis=1; sp2dis=1        #global dispersal
