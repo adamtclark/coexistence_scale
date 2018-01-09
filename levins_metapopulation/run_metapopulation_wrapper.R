@@ -425,14 +425,14 @@ run_metapopulation<-function(tmax, nsteps=tmax, gridout, population, talktime=1,
     #full is total data from c run
     #output_spatial is times and abundances for spatial subset
     #sites_sub are the locations in the spatial subset
-    return(list(output=out, full=cout, plotdata=plotdata, output_spatial=out_spatial, sites_sub=sites_sub))
+    return(list(output=out, full=cout, plotdata=plotdata, output_spatial=out_spatial, sites_sub=sites_sub, compmat=compmat))
   }
 }
 
 
 
 
-rerunrun_metapopulation<-function(out, tmax, nsteps=tmax, talktime=1, runtype="metapopulation", perturb=rep(0, length(out$plotdata$ceq)), perturbsites=1:out$plotdata$ngrid, addn=0, addsites=perturbsites, replace_perturb=0, sites_sub=0, prt=0, prtfrq=0, habitatdestructsites=0, habitatdestruct_species=rep(0, length(out$plotdata$ceq)), compmat=0) {
+rerunrun_metapopulation<-function(out, tmax, nsteps=tmax, talktime=1, runtype="metapopulation", perturb=rep(0, length(out$plotdata$ceq)), perturbsites=1:out$plotdata$ngrid, addn=0, addsites=perturbsites, replace_perturb=0, sites_sub=0, prt=0, prtfrq=0, habitatdestructsites=0, habitatdestruct_species=rep(0, length(out$plotdata$ceq))) {
   #reruns the simulation models in "run_metapopulation", starting at the last event in the previous simulation.
   #useful for iterating the model - e.g. for simulating disturbance events.
   
@@ -448,6 +448,8 @@ rerunrun_metapopulation<-function(out, tmax, nsteps=tmax, talktime=1, runtype="m
   #individual species from colonizing a particular region)
   
   ################ Extract data
+  compmat<-out$compmat
+  
   #pull out last full observation, if there are multiple in the list
   if(!length(unique(names(out$full)))>1) {
     out$full<-out$full[[length(out$full)]]
@@ -736,7 +738,7 @@ rerunrun_metapopulation<-function(out, tmax, nsteps=tmax, talktime=1, runtype="m
   
   #output is identical to that from 'run_metapopulation'
   
-  return(list(output=outnew, full=cout, plotdata=plotdata, output_spatial=out_spatial, sites_sub=sites_sub))
+  return(list(output=outnew, full=cout, plotdata=plotdata, output_spatial=out_spatial, sites_sub=sites_sub, compmat=compmat))
 }
 
 ########################################

@@ -42,7 +42,7 @@ out<-run_metapopulation(tmax=1000, nsteps = 1000, gridout, population, talktime 
 plot_metapop(out)
 
 #rerun simulation
-out2<-rerunrun_metapopulation(out=out, tmax=1000, talktime = 0, runtype="rps", compmat = intmat_rps)
+out2<-rerunrun_metapopulation(out=out, tmax=1000, talktime = 0, runtype="rps")
 plot_metapop(out2)
 
 

@@ -8,15 +8,23 @@ source("run_metapopulation_wrapper.R")
 require(RColorBrewer)
 source("~/Dropbox/Rfunctions/figure_functions.R")
 
-############################################################
-# "Global" run
-############################################################
-##### Try Tilman metapopulation model
+#plotting offsets
+ofs1<-c(0.075, -0.04)
+ofs2<-c(0.075, -0.09)
+ofs3<-c(0.075, -0.090)
+
+#starting parameters
 gridout<-makegrid(xlng = 100, ylng = 100)
 xfac<-5
 ptb<-0.1
 collst<-c("black", brewer.pal(4, "Dark2"))
 
+
+############################################################
+# "Global" run
+############################################################
+
+##### Try Tilman metapopulation model
 set.seed(171205)
 #clst_meta = c(0.15, 0.3, 0.8, 3)*xfac
 clst_meta = c(0.15, 0.35)*xfac
@@ -125,14 +133,38 @@ E_psf<-getEpsf$Eout
 invar_psf<-estimate_invar(out_psf_long, E=E_psf, burnin=100, doplot=FALSE)
 
 
+##### Try rps model
+set.seed(171209)
+
+intmat_rps<-rbind(c(1,0,0,1),
+                  c(1,1,0,0),
+                  c(0,1,1,0),
+                  c(0,0,1,1))
+
+clst_rps<-rep(0.4, 4)
+mlst_rps<-rep(0.1, length(clst_rps))
+tmp<-abs(getceq(clst_rps, mlst_rps))
+population_rps<-populate(gridout, nlst = round(rep(unique(tmp[tmp>0])/length(clst_rps), length(clst_rps))*prod(gridout$lng)),
+                          clst = clst_rps, radlst = Inf, mlst = mlst_rps)
+out_rps<-run_metapopulation(tmax=200, gridout = gridout, population = population_rps, talktime = 0, runtype = "rps", compmat = intmat_rps)
+
+eig_rps1<-estimate_eqreturn(out_rps, simtime=100, runtype="rps", replace_perturb = 1, talktime=0, prtb=ptb, doplot = FALSE)
+eig_rps2<-estimate_eqreturn(out_rps, simtime=100, runtype="rps", replace_perturb = 0, talktime=0, prtb=ptb, doplot = FALSE)
+
+r0_rps<-estimate_rarereturn(out = out_rps, simtime=100, burnin=100, runtype="rps", doplot = FALSE)
+
+set.seed(180104)
+out_rps_long<-run_metapopulation(tmax=1000, gridout = gridout, population = population_rps, talktime = 0, runtype = "rps", compmat = intmat_rps)
+getErps<-getE(out_rps_long, Elst = 2:10)
+E_rps<-getErps$Eout
+
+invar_rps<-estimate_invar(out_rps_long, E=E_rps, burnin=0, doplot=FALSE)
+
 
 
 
 #Plot perturbation, Levins
 pdf("figures/memo_171206/levins_perturbation.pdf", width=4, height=6, colormodel = "cmyk")
-
-ofs1<-c(0.075, -0.04)
-ofs2<-c(0.075, -0.09)
 
 par(mar=c(2,2,2,2), oma=c(2,2,0,0))
 m<-t(matrix(nrow=2, c(rep(1, 4), rep(2,2), rep(3,2))))
@@ -333,6 +365,38 @@ put.fig.letter("c.", "topleft", offset=ofs2, cex=1.6)
 
 dev.off()
 
+#Plot perturbation, rps
+pdf("figures/memo_171206/rps_perturbation.pdf", width=4, height=6, colormodel = "cmyk")
+
+par(mar=c(2,2,2,2), oma=c(2,2,0,0))
+m<-t(matrix(nrow=2, c(rep(1, 4), rep(2,2), rep(3,2))))
+layout(m)
+
+tmp<-eig_rps2$out_lst[[1]]$output
+tmp[,1]<-tmp[,1]+max(out_rps$output[,1])
+pmat_rps<-rbind(out_rps$output, tmp)
+
+matplot(pmat_rps[,1], pmat_rps[,-1]/out_rps$plotdata$ngrid, type="l", lty=1, col=collst[-1], lwd=1.5, xlab="time", ylab="relative abundance", xaxs="i", ylim=c(0.1, 0.33))
+abline(v=max(out_rps$output[,1]), lty=2)
+
+mtext("time", 1, line=2.3, cex=1.1)
+mtext("relative abundance", 2, line=2.3, cex=1.1)
+put.fig.letter("a.", "topleft", offset=ofs1, cex=1.6)
+arrows(max(out_rps$output[,1]), 0.30+0.03,
+       max(out_rps$output[,1]), 0.30,
+       length = 0.08, lwd=2, lend=4)
+
+plot(1:nrow(eig_rps2$out_lst[[1]]$output), abs(eig_rps2$out_lst[[1]]$output[,2]-eig_rps2$out_lst0$output[,2])/out_rps$plotdata$ngrid, type="l", ylab="estimated distance", xlab="time", col=collst[2], lwd=2, xaxs="i", ylim=c(0, 0.1), cex.lab=1.5); abline(h=0, lty=3)
+mtext("time since disturbance", 1, line=2.3, cex=1.1)
+mtext("estimated distance", 2, line=2.3, cex=1.1)
+put.fig.letter("b.", "topleft", offset=ofs2, cex=1.6)
+
+plot(1:nrow(eig_rps2$eigenlst), eig_rps2$eigenlst[,1]*(1:nrow(eig_rps2$eigenlst)), type="l", lwd=2, col=collst[2], xlab="time span", ylab=expression(italic(paste(lambda, "t"))), xaxs="i", ylim=c(-5, 1), cex.lab=1.5, xlim=c(1, 80)); abline(h=0, lty=3)
+mtext("time span", 1, line=2.3, cex=1.1)
+mtext(expression(italic(paste(lambda, "t"))), 2, line=2.3, cex=1.1)
+put.fig.letter("c.", "topleft", offset=ofs2, cex=1.6)
+
+dev.off()
 
 
 
@@ -498,6 +562,42 @@ put.fig.letter("b.", "topleft", offset=ofs2, cex=1.6)
 
 dev.off()
 
+#Plot rare return, rps
+pdf("figures/memo_171206/rps_returnrare.pdf", width=4, height=4.5, colormodel = "cmyk")
+
+par(mar=c(2,2,2,2), oma=c(2,2,0,0))
+m<-t(matrix(nrow=2, c(rep(1, 4), rep(2,2))))
+layout(m)
+
+tmp<-r0_rps$out0_lst[[1]]$output
+tmp[,1]<-tmp[,1]+200
+pmat_rps<-rbind(out_rps$output, tmp)
+tmp<-r0_rps$out_lst[[1]]$output
+tmp[,1]<-tmp[,1]+300
+pmat_rps<-rbind(pmat_rps, tmp)
+
+matplot(pmat_rps[,1], pmat_rps[,-1]/out_rps$plotdata$ngrid, type="l", lty=1, col=collst[-1], lwd=1.5, xlab="time", ylab="relative abundance", xaxs="i")
+abline(v=c(200, 300), lty=2)
+abline(h=0, lty=3)
+mtext("time", 1, line=2.3, cex=1.1)
+mtext("relative abundance", 2, line=2.3, cex=1.1)
+arrows(200, 0.3+0.06,
+       200, 0.3,
+       length = 0.08, lwd=2, lend=4)
+arrows(300, 0,
+       300, 0.06,
+       length = 0.08, lwd=2, lend=4)
+put.fig.letter("a.", "topleft", offset=ofs1, cex=1.6)
+
+plot(1:nrow(r0_rps$grwrare), r0_rps$grwrare[,1]*(1:nrow(r0_rps$grwrare)), col=collst[2], type="l", lty=1, lwd=1.5, xlab="time span", ylab=expression(italic(paste(r[0], "t"))), xaxs="i", xlim=c(0, 65))
+mtext("time span", 1, line=2.3, cex=1.1)
+mtext(expression(italic(paste(r[0], "t"))), 2, line=2.3, cex=1.1)
+put.fig.letter("b.", "topleft", offset=ofs2, cex=1.6)
+abline(h=0, lty=3)
+
+dev.off()
+
+
 
 
 
@@ -507,8 +607,6 @@ dev.off()
 
 #Plot invar, Levins
 pdf("figures/memo_171206/levins_invar.pdf", width=5, height=4, colormodel = "cmyk")
-
-ofs3<-c(0.075, -0.090)
 
 par(mar=c(2,2,2,2), oma=c(2,2,0,0))
 m<-t(matrix(nrow=2, c(rep(1, 2), rep(2,2))))
@@ -654,6 +752,43 @@ put.fig.letter("b.", "topleft", offset=ofs3, cex=1.6)
 dev.off()
 
 
+#Plot invar, rps
+pdf("figures/memo_171206/rps_invar.pdf", width=5, height=4, colormodel = "cmyk")
+
+par(mar=c(2,2,2,2), oma=c(2,2,0,0))
+m<-t(matrix(nrow=2, c(rep(1, 2), rep(2,2))))
+layout(m)
+
+matplot(out_rps_long$output[,1], out_rps_long$output[,3]/out_rps_long$plotdata$ngrid, type="l", lty=1, col=collst[3], lwd=1.5, xlab="time", ylab="relative abundance", xaxs="i", ylim=c(0.03, 0.4))
+mtext("time", 1, line=2.3, cex=1.1)
+mtext("relative abundance", 2, line=2.3, cex=1.1)
+put.fig.letter("a.", "topleft", offset=ofs3, cex=1.6)
+abline(v=100, lty=3)
+
+tmp<-out_rps_long$output[,3]/out_rps_long$plotdata$ngrid
+tmptm<-out_rps_long$output[,1]
+
+y11<-min(tmp[tmptm>200 & tmptm<300]); y12<-max(tmp[tmptm>200 & tmptm<300])
+y21<-min(tmp[tmptm>700 & tmptm<800]); y22<-max(tmp[tmptm>700 & tmptm<800])
+segments(c(200, 200, 300, 300), c(y11, y12, y12, y11), c(200, 300, 300, 200), c(y12, y12, y11, y11), lwd=2)
+segments(c(200, 200, 300, 300)+500, c(y22, y21, y21, y22), c(200, 300, 300, 200)+500, c(y21, y21, y22, y22), lwd=2)
+
+arrows(500, (y11+y21)/2, 690, y21, lwd=2, length = 0.1, lend=2)
+arrows(500, (y11+y21)/2, 310, y11, lwd=2, length = 0.1, lend=2)
+
+text(500, (y11+y21)/2, pos=1, labels = "time lag")
+
+text(250, y12, pos=3, labels = "training set")
+text(750, y21, pos=1, labels = "testing set")
+
+
+plot(invar_rps$pdlag_list[[1]]$laglst, invar_rps$pdlag_list[[1]]$CVest[,2], xlab="time lag", ylab=expression(italic(paste("CV"))), type="l", lty=1, lwd=1.5, col=collst[3], xaxs="i", ylim=c(0, 0.4)); abline(h=0, lty=3)
+mtext("time lag", 1, line=2.3, cex=1.1)
+mtext(expression(italic("CV")), 2, line=2.3, cex=1.1)
+put.fig.letter("b.", "topleft", offset=ofs3, cex=1.6)
+
+dev.off()
+
 
 
 
@@ -668,11 +803,12 @@ dev.off()
 ############################################################
 # Spatial subset
 ############################################################
-##### Try Tilman metapopulation model
 grid_sub<-grid_subset(gridout, size = 0.05)
 set.seed(171205)
 ptb<-0.2
 
+
+##### Try Tilman metapopulation model
 out_meta<-run_metapopulation(tmax=200, gridout = gridout, population = population_meta, talktime = 0, sites_sub = grid_sub$sites, runtype = "metapopulation")
 
 pdf("figures/memo_171206/levis_spatialsubset_map.pdf", width=5, height=5, colormodel = "cmyk")
@@ -755,6 +891,24 @@ getEpsf<-getE(out_psf_long, Elst = 2:10, sites_sub = grid_sub$sites)
 E_psf<-getEpsf$Eout
 
 invar_psf<-estimate_invar(out_psf_long, E=E_psf, burnin=100, doplot=FALSE, sites_sub = grid_sub$sites)
+
+##### Try rps model
+set.seed(180108)
+ptb<-0.2
+
+out_rps<-run_metapopulation(tmax=200, gridout = gridout, population = population_rps, talktime = 0, runtype = "rps", sites_sub = grid_sub$sites, compmat = intmat_rps)
+
+eig_rps1<-estimate_eqreturn(out = out_rps, simtime=100, runtype="rps", replace_perturb = 1, talktime=0, prtb=ptb, doplot = FALSE, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites)
+eig_rps2<-estimate_eqreturn(out = out_rps, simtime=100, runtype="rps", replace_perturb = 0, talktime=0, prtb=ptb, doplot = FALSE, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites)
+
+r0_rps<-estimate_rarereturn(out = out_rps, simtime=100, burnin=100, runtype="rps", doplot = FALSE, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites)
+
+out_rps_long<-run_metapopulation(tmax=1000, gridout = gridout, population = population_rps, talktime = 0, runtype = "rps", sites_sub = grid_sub$sites, compmat = intmat_rps)
+
+getErps<-getE(out_rps_long, Elst = 2:10, sites_sub = grid_sub$sites)
+E_rps<-getErps$Eout
+
+invar_rps<-estimate_invar(out_rps_long, E=E_rps, burnin=100, doplot=FALSE, sites_sub = grid_sub$sites)
 
 
 
@@ -913,7 +1067,37 @@ put.fig.letter("c.", "topleft", offset=ofs2, cex=1.6)
 
 dev.off()
 
+#Plot perturbation, rps
+pdf("figures/memo_171206/rps_perturbation_spsub.pdf", width=4, height=6, colormodel = "cmyk")
 
+par(mar=c(2,2,2,2), oma=c(2,2,0,0))
+m<-t(matrix(nrow=2, c(rep(1, 4), rep(2,2), rep(3,2))))
+layout(m)
+
+tmp<-eig_rps1$out_lst[[1]]$output_spatial
+tmp[,1]<-tmp[,1]+200
+pmat_rps<-rbind(out_rps$output_spatial, tmp)
+
+matplot(pmat_rps[,1], pmat_rps[,-1]/length(grid_sub$sites), type="l", lty=1, col=collst[-1], lwd=1.5, xlab="time", ylab="relative abundance", xaxs="i")
+abline(v=200, lty=2)
+mtext("time", 1, line=2.3, cex=1.1)
+mtext("relative abundance", 2, line=2.3, cex=1.1)
+put.fig.letter("a.", "topleft", offset=ofs1, cex=1.6)
+arrows(200, 0.13+0.03,
+       200, 0.13,
+       length = 0.08, lwd=2, lend=4)
+
+plot(1:nrow(eig_rps2$out_lst[[1]]$output_spatial), abs(eig_rps2$out_lst[[1]]$output_spatial[,2]-eig_rps2$out_lst0$output_spatial[,2])/length(grid_sub$sites), type="l", ylab="estimated distance", xlab="time", col=collst[2], lwd=2, xaxs="i", ylim=c(0, 0.10), cex.lab=1.5); abline(h=0, lty=3)
+mtext("time since disturbance", 1, line=2.3, cex=1.1)
+mtext("estimated distance", 2, line=2.3, cex=1.1)
+put.fig.letter("b.", "topleft", offset=ofs2, cex=1.6)
+
+plot((1:nrow(eig_rps2$eigenlst))[is.finite(eig_rps2$eigenlst[,1])], (eig_rps2$eigenlst[,1]*(1:nrow(eig_rps2$eigenlst)))[is.finite(eig_rps2$eigenlst[,1])], type="l", lwd=2, col=collst[2], xlab="time span", ylab=expression(italic(paste(lambda, "t"))), xaxs="i", ylim=c(-2, 4), cex.lab=1.5); abline(h=0, lty=3)
+mtext("time span", 1, line=2.3, cex=1.1)
+mtext(expression(italic(paste(lambda, "t"))), 2, line=2.3, cex=1.1)
+put.fig.letter("c.", "topleft", offset=ofs2, cex=1.6)
+
+dev.off()
 
 
 
@@ -1074,7 +1258,39 @@ put.fig.letter("b.", "topleft", offset=ofs2, cex=1.6)
 
 dev.off()
 
+#Plot rare return, rps
+pdf("figures/memo_171206/rps_returnrare_spsub.pdf", width=4, height=4.5, colormodel = "cmyk")
 
+par(mar=c(2,2,2,2), oma=c(2,2,0,0))
+m<-t(matrix(nrow=2, c(rep(1, 4), rep(2,2))))
+layout(m)
+
+tmp<-r0_rps$out0_lst[[1]]$output_spatial
+tmp[,1]<-tmp[,1]+200
+pmat_rps<-rbind(out_rps$output_spatial, tmp)
+tmp<-r0_rps$out_lst[[1]]$output_spatial
+tmp[,1]<-tmp[,1]+300
+pmat_rps<-rbind(pmat_rps, tmp)
+
+matplot(pmat_rps[,1], pmat_rps[,-1]/length(grid_sub$sites), type="l", lty=1, col=collst[-1], lwd=1.5, xlab="time", ylab="relative abundance", xaxs="i")
+abline(v=c(200, 300), lty=2)
+abline(h=0, lty=3)
+mtext("time", 1, line=2.3, cex=1.1)
+mtext("relative abundance", 2, line=2.3, cex=1.1)
+arrows(200, 0.1+0.06,
+       200, 0.1,
+       length = 0.08, lwd=2, lend=4)
+arrows(300, 0,
+       300, 0.06,
+       length = 0.08, lwd=2, lend=4)
+put.fig.letter("a.", "topleft", offset=ofs1, cex=1.6)
+
+plot(1:nrow(r0_rps$grwrare), r0_rps$grwrare[,1]*(1:nrow(r0_rps$grwrare)), col=collst[2], type="l", lty=1, lwd=1.5, xlab="time span", ylab=expression(italic(paste(r[0], "t"))), xaxs="i")
+mtext("time span", 1, line=2.3, cex=1.1)
+mtext(expression(italic(paste(r[0], "t"))), 2, line=2.3, cex=1.1)
+put.fig.letter("b.", "topleft", offset=ofs2, cex=1.6)
+
+dev.off()
 
 
 
@@ -1220,4 +1436,44 @@ mtext(expression(italic("CV")), 2, line=2.3, cex=1.1)
 put.fig.letter("b.", "topleft", offset=ofs3, cex=1.6)
 
 dev.off()
+
+#Plot invar, rps
+pdf("figures/memo_171206/rps_invar_spsub.pdf", width=5, height=4, colormodel = "cmyk")
+
+par(mar=c(2,2,2,2), oma=c(2,2,0,0))
+m<-t(matrix(nrow=2, c(rep(1, 2), rep(2,2))))
+layout(m)
+
+matplot(out_rps_long$output_spatial[,1], out_rps_long$output_spatial[,2]/length(grid_sub$sites), type="l", lty=1, col=collst[-1], lwd=1.5, xlab="time", ylab="relative abundance", xaxs="i", ylim=c(0.05, 0.4))
+mtext("time", 1, line=2.3, cex=1.1)
+mtext("relative abundance", 2, line=2.3, cex=1.1)
+put.fig.letter("a.", "topleft", offset=ofs3, cex=1.6)
+
+tmp<-out_rps_long$output_spatial[,2]/length(out_rps_long$sites_sub)
+tmptm<-out_rps_long$output_spatial[,1]
+
+y11<-min(tmp[tmptm>200 & tmptm<300]); y12<-max(tmp[tmptm>200 & tmptm<300])
+y21<-min(tmp[tmptm>700 & tmptm<800]); y22<-max(tmp[tmptm>700 & tmptm<800])
+segments(c(200, 200, 300, 300), c(y11, y12, y12, y11), c(200, 300, 300, 200), c(y12, y12, y11, y11), lwd=2)
+segments(c(200, 200, 300, 300)+500, c(y22, y21, y21, y22), c(200, 300, 300, 200)+500, c(y21, y21, y22, y22), lwd=2)
+
+arrows(500, (y11+y21)/2, 690, y21, lwd=2, length = 0.1, lend=2)
+arrows(500, (y11+y21)/2, 310, y11, lwd=2, length = 0.1, lend=2)
+
+text(500, (y11+y21)/2, pos=1, labels = "time lag")
+
+text(250, y12, pos=3, labels = "training set")
+text(750, y21, pos=1, labels = "testing set")
+
+
+plot(invar_rps$pdlag_list[[1]]$laglst, invar_rps$pdlag_list[[1]]$CVest[,1], xlab="time lag", ylab=expression(italic(paste("CV"))), type="l", lty=1, lwd=1.5, col=collst[2], xaxs="i", ylim=c(0, 0.27)); abline(h=0, lty=3)
+mtext("time lag", 1, line=2.3, cex=1.1)
+mtext(expression(italic("CV")), 2, line=2.3, cex=1.1)
+put.fig.letter("b.", "topleft", offset=ofs3, cex=1.6)
+
+dev.off()
+
+
+
+
 
