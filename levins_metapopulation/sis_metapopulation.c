@@ -81,7 +81,7 @@ void sis_metapopulation (int *psp1dis, int *psp2dis, int *psp1fb, int *psp2fb, i
 	if( ( sp2fb < 0 || sp2fb > 100) ) {trigger=1;  				fprintf(stderr, "ERROR: sp2fb must be >= -100 and <=100");}
 	if( ( sp1m < 0 || sp1m > 100) ) {trigger=1;  				fprintf(stderr, "ERROR: sp1m must be >= 0 and <=100");}
 	if( ( sp2m < 0 || sp2m > 100) ) {trigger=1; 				fprintf(stderr, "ERROR: sp2m must be >= 0 and <=100");}
-	if( ( initabund < 0 || initabund > 100) ) {trigger=1;  	fprintf(stderr, "ERROR: initabund must be >=0 and <=100");}
+	if( ( initabund < 0 || initabund > 100) ) {trigger=1;  		fprintf(stderr, "ERROR: initabund must be >=0 and <=100");}
 	if( ( seed < 0.001 || seed > 1000) ) {trigger=1;  			fprintf(stderr, "ERROR: seed must be between 0.001 and 1000");}
 	if( !( edge == 0 || edge == 1) ) {trigger=1;  				fprintf(stderr, "ERROR: edge must be 0 or 1]");}
 	if( ( dim <= 0 || dim > 1000) ) {trigger=1;  				fprintf(stderr, "ERROR: dim must be > 0 and <=1000]");}
