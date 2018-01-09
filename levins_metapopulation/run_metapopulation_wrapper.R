@@ -102,7 +102,7 @@ populate<-function(gridout, nlst=0.1, clst=c(3,20), mlst=rep(0.1, length(clst)),
   }
   
   #create a vector with species ID's
-  spid<-factor(rep(1:length(nlst), nlst)) #species identities
+  spid<-factor(rep(1:length(nlst), nlst), levels = 1:nsp) #species identities
   deathdate<-NULL #scheduled date of death
   
   #select random starting species locations
@@ -145,6 +145,13 @@ loadrun<-function(runtype) {
       dyn.unload("sis_metapopulation.so")
       dyn.load("sis_metapopulation.so")
     }
+  } else if(runtype%in%c("rps")) {
+    if(!is.loaded("run_rps_metapopulation_spatialsub")) {
+      dyn.load("run_rps_metapopulation_spatialsub.so")
+    } else {
+      dyn.unload("run_rps_metapopulation_spatialsub.so")
+      dyn.load("run_rps_metapopulation_spatialsub.so")
+    }
   } else {
     trigger<-"error: run type must be 'disturbance', 'metapopulation', 'neutral', or 'psf'"
   }
@@ -159,6 +166,8 @@ unloadrun<-function(runtype, nprt_cyc) {
     dyn.unload("run_neutral_metapopulation_spatialsub.so")
   } else if(runtype%in%c("psf")) {
     dyn.unload("sis_metapopulation.so")
+  } else if(runtype%in%c("rps")) {
+    dyn.unload("run_rps_metapopulation_spatialsub.so")
   }
 }
 
@@ -168,13 +177,15 @@ getrunname<-function(runtype) {
     runname<-"run_metapopulation_spatialsub"
   } else if(runtype%in%c("neutral")) {
     runname<-"run_neutral_metapopulation_spatialsub"
-  } else {
+  } else if(runtype%in%c("psf")) {
     runname<-"sis_metapopulation"
+  } else if(runtype%in%c("rps")) {
+    runname<-"run_rps_metapopulation_spatialsub"
   }
   return(runname)
 }
 
-run_metapopulation<-function(tmax, nsteps=tmax, gridout, population, talktime=1, runtype="metapopulation", sites_sub=0, prt=0, prtfrq=0) {
+run_metapopulation<-function(tmax, nsteps=tmax, gridout, population, talktime=1, runtype="metapopulation", sites_sub=0, prt=0, prtfrq=0, compmat=0) {
   #tmax is maximum time for simulation
   #nsteps is number of time steps for which to save output
   #gridout is a grid object, population is a population object
@@ -212,6 +223,10 @@ run_metapopulation<-function(tmax, nsteps=tmax, gridout, population, talktime=1,
   speciesid<-rep(nsp, gridsize)
   speciesid[population$pos_sp]<-as.numeric(population$spid)-1
   
+  #make fake interaction matrix to prvent segfault
+  if((sum(abs(compmat))==0 || length(compmat)!=(nsp^2)) && runtype=="rps") {
+    return("error!: compmat must be an nxn matrix")
+  }
   
   if(runtype!="psf") {
     #psf model is iterated, not event-based - arguments below are not needed
@@ -267,90 +282,88 @@ run_metapopulation<-function(tmax, nsteps=tmax, gridout, population, talktime=1,
       output<-numeric((nsteps_sub+1)*(nsp+1))
     }
     
-    #note, for now, conditional below includes all potential run types
-    #rock/paper/scissors etc. would fall in an "else" loop
-    if(runtype%in%c("metapopulation", "neutral", "disturbance", "psf")) {
+    #get lengths, outputs, and abundances for subsets - note, this may be of length zero
+    pnsites_sub<-length(sites_sub[sites_sub!=0])
+    output_sub<-output
+    
+    if(sum(sites_sub)>0) {
+      c_sites_sub<-sites_sub-1
+      abundances_sub<-unname(table(speciesid[sites_sub])[1:nsp])
+    } else {
+      c_sites_sub<-0
+      abundances_sub<-rep(0, nsp)
+    }
+    
+    if(runtype=="disturbance") {
+      #matrices for storing total output
+      output_tot<-NULL
+      output_spatial_tot<-NULL
       
-      #get lengths, outputs, and abundances for subsets - note, this may be of length zero
-      pnsites_sub<-length(sites_sub[sites_sub!=0])
-      output_sub<-output
+      #list for storing total output
+      cout_lst<-NULL
       
-      if(sum(sites_sub)>0) {
-        c_sites_sub<-sites_sub-1
-        abundances_sub<-unname(table(speciesid[sites_sub])[1:nsp])
+      #complete first run before first disturbance event
+      #(see c script for description of variables)
+      cout<-.C(runname,
+               ptmax= as.double(tmax_sub), pgridsize=as.integer(gridsize), pnsp=as.integer(nsp), xylim=as.integer(xylim), destroyed=as.integer(destroyed), spdestroy=as.integer(rep(0, nsp)), #grid
+               c_sptraits=as.double(c_sptraits), m_sptraits=as.double(m_sptraits), abundances=as.integer(abundances), colsites=as.integer(colsites), pncolsites=as.integer(ncolsites), #traits
+               eventtimes_c=as.double(eventtimes_c), eventtimes_m=as.double(eventtimes_m), #events
+               speciesid=as.integer(speciesid), #species
+               output=as.double(output), pnsteps=as.integer(nsteps_sub),
+               ptalktime=as.integer(talktime),
+               abundances_sub=as.integer(abundances_sub), sites_sub=as.integer(c_sites_sub), pnsites_sub=as.integer(pnsites_sub), output_sub=as.double(output_sub))
+      cout_lst[[1]]<-cout
+      
+      #conduct subsequent disturbances
+      if(nprt_cyc>1) {
+        #data for rerun script
+        nsp<-length(population$clst)
+        ngrid<-prod(gridout$lng)
+        ceq<-numeric(nsp)
+        plotdata<-list(ceq=ceq, ngrid=ngrid)
+        
+        for(i in 1:(nprt_cyc-1)) {
+          #extract output from previous run
+          out<-matrix(cout$output, nrow=nsteps_sub+1)
+          out<-out[out[,1]!=0 | (1:nrow(out))==1,]
+          
+          #extract subset output from previous run
+          out_spatial<-matrix(cout$output_sub, nrow=nsteps_sub+1)
+          out_spatial<-out_spatial[out_spatial[,1]!=0 | (1:nrow(out_spatial))==1,]
+          
+          #create temporary list for re-run
+          out_tmp<-list(output=out, full=cout, plotdata=plotdata, output_spatial=0, sites_sub=sites_sub)
+          
+          #add total accumulated time to time vector
+          out[,1]<-out[,1]+tmax_sub*(i-1)
+          out_spatial[,1]<-out_spatial[,1]+tmax_sub*(i-1)
+          #store output into full lists
+          output_tot<-rbind(output_tot, out)
+          output_spatial_tot<-rbind(output_spatial_tot, out_spatial)
+          
+          #rerun to next disturbance event
+          #(see script for description of variables)
+          out_rerun<-rerunrun_metapopulation(out_tmp, tmax_sub, nsteps=tmax_sub, talktime=0, runtype="metapopulation", perturb=prt, sites_sub = sites_sub)
+          cout<-out_rerun$full
+          
+          cout_lst[[1+i]]<-cout
+        }
+        #save outputs to regular names
+        out<-output_tot
+        out_spatial<-output_spatial_tot
+        cout<-cout_lst
+        
       } else {
-        c_sites_sub<-0
-        abundances_sub<-rep(0, nsp)
+        #if only one disturbance cycle occurrs, then extract information as usual
+        out_spatial<-matrix(cout$output_sub, nrow=nsteps+1)
+        out_spatial<-out_spatial[out_spatial[,1]!=0 | (1:nrow(out_spatial))==1,]
       }
       
-      if(runtype=="disturbance") {
-        #matrices for storing total output
-        output_tot<-NULL
-        output_spatial_tot<-NULL
-        
-        #list for storing total output
-        cout_lst<-NULL
-        
-        #complete first run before first disturbance event
-        #(see c script for description of variables)
-        cout<-.C(runname,
-                 ptmax= as.double(tmax_sub), pgridsize=as.integer(gridsize), pnsp=as.integer(nsp), xylim=as.integer(xylim), destroyed=as.integer(destroyed), spdestroy=as.integer(rep(0, nsp)), #grid
-                 c_sptraits=as.double(c_sptraits), m_sptraits=as.double(m_sptraits), abundances=as.integer(abundances), colsites=as.integer(colsites), pncolsites=as.integer(ncolsites), #traits
-                 eventtimes_c=as.double(eventtimes_c), eventtimes_m=as.double(eventtimes_m), #events
-                 speciesid=as.integer(speciesid), #species
-                 output=as.double(output), pnsteps=as.integer(nsteps_sub),
-                 ptalktime=as.integer(talktime),
-                 abundances_sub=as.integer(abundances_sub), sites_sub=as.integer(c_sites_sub), pnsites_sub=as.integer(pnsites_sub), output_sub=as.double(output_sub))
-        cout_lst[[1]]<-cout
-        
-        #conduct subsequent disturbances
-        if(nprt_cyc>1) {
-          #data for rerun script
-          nsp<-length(population$clst)
-          ngrid<-prod(gridout$lng)
-          ceq<-numeric(nsp)
-          plotdata<-list(ceq=ceq, ngrid=ngrid)
-          
-          for(i in 1:(nprt_cyc-1)) {
-            #extract output from previous run
-            out<-matrix(cout$output, nrow=nsteps_sub+1)
-            out<-out[out[,1]!=0 | (1:nrow(out))==1,]
-            
-            #extract subset output from previous run
-            out_spatial<-matrix(cout$output_sub, nrow=nsteps_sub+1)
-            out_spatial<-out_spatial[out_spatial[,1]!=0 | (1:nrow(out_spatial))==1,]
-            
-            #create temporary list for re-run
-            out_tmp<-list(output=out, full=cout, plotdata=plotdata, output_spatial=0, sites_sub=sites_sub)
-            
-            #add total accumulated time to time vector
-            out[,1]<-out[,1]+tmax_sub*(i-1)
-            out_spatial[,1]<-out_spatial[,1]+tmax_sub*(i-1)
-            #store output into full lists
-            output_tot<-rbind(output_tot, out)
-            output_spatial_tot<-rbind(output_spatial_tot, out_spatial)
-            
-            #rerun to next disturbance event
-            #(see script for description of variables)
-            out_rerun<-rerunrun_metapopulation(out_tmp, tmax_sub, nsteps=tmax_sub, talktime=0, runtype="metapopulation", perturb=prt, sites_sub = sites_sub)
-            cout<-out_rerun$full
-            
-            cout_lst[[1+i]]<-cout
-          }
-          #save outputs to regular names
-          out<-output_tot
-          out_spatial<-output_spatial_tot
-          cout<-cout_lst
-          
-        } else {
-          #if only one disturbance cycle occurrs, then extract information as usual
-          out_spatial<-matrix(cout$output_sub, nrow=nsteps+1)
-          out_spatial<-out_spatial[out_spatial[,1]!=0 | (1:nrow(out_spatial))==1,]
-        }
-        
-      } else if(runtype%in%c("metapopulation", "neutral")) {
-        #run c script
-        #(see c script for description of variables)
+    } else if(runtype%in%c("metapopulation", "neutral", "rps")) {
+      #run c script
+      #(see c script for description of variables)
+      
+      if(runtype!="rps") {
         cout<-.C(runname,
                  ptmax= as.double(tmax), pgridsize=as.integer(gridsize), pnsp=as.integer(nsp), xylim=as.integer(xylim), destroyed=as.integer(destroyed), spdestroy=as.integer(rep(0, nsp)), #grid
                  c_sptraits=as.double(c_sptraits), m_sptraits=as.double(m_sptraits), abundances=as.integer(abundances), colsites=as.integer(colsites), pncolsites=as.integer(ncolsites), #traits
@@ -359,19 +372,29 @@ run_metapopulation<-function(tmax, nsteps=tmax, gridout, population, talktime=1,
                  output=as.double(output), pnsteps=as.integer(nsteps),
                  ptalktime=as.integer(talktime),
                  abundances_sub=as.integer(abundances_sub), sites_sub=as.integer(c_sites_sub), pnsites_sub=as.integer(pnsites_sub), output_sub=as.double(output_sub))
-        
-        #save output
-        out_spatial<-matrix(cout$output_sub, nrow=nsteps+1)
-        out_spatial<-out_spatial[out_spatial[,1]!=0 | (1:nrow(out_spatial))==1,]
-      } else if(runtype=="psf") {
-        cout<-psfwrapper(population=population, gridout=gridout, sites_sub=sites_sub, abundances=abundances,
-                         gridsize=gridsize, c_sptraits=c_sptraits, tmax=tmax, speciesid=speciesid, xylim = xylim, nsteps = nsteps, destroyed=destroyed, tmpspdestroy=rep(0, nsp))
-        
-        #save output
-        out_spatial<-matrix(cout$output_sub, nrow=nsteps+1)
-        out_spatial<-out_spatial[out_spatial[,1]!=0 | (1:nrow(out_spatial))==1,]
-        out_spatial<-out_spatial[1:tmax,]
+      } else {
+        cout<-.C(runname,
+                 ptmax= as.double(tmax), pgridsize=as.integer(gridsize), pnsp=as.integer(nsp), xylim=as.integer(xylim), destroyed=as.integer(destroyed), spdestroy=as.integer(rep(0, nsp)), #grid
+                 c_sptraits=as.double(c_sptraits), m_sptraits=as.double(m_sptraits), abundances=as.integer(abundances), colsites=as.integer(colsites), pncolsites=as.integer(ncolsites), #traits
+                 eventtimes_c=as.double(eventtimes_c), eventtimes_m=as.double(eventtimes_m), #events
+                 speciesid=as.integer(speciesid), #species
+                 output=as.double(output), pnsteps=as.integer(nsteps),
+                 ptalktime=as.integer(talktime),
+                 abundances_sub=as.integer(abundances_sub), sites_sub=as.integer(c_sites_sub), pnsites_sub=as.integer(pnsites_sub), output_sub=as.double(output_sub),
+                 compmat=as.integer(compmat))
       }
+      
+      #save output
+      out_spatial<-matrix(cout$output_sub, nrow=nsteps+1)
+      out_spatial<-out_spatial[out_spatial[,1]!=0 | (1:nrow(out_spatial))==1,]
+    } else if(runtype=="psf") {
+      cout<-psfwrapper(population=population, gridout=gridout, sites_sub=sites_sub, abundances=abundances,
+                       gridsize=gridsize, c_sptraits=c_sptraits, tmax=tmax, speciesid=speciesid, xylim = xylim, nsteps = nsteps, destroyed=destroyed, tmpspdestroy=rep(0, nsp))
+      
+      #save output
+      out_spatial<-matrix(cout$output_sub, nrow=nsteps+1)
+      out_spatial<-out_spatial[out_spatial[,1]!=0 | (1:nrow(out_spatial))==1,]
+      out_spatial<-out_spatial[1:tmax,]
     }
     
     #unload c code after run this is necesary because of an aparent bug,
@@ -1553,13 +1576,16 @@ runpar<-function(...) {
 
 if(FALSE) {
   #runtype
-  runtype = "psf"
+  #runtype = "psf"
+  runtype = "metapopulation"
   
   #make grid and population
   gridout<-makegrid(xlng = 100, ylng = 100)
-  population<-populate(gridout, nlst = 0.1, clst = c(0.12, 0.8), mlst = rep(0.1, 4), radlst = Inf)
+  population<-populate(gridout, nlst = 0.1, clst = c(0.12, 0.8), mlst = rep(0.1, 2), radlst = Inf)
   
   #run initial simulation
+  #tmax=200; nsteps = 1000; talktime = 0; runtype=runtype
+  #nsteps=tmax; runtype="metapopulation"; sites_sub=0; prt=0; prtfrq=0
   out<-run_metapopulation(tmax=200, nsteps = 1000, gridout, population, talktime = 0, runtype=runtype)
   plot_metapop(out)
   
