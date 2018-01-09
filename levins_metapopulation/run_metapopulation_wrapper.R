@@ -1,14 +1,6 @@
 #!/usr/bin/env Rscript
 #setwd("~/Dropbox/Projects/032_Coexistence_mechanisms/src/levins_metapopulation/")
 
-#TODO:
-#4. Add Stan's PSF model
-#5. Example of rock-paper-scissors
-
-#PERTURB: think about testing ceq as well?
-#look through memo and notes...
-
-
 ########################################
 # Metapopulation simulation functions
 ########################################
@@ -341,6 +333,9 @@ run_metapopulation<-function(tmax, nsteps=tmax, gridout, population, talktime=1,
           output_tot<-rbind(output_tot, out)
           output_spatial_tot<-rbind(output_spatial_tot, out_spatial)
           
+          #add compmat (unused, just needed for error check)
+          out_tmp$compmat<-compmat
+          
           #rerun to next disturbance event
           #(see script for description of variables)
           out_rerun<-rerunrun_metapopulation(out_tmp, tmax_sub, nsteps=tmax_sub, talktime=0, runtype="metapopulation", perturb=prt, sites_sub = sites_sub)
@@ -643,6 +638,9 @@ rerunrun_metapopulation<-function(out, tmax, nsteps=tmax, talktime=1, runtype="m
         #store output into full lists
         out_spatial[,1]<-out_spatial[,1]+tmax_sub*(i-1)
         output_spatial_tot<-rbind(output_spatial_tot, out_spatial)
+        
+        #compmat - not used, but needed for error check
+        out_tmp$compmat<-compmat
         
         #rerun to next disturbance event
         #(see script for description of variables)
