@@ -197,6 +197,30 @@ mtext("time span", 1, line=2.3, cex=1.1)
 mtext(expression(italic(paste(lambda, "t"))), 2, line=2.3, cex=1.1)
 put.fig.letter("c.", "topleft", offset=ofs2, cex=1.6)
 
+
+
+
+#repeat for total
+matplot(pmat_meta[,1], rowSums(pmat_meta[,-1])/out_meta$plotdata$ngrid, type="l", lty=1, col=collst[1], lwd=1.5, xlab="time", ylab="relative abundance", xaxs="i")
+abline(v=200, lty=2)
+ceq<-getceq(clst_meta, mlst_meta)
+abline(h=c(sum(ceq), ceq), lty=3, col=collst, lwd=1.5)
+mtext("time", 1, line=2.3, cex=1.1)
+mtext("relative abundance", 2, line=2.3, cex=1.1)
+put.fig.letter("a.", "topleft", offset=ofs1, cex=1.6)
+arrows(200, sum(ceq)+0.03,
+       200, sum(ceq),
+       length = 0.08, lwd=2, lend=4)
+
+plot(1:nrow(eig_meta2$out_lst[[1]]$output), abs(rowSums(eig_meta2$out_lst[[1]]$output[,-1])-rowSums(eig_meta2$out_lst0$output[,-1]))/out_meta$plotdata$ngrid, type="l", ylab="estimated distance", xlab="time", col=collst[1], lwd=2, xaxs="i", ylim=c(0, 0.035), cex.lab=1.5); abline(h=0, lty=3)
+mtext("time since disturbance", 1, line=2.3, cex=1.1)
+mtext("estimated distance", 2, line=2.3, cex=1.1)
+put.fig.letter("b.", "topleft", offset=ofs2, cex=1.6)
+
+plot(1:nrow(eig_meta2$eigenlst_tot), eig_meta2$eigenlst_tot[,1]*(1:nrow(eig_meta2$eigenlst_tot)), type="l", lwd=2, col=collst[1], xlab="time span", ylab=expression(italic(paste(lambda, "t"))), xaxs="i", ylim=c(-6, 0), cex.lab=1.5); abline(h=0, lty=3)
+mtext("time span", 1, line=2.3, cex=1.1)
+mtext(expression(italic(paste(lambda, "t"))), 2, line=2.3, cex=1.1)
+put.fig.letter("c.", "topleft", offset=ofs2, cex=1.6)
 dev.off()
 
 
@@ -241,7 +265,37 @@ put.fig.letter("c.", "topleft", offset=ofs2, cex=1.6)
 mtext("time span", 1, line=2.3, cex=1.1)
 mtext(expression(italic(paste(lambda, "t"))), 2, line=2.3, cex=1.1)
 
+
+
+
+#repeat for total
+matplot(pmat_neut1[,1], rowSums(pmat_neut1[,-1])/out_neut$plotdata$ngrid, type="l", lty=1, col=collst[1], lwd=1.5, xlab="time", ylab="relative abundance", xaxs="i")
+abline(v=200, lty=2)
+ceq<-getceq(clst_neut, mlst_neut)
+abline(h=ceq, lty=2)
+put.fig.letter("a.", "topleft", offset=ofs1, cex=1.6)
+mtext("time", 1, line=2.3, cex=1.1)
+mtext("relative abundance", 2, line=2.3, cex=1.1)
+arrows(200, 0.8+0.02,
+       200, 0.8,
+       length = 0.08, lwd=2, lend=4)
+
+
+plot(1:nrow(eig_neut1$out_lst[[1]]$output), abs(rowSums(eig_neut1$out_lst[[1]]$output[,-1])-rowSums(eig_neut1$out_lst0$output[,-1]))/out_neut$plotdata$ngrid, type="l", ylab="estimated distance", xlab="time", col=collst[1], lwd=2, xaxs="i", ylim=c(0, 0.02)); abline(h=0, lty=3)
+put.fig.letter("b.", "topleft", offset=ofs2, cex=1.6)
+mtext("time since disturbance", 1, line=2.3, cex=1.1)
+mtext("estimated distance", 2, line=2.3, cex=1.1)
+
+plot(1:nrow(eig_neut1$eigenlst), eig_neut1$eigenlst_tot[,1]*(1:nrow(eig_neut1$eigenlst_tot)), type="l", lwd=2, col=collst[1], xlab="time span", ylab=expression(italic(paste(lambda, "t"))), xaxs="i", ylim=c(-4, 2)); abline(h=0, lty=3)
+put.fig.letter("c.", "topleft", offset=ofs2, cex=1.6)
+mtext("time span", 1, line=2.3, cex=1.1)
+mtext(expression(italic(paste(lambda, "t"))), 2, line=2.3, cex=1.1)
+
 dev.off()
+
+
+
+
 
 pdf("figures/memo_171206/neutral_perturbation_noreplace.pdf", width=4, height=6, colormodel = "cmyk")
 
@@ -318,6 +372,28 @@ mtext("time span", 1, line=2.3, cex=1.1)
 mtext(expression(italic(paste(lambda, "t"))), 2, line=2.3, cex=1.1)
 put.fig.letter("c.", "topleft", offset=ofs2, cex=1.6)
 
+
+
+#repeat with total
+matplot(pmat_dist[,1], rowSums(pmat_dist[,-1])/out_dist$plotdata$ngrid, type="l", lty=1, col=collst[1], lwd=1.5, xlab="time", ylab="relative abundance", xaxs="i")
+abline(v=max(out_dist$output[,1]), lty=2)
+mtext("time", 1, line=2.3, cex=1.1)
+mtext("relative abundance", 2, line=2.3, cex=1.1)
+put.fig.letter("a.", "topleft", offset=ofs1, cex=1.6)
+arrows(max(out_dist$output[,1]), 0.4+0.03,
+       max(out_dist$output[,1]), 0.4,
+       length = 0.08, lwd=2, lend=4)
+
+plot(1:nrow(eig_dist2$out_lst[[1]]$output), abs(rowSums(eig_dist2$out_lst[[1]]$output[,-1])-rowSums(eig_dist2$out_lst0$output[,-1]))/out_dist$plotdata$ngrid, type="l", ylab="estimated distance", xlab="time", col=collst[1], lwd=2, xaxs="i", ylim=c(0, 0.1), cex.lab=1.5); abline(h=0, lty=3)
+mtext("time since disturbance", 1, line=2.3, cex=1.1)
+mtext("estimated distance", 2, line=2.3, cex=1.1)
+put.fig.letter("b.", "topleft", offset=ofs2, cex=1.6)
+
+plot(1:nrow(eig_dist2$eigenlst), eig_dist2$eigenlst_tot[,1]*(1:nrow(eig_dist2$eigenlst_tot)), type="l", lwd=2, col=collst[1], xlab="time span", ylab=expression(italic(paste(lambda, "t"))), xaxs="i", ylim=c(-3.5, 4.5), cex.lab=1.5, xlim=c(1, 80)); abline(h=0, lty=3)
+mtext("time span", 1, line=2.3, cex=1.1)
+mtext(expression(italic(paste(lambda, "t"))), 2, line=2.3, cex=1.1)
+put.fig.letter("c.", "topleft", offset=ofs2, cex=1.6)
+
 dev.off()
 
 
@@ -364,7 +440,32 @@ mtext("time span", 1, line=2.3, cex=1.1)
 mtext(expression(italic(paste(lambda, "t"))), 2, line=2.3, cex=1.1)
 put.fig.letter("c.", "topleft", offset=ofs2, cex=1.6)
 
+
+
+#Total
+matplot(pmat_psf[,1], rowSums(pmat_psf[,-1])/out_psf$plotdata$ngrid, type="l", lty=1, col=collst[1], lwd=1.5, xlab="time", ylab="relative abundance", xaxs="i")
+abline(v=max(out_psf$output[,1]), lty=2)
+
+mtext("time", 1, line=2.3, cex=1.1)
+mtext("relative abundance", 2, line=2.3, cex=1.1)
+put.fig.letter("a.", "topleft", offset=ofs1, cex=1.6)
+arrows(max(out_psf$output[,1]), 0.48+0.03,
+       max(out_psf$output[,1]), 0.48,
+       length = 0.08, lwd=2, lend=4)
+
+plot(1:nrow(eig_psf2$out_lst[[1]]$output), abs(rowSums(eig_psf2$out_lst[[1]]$output[,-1])-rowSums(eig_psf2$out_lst0$output[,-1]))/out_psf$plotdata$ngrid, type="l", ylab="estimated distance", xlab="time", col=collst[1], lwd=2, xaxs="i", ylim=c(0, 0.05), cex.lab=1.5); abline(h=0, lty=3)
+mtext("time since disturbance", 1, line=2.3, cex=1.1)
+mtext("estimated distance", 2, line=2.3, cex=1.1)
+put.fig.letter("b.", "topleft", offset=ofs2, cex=1.6)
+
+plot(1:nrow(eig_psf2$eigenlst), eig_psf2$eigenlst_tot[,1]*(1:nrow(eig_psf2$eigenlst_tot)), type="l", lwd=2, col=collst[1], xlab="time span", ylab=expression(italic(paste(lambda, "t"))), xaxs="i", ylim=c(-8, 0), cex.lab=1.5, xlim=c(1, 80)); abline(h=0, lty=3)
+mtext("time span", 1, line=2.3, cex=1.1)
+mtext(expression(italic(paste(lambda, "t"))), 2, line=2.3, cex=1.1)
+put.fig.letter("c.", "topleft", offset=ofs2, cex=1.6)
 dev.off()
+
+
+
 
 #Plot perturbation, rps
 pdf("figures/memo_171206/rps_perturbation.pdf", width=4, height=6, colormodel = "cmyk")
@@ -397,6 +498,28 @@ mtext("time span", 1, line=2.3, cex=1.1)
 mtext(expression(italic(paste(lambda, "t"))), 2, line=2.3, cex=1.1)
 put.fig.letter("c.", "topleft", offset=ofs2, cex=1.6)
 
+
+
+#Total
+matplot(pmat_rps[,1], rowSums(pmat_rps[,-1])/out_rps$plotdata$ngrid, type="l", lty=1, col=collst[1], lwd=1.5, xlab="time", ylab="relative abundance", xaxs="i")
+abline(v=max(out_rps$output[,1]), lty=2)
+
+mtext("time", 1, line=2.3, cex=1.1)
+mtext("relative abundance", 2, line=2.3, cex=1.1)
+put.fig.letter("a.", "topleft", offset=ofs1, cex=1.6)
+arrows(max(out_rps$output[,1]), 0.75+0.03,
+       max(out_rps$output[,1]), 0.75,
+       length = 0.08, lwd=2, lend=4)
+
+plot(1:nrow(eig_rps2$out_lst[[1]]$output), abs(rowSums(eig_rps2$out_lst[[1]]$output[,-1])-rowSums(eig_rps2$out_lst0$output[,-1]))/out_rps$plotdata$ngrid, type="l", ylab="estimated distance", xlab="time", col=collst[1], lwd=2, xaxs="i", ylim=c(0, 0.03), cex.lab=1.5); abline(h=0, lty=3)
+mtext("time since disturbance", 1, line=2.3, cex=1.1)
+mtext("estimated distance", 2, line=2.3, cex=1.1)
+put.fig.letter("b.", "topleft", offset=ofs2, cex=1.6)
+
+plot(1:nrow(eig_rps2$eigenlst), eig_rps2$eigenlst[,1]*(1:nrow(eig_rps2$eigenlst)), type="l", lwd=2, col=collst[1], xlab="time span", ylab=expression(italic(paste(lambda, "t"))), xaxs="i", ylim=c(-5.5, 1.5), cex.lab=1.5, xlim=c(1, 80)); abline(h=0, lty=3)
+mtext("time span", 1, line=2.3, cex=1.1)
+mtext(expression(italic(paste(lambda, "t"))), 2, line=2.3, cex=1.1)
+put.fig.letter("c.", "topleft", offset=ofs2, cex=1.6)
 dev.off()
 
 
@@ -442,6 +565,30 @@ arrows(300, 0,
 put.fig.letter("a.", "topleft", offset=ofs1, cex=1.6)
 
 plot(1:nrow(r0_meta$grwrare), r0_meta$grwrare[,1]*(1:nrow(r0_meta$grwrare)), col=collst[2], type="l", lty=1, lwd=1.5, xlab="time span", ylab=expression(italic(paste(r[0], "t"))), xaxs="i")
+mtext("time span", 1, line=2.3, cex=1.1)
+mtext(expression(italic(paste(r[0], "t"))), 2, line=2.3, cex=1.1)
+put.fig.letter("b.", "topleft", offset=ofs2, cex=1.6)
+
+
+
+
+#Total
+matplot(pmat_meta[,1], rowSums(pmat_meta[,-1])/out_meta$plotdata$ngrid, type="l", lty=1, col=collst[1], lwd=1.5, xlab="time", ylab="relative abundance", xaxs="i")
+abline(v=c(200, 300), lty=2)
+ceq<-getceq(clst_meta, mlst_meta)
+abline(h=c(sum(ceq)), lty=3, col=collst, lwd=1.5)
+abline(h=0, lty=3)
+mtext("time", 1, line=2.3, cex=1.1)
+mtext("relative abundance", 2, line=2.3, cex=1.1)
+arrows(200, sum(ceq)+0.06,
+       200, sum(ceq),
+       length = 0.08, lwd=2, lend=4)
+arrows(300, 0.6,
+       300, 0.66,
+       length = 0.08, lwd=2, lend=4)
+put.fig.letter("a.", "topleft", offset=ofs1, cex=1.6)
+
+plot(1:nrow(r0_meta$grwrare), r0_meta$grwrare_tot[,1]*(1:nrow(r0_meta$grwrare_tot)), col=collst[1], type="l", lty=1, lwd=1.5, xlab="time span", ylab=expression(italic(paste(r[0], "t"))), xaxs="i")
 mtext("time span", 1, line=2.3, cex=1.1)
 mtext(expression(italic(paste(r[0], "t"))), 2, line=2.3, cex=1.1)
 put.fig.letter("b.", "topleft", offset=ofs2, cex=1.6)
@@ -636,6 +783,21 @@ mtext("time lag", 1, line=2.3, cex=1.1)
 mtext(expression(italic("CV")), 2, line=2.3, cex=1.1)
 put.fig.letter("b.", "topleft", offset=ofs3, cex=1.6)
 
+
+
+
+#Total
+matplot(out_meta_long$output[,1], rowSums(out_meta_long$output[,-1])/out_meta_long$plotdata$ngrid, type="l", lty=1, col=collst[1], lwd=1.5, xlab="time", ylab="relative abundance", xaxs="i")
+abline(h=sum(getceq(clst_meta, mlst_meta)), col=collst[1], lty=2, lwd=1.5)
+mtext("time", 1, line=2.3, cex=1.1)
+mtext("relative abundance", 2, line=2.3, cex=1.1)
+put.fig.letter("a.", "topleft", offset=ofs3, cex=1.6)
+
+plot(invar_meta$pdlag_list_tot[[1]]$laglst, invar_meta$pdlag_list_tot[[1]]$CVest[,1], xlab="time lag", ylab=expression(italic(paste("CV"))), type="l", lty=1, lwd=1.5, col=collst[1], xaxs="i", ylim=c(0, 0.02)); abline(h=0, lty=3)
+mtext("time lag", 1, line=2.3, cex=1.1)
+mtext(expression(italic("CV")), 2, line=2.3, cex=1.1)
+put.fig.letter("b.", "topleft", offset=ofs3, cex=1.6)
+
 dev.off()
 
 
@@ -671,6 +833,21 @@ text(750, y21, pos=1, labels = "testing set")
 
 
 plot(invar_neut$pdlag_list[[1]]$laglst, invar_neut$pdlag_list[[1]]$CVest[,1], xlab="time lag", ylab=expression(italic(paste("CV"))), type="l", lty=1, lwd=1.5, col=collst[2], xaxs="i", ylim=c(0, 0.3)); abline(h=0, lty=3)
+mtext("time lag", 1, line=2.3, cex=1.1)
+mtext(expression(italic("CV")), 2, line=2.3, cex=1.1)
+put.fig.letter("b.", "topleft", offset=ofs3, cex=1.6)
+
+
+
+
+#total
+matplot(out_neut_long$output[,1], rowSums(out_neut_long$output[,-1])/out_neut_long$plotdata$ngrid, type="l", lty=1, col=collst[1], lwd=1.5, xlab="time", ylab="relative abundance", xaxs="i")
+mtext("time", 1, line=2.3, cex=1.1)
+mtext("relative abundance", 2, line=2.3, cex=1.1)
+put.fig.letter("a.", "topleft", offset=ofs3, cex=1.6)
+abline(h=getceq(clst_neut, mlst_neut), lty=2)
+
+plot(invar_neut$pdlag_list_tot[[1]]$laglst, invar_neut$pdlag_list_tot[[1]]$CVest[,1], xlab="time lag", ylab=expression(italic(paste("CV"))), type="l", lty=1, lwd=1.5, col=collst[1], xaxs="i", ylim=c(0, 0.01)); abline(h=0, lty=3)
 mtext("time lag", 1, line=2.3, cex=1.1)
 mtext(expression(italic("CV")), 2, line=2.3, cex=1.1)
 put.fig.letter("b.", "topleft", offset=ofs3, cex=1.6)
@@ -713,6 +890,21 @@ mtext("time lag", 1, line=2.3, cex=1.1)
 mtext(expression(italic("CV")), 2, line=2.3, cex=1.1)
 put.fig.letter("b.", "topleft", offset=ofs3, cex=1.6)
 
+
+
+#total
+matplot(out_dist_long$output[,1], rowSums(out_dist_long$output[,-1])/out_dist_long$plotdata$ngrid, type="l", lty=1, col=collst[1], lwd=1.5, xlab="time", ylab="relative abundance", xaxs="i")
+abline(h=0, lty=3)
+mtext("time", 1, line=2.3, cex=1.1)
+mtext("relative abundance", 2, line=2.3, cex=1.1)
+put.fig.letter("a.", "topleft", offset=ofs3, cex=1.6)
+abline(v=100, lty=3)
+
+plot(invar_dist$pdlag_list_tot[[2]]$laglst, invar_dist$pdlag_list_tot[[2]]$CVest[,1], xlab="time lag", ylab=expression(italic(paste("CV"))), type="l", lty=1, lwd=1.5, col=collst[1], xaxs="i", ylim=c(0, 0.3)); abline(h=0, lty=3)
+mtext("time lag", 1, line=2.3, cex=1.1)
+mtext(expression(italic("CV")), 2, line=2.3, cex=1.1)
+put.fig.letter("b.", "topleft", offset=ofs3, cex=1.6)
+
 dev.off()
 
 
@@ -751,6 +943,19 @@ mtext("time lag", 1, line=2.3, cex=1.1)
 mtext(expression(italic("CV")), 2, line=2.3, cex=1.1)
 put.fig.letter("b.", "topleft", offset=ofs3, cex=1.6)
 
+
+#Total
+matplot(out_psf_long$output[,1], rowSums(out_psf_long$output[,-1])/out_psf_long$plotdata$ngrid, type="l", lty=1, col=collst[1], lwd=1.5, xlab="time", ylab="relative abundance", xaxs="i")
+mtext("time", 1, line=2.3, cex=1.1)
+mtext("relative abundance", 2, line=2.3, cex=1.1)
+put.fig.letter("a.", "topleft", offset=ofs3, cex=1.6)
+abline(v=100, lty=3)
+
+plot(invar_psf$pdlag_list_tot[[1]]$laglst, invar_psf$pdlag_list_tot[[1]]$CVest[,2], xlab="time lag", ylab=expression(italic(paste("CV"))), type="l", lty=1, lwd=1.5, col=collst[1], xaxs="i", ylim=c(0, 0.015)); abline(h=0, lty=3)
+mtext("time lag", 1, line=2.3, cex=1.1)
+mtext(expression(italic("CV")), 2, line=2.3, cex=1.1)
+put.fig.letter("b.", "topleft", offset=ofs3, cex=1.6)
+
 dev.off()
 
 
@@ -785,6 +990,20 @@ text(750, y21, pos=1, labels = "testing set")
 
 
 plot(invar_rps$pdlag_list[[1]]$laglst, invar_rps$pdlag_list[[1]]$CVest[,2], xlab="time lag", ylab=expression(italic(paste("CV"))), type="l", lty=1, lwd=1.5, col=collst[3], xaxs="i", ylim=c(0, 0.4)); abline(h=0, lty=3)
+mtext("time lag", 1, line=2.3, cex=1.1)
+mtext(expression(italic("CV")), 2, line=2.3, cex=1.1)
+put.fig.letter("b.", "topleft", offset=ofs3, cex=1.6)
+
+
+
+#Tot
+matplot(out_rps_long$output[,1], rowSums(out_rps_long$output[,-1])/out_rps_long$plotdata$ngrid, type="l", lty=1, col=collst[1], lwd=1.5, xlab="time", ylab="relative abundance", xaxs="i")
+mtext("time", 1, line=2.3, cex=1.1)
+mtext("relative abundance", 2, line=2.3, cex=1.1)
+put.fig.letter("a.", "topleft", offset=ofs3, cex=1.6)
+abline(v=100, lty=3)
+
+plot(invar_rps$pdlag_list_tot[[1]]$laglst, invar_rps$pdlag_list_tot[[1]]$CVest[,2], xlab="time lag", ylab=expression(italic(paste("CV"))), type="l", lty=1, lwd=1.5, col=collst[1], xaxs="i", ylim=c(0, 0.01)); abline(h=0, lty=3)
 mtext("time lag", 1, line=2.3, cex=1.1)
 mtext(expression(italic("CV")), 2, line=2.3, cex=1.1)
 put.fig.letter("b.", "topleft", offset=ofs3, cex=1.6)
@@ -873,6 +1092,9 @@ E_dist<-getEdist$Eout
 
 invar_dist<-estimate_invar(out = out_dist_long, E=E_dist, burnin=100, doplot=FALSE, sites_sub = grid_sub$sites)
 
+
+
+
 ##### Try psf model
 set.seed(180108)
 
@@ -889,6 +1111,9 @@ getEpsf<-getE(out_psf_long, Elst = 2:10, sites_sub = grid_sub$sites)
 E_psf<-getEpsf$Eout
 
 invar_psf<-estimate_invar(out_psf_long, E=E_psf, burnin=100, doplot=FALSE, sites_sub = grid_sub$sites)
+
+
+
 
 ##### Try rps model
 set.seed(180108)
@@ -944,12 +1169,37 @@ arrows(200, ceq[1]+0.03,
        200, ceq[1],
        length = 0.08, lwd=2, lend=4)
 
-plot(1:nrow(eig_meta2$out_lst[[1]]$output_spatial), abs(eig_meta2$out_lst[[1]]$output_spatial[,2]-eig_meta2$out_lst0$output_spatial[,2])/length(grid_sub$sites), type="l", ylab="estimated distance", xlab="time", col=collst[2], lwd=2, xaxs="i", ylim=c(0, 0.08), cex.lab=1.5); abline(h=0, lty=3)
+plot(1:nrow(eig_meta2$out_lst[[1]]$output_spatial), abs(eig_meta2$out_lst[[1]]$output_spatial[,2]-eig_meta2$out_lst0$output_spatial[,2])/length(grid_sub$sites), type="l", ylab="estimated distance", xlab="time", col=collst[2], lwd=2, xaxs="i", ylim=c(0, 0.1), cex.lab=1.5); abline(h=0, lty=3)
 mtext("time since disturbance", 1, line=2.3, cex=1.1)
 mtext("estimated distance", 2, line=2.3, cex=1.1)
 put.fig.letter("b.", "topleft", offset=ofs2, cex=1.6)
 
 plot((1:nrow(eig_meta2$eigenlst))[is.finite(eig_meta2$eigenlst[,1])], (eig_meta2$eigenlst[,1]*(1:nrow(eig_meta2$eigenlst)))[is.finite(eig_meta2$eigenlst[,1])], type="l", lwd=2, col=collst[2], xlab="time span", ylab=expression(italic(paste(lambda, "t"))), xaxs="i", ylim=c(-4, 1), cex.lab=1.5); abline(h=0, lty=3)
+mtext("time span", 1, line=2.3, cex=1.1)
+mtext(expression(italic(paste(lambda, "t"))), 2, line=2.3, cex=1.1)
+put.fig.letter("c.", "topleft", offset=ofs2, cex=1.6)
+
+
+
+
+#Total
+matplot(pmat_meta[,1], rowSums(pmat_meta[,-1])/length(grid_sub$sites), type="l", lty=1, col=collst[1], lwd=1.5, xlab="time", ylab="relative abundance", xaxs="i")
+abline(v=200, lty=2)
+ceq<-getceq(clst_meta, mlst_meta)
+abline(h=c(sum(ceq), ceq), lty=3, col=collst, lwd=1.5)
+mtext("time", 1, line=2.3, cex=1.1)
+mtext("relative abundance", 2, line=2.3, cex=1.1)
+put.fig.letter("a.", "topleft", offset=ofs1, cex=1.6)
+arrows(200, ceq[1]+0.03,
+       200, ceq[1],
+       length = 0.08, lwd=2, lend=4)
+
+plot(1:nrow(eig_meta2$out_lst[[1]]$output_spatial), abs(rowSums(eig_meta2$out_lst[[1]]$output_spatial[,-1])-rowSums(eig_meta2$out_lst0$output_spatial[,-1]))/length(grid_sub$sites), type="l", ylab="estimated distance", xlab="time", col=collst[1], lwd=2, xaxs="i", ylim=c(0, 0.08), cex.lab=1.5); abline(h=0, lty=3)
+mtext("time since disturbance", 1, line=2.3, cex=1.1)
+mtext("estimated distance", 2, line=2.3, cex=1.1)
+put.fig.letter("b.", "topleft", offset=ofs2, cex=1.6)
+
+plot((1:nrow(eig_meta2$eigenlst_tot))[is.finite(eig_meta2$eigenlst_tot[,1])], (eig_meta2$eigenlst_tot[,1]*(1:nrow(eig_meta2$eigenlst_tot)))[is.finite(eig_meta2$eigenlst_tot[,1])], type="l", lwd=2, col=collst[1], xlab="time span", ylab=expression(italic(paste(lambda, "t"))), xaxs="i", ylim=c(-5, 1), cex.lab=1.5); abline(h=0, lty=3)
 mtext("time span", 1, line=2.3, cex=1.1)
 mtext(expression(italic(paste(lambda, "t"))), 2, line=2.3, cex=1.1)
 put.fig.letter("c.", "topleft", offset=ofs2, cex=1.6)
@@ -979,12 +1229,30 @@ arrows(max(out_dist$output[,1]), 0.22+0.03,
        max(out_dist$output[,1]), 0.22,
        length = 0.08, lwd=2, lend=4)
 
-plot(1:nrow(eig_dist2$out_lst[[1]]$output_spatial), abs(eig_dist2$out_lst[[1]]$output_spatial[,2]-eig_dist2$out_lst0$output_spatial[,2])/length(grid_sub$sites), type="l", ylab="estimated distance", xlab="time", col=collst[2], lwd=2, xaxs="i", ylim=c(0, 0.075), cex.lab=1.5); abline(h=0, lty=3)
+plot(1:nrow(eig_dist2$out_lst[[1]]$output_spatial), abs(eig_dist2$out_lst[[1]]$output_spatial[,2]-eig_dist2$out_lst0$output_spatial[,2])/length(grid_sub$sites), type="l", ylab="estimated distance", xlab="time", col=collst[2], lwd=2, xaxs="i", ylim=c(0, 0.15), cex.lab=1.5); abline(h=0, lty=3)
 mtext("time since disturbance", 1, line=2.3, cex=1.1)
 mtext("estimated distance", 2, line=2.3, cex=1.1)
 put.fig.letter("b.", "topleft", offset=ofs2, cex=1.6)
 
-plot((1:nrow(eig_dist2$eigenlst))[is.finite(eig_dist2$eigenlst[,1])], (eig_dist2$eigenlst[,1]*(1:nrow(eig_dist2$eigenlst)))[is.finite(eig_dist2$eigenlst[,1])], type="l", lwd=2, col=collst[2], xlab="time span", ylab=expression(italic(paste(lambda, "t"))), xaxs="i", ylim=c(-3, 3.5), cex.lab=1.5); abline(h=0, lty=3)
+plot((1:nrow(eig_dist2$eigenlst))[is.finite(eig_dist2$eigenlst[,1])], (eig_dist2$eigenlst[,1]*(1:nrow(eig_dist2$eigenlst)))[is.finite(eig_dist2$eigenlst[,1])], type="l", lwd=2, col=collst[2], xlab="time span", ylab=expression(italic(paste(lambda, "t"))), xaxs="i", ylim=c(-3, 7), cex.lab=1.5); abline(h=0, lty=3)
+mtext("time span", 1, line=2.3, cex=1.1)
+mtext(expression(italic(paste(lambda, "t"))), 2, line=2.3, cex=1.1)
+put.fig.letter("c.", "topleft", offset=ofs2, cex=1.6)
+
+
+#total
+matplot(pmat_dist[,1], rowSums(pmat_dist[,-1])/length(grid_sub$sites), type="l", lty=1, col=collst[1], lwd=1.5, xlab="time", ylab="relative abundance", xaxs="i")
+abline(v=max(out_dist$output[,1]), lty=2)
+arrows(max(out_dist$output[,1]), 0.4+0.03,
+       max(out_dist$output[,1]), 0.4,
+       length = 0.08, lwd=2, lend=4)
+
+plot(1:nrow(eig_dist2$out_lst[[1]]$output_spatial), abs(rowSums(eig_dist2$out_lst[[1]]$output_spatial[,-1])-rowSums(eig_dist2$out_lst0$output_spatial[,-1]))/length(grid_sub$sites), type="l", ylab="estimated distance", xlab="time", col=collst[1], lwd=2, xaxs="i", ylim=c(0, 0.15), cex.lab=1.5); abline(h=0, lty=3)
+mtext("time since disturbance", 1, line=2.3, cex=1.1)
+mtext("estimated distance", 2, line=2.3, cex=1.1)
+put.fig.letter("b.", "topleft", offset=ofs2, cex=1.6)
+
+plot((1:nrow(eig_dist2$eigenlst_tot))[is.finite(eig_dist2$eigenlst_tot[,1])], (eig_dist2$eigenlst_tot[,1]*(1:nrow(eig_dist2$eigenlst_tot)))[is.finite(eig_dist2$eigenlst_tot[,1])], type="l", lwd=2, col=collst[1], xlab="time span", ylab=expression(italic(paste(lambda, "t"))), xaxs="i", ylim=c(-3, 7), cex.lab=1.5); abline(h=0, lty=3)
 mtext("time span", 1, line=2.3, cex=1.1)
 mtext(expression(italic(paste(lambda, "t"))), 2, line=2.3, cex=1.1)
 put.fig.letter("c.", "topleft", offset=ofs2, cex=1.6)
@@ -1030,6 +1298,30 @@ put.fig.letter("c.", "topleft", offset=ofs2, cex=1.6)
 mtext("time span", 1, line=2.3, cex=1.1)
 mtext(expression(italic(paste(lambda, "t"))), 2, line=2.3, cex=1.1)
 
+
+
+#Total
+matplot(pmat_neut1[,1], rowSums(pmat_neut1[,-1])/length(grid_sub$sites), type="l", lty=1, col=collst[1], lwd=1.5, xlab="time", ylab="relative abundance", xaxs="i")
+abline(v=200, lty=2)
+ceq<-getceq(clst_neut, mlst_neut)
+abline(h=ceq, lty=2)
+put.fig.letter("a.", "topleft", offset=ofs1, cex=1.6)
+mtext("time", 1, line=2.3, cex=1.1)
+mtext("relative abundance", 2, line=2.3, cex=1.1)
+arrows(200, 0.82+0.04,
+       200, 0.82,
+       length = 0.08, lwd=2, lend=4)
+
+plot(1:nrow(eig_neut1$out_lst[[1]]$output_spatial), abs(rowSums(eig_neut1$out_lst[[1]]$output_spatial[,-1])-rowSums(eig_neut1$out_lst0$output_spatial[,-1]))/length(grid_sub$sites), type="l", ylab="estimated distance", xlab="time", col=collst[1], lwd=2, xaxs="i", ylim=c(0, 0.08)); abline(h=0, lty=3)
+put.fig.letter("b.", "topleft", offset=ofs2, cex=1.6)
+mtext("time since disturbance", 1, line=2.3, cex=1.1)
+mtext("estimated distance", 2, line=2.3, cex=1.1)
+
+plot((1:nrow(eig_neut1$eigenlst_tot))[is.finite(eig_neut1$eigenlst_tot[,1])], (eig_neut1$eigenlst_tot[,1]*(1:nrow(eig_neut1$eigenlst_tot)))[is.finite(eig_neut1$eigenlst_tot[,1])], type="l", lwd=2, col=collst[1], xlab="time span", ylab=expression(italic(paste(lambda, "t"))), xaxs="i", ylim=c(-2, 4)); abline(h=0, lty=3)
+put.fig.letter("c.", "topleft", offset=ofs2, cex=1.6)
+mtext("time span", 1, line=2.3, cex=1.1)
+mtext(expression(italic(paste(lambda, "t"))), 2, line=2.3, cex=1.1)
+
 dev.off()
 
 #Plot perturbation, psf
@@ -1062,6 +1354,27 @@ mtext("time span", 1, line=2.3, cex=1.1)
 mtext(expression(italic(paste(lambda, "t"))), 2, line=2.3, cex=1.1)
 put.fig.letter("c.", "topleft", offset=ofs2, cex=1.6)
 
+
+#Total
+matplot(pmat_psf[,1], rowSums(pmat_psf[,-1])/length(grid_sub$sites), type="l", lty=1, col=collst[1], lwd=1.5, xlab="time", ylab="relative abundance", xaxs="i")
+abline(v=200, lty=2)
+mtext("time", 1, line=2.3, cex=1.1)
+mtext("relative abundance", 2, line=2.3, cex=1.1)
+put.fig.letter("a.", "topleft", offset=ofs1, cex=1.6)
+arrows(200, 0.68+0.03,
+       200, 0.68,
+       length = 0.08, lwd=2, lend=4)
+
+plot(1:nrow(eig_psf2$out_lst[[1]]$output_spatial), abs(rowSums(eig_psf2$out_lst[[1]]$output_spatial[,-1])-rowSums(eig_psf2$out_lst0$output_spatial[,-1]))/length(grid_sub$sites), type="l", ylab="estimated distance", xlab="time", col=collst[1], lwd=2, xaxs="i", ylim=c(0, 0.12), cex.lab=1.5); abline(h=0, lty=3)
+mtext("time since disturbance", 1, line=2.3, cex=1.1)
+mtext("estimated distance", 2, line=2.3, cex=1.1)
+put.fig.letter("b.", "topleft", offset=ofs2, cex=1.6)
+
+plot((1:nrow(eig_psf2$eigenlst_tot))[is.finite(eig_psf2$eigenlst_tot[,1])], (eig_psf2$eigenlst_tot[,1]*(1:nrow(eig_psf2$eigenlst_tot)))[is.finite(eig_psf2$eigenlst_tot[,1])], type="l", lwd=2, col=collst[1], xlab="time span", ylab=expression(italic(paste(lambda, "t"))), xaxs="i", ylim=c(-4, 1), cex.lab=1.5); abline(h=0, lty=3)
+mtext("time span", 1, line=2.3, cex=1.1)
+mtext(expression(italic(paste(lambda, "t"))), 2, line=2.3, cex=1.1)
+put.fig.letter("c.", "topleft", offset=ofs2, cex=1.6)
+
 dev.off()
 
 #Plot perturbation, rps
@@ -1090,6 +1403,27 @@ mtext("estimated distance", 2, line=2.3, cex=1.1)
 put.fig.letter("b.", "topleft", offset=ofs2, cex=1.6)
 
 plot((1:nrow(eig_rps2$eigenlst))[is.finite(eig_rps2$eigenlst[,1])], (eig_rps2$eigenlst[,1]*(1:nrow(eig_rps2$eigenlst)))[is.finite(eig_rps2$eigenlst[,1])], type="l", lwd=2, col=collst[2], xlab="time span", ylab=expression(italic(paste(lambda, "t"))), xaxs="i", ylim=c(-2, 4), cex.lab=1.5); abline(h=0, lty=3)
+mtext("time span", 1, line=2.3, cex=1.1)
+mtext(expression(italic(paste(lambda, "t"))), 2, line=2.3, cex=1.1)
+put.fig.letter("c.", "topleft", offset=ofs2, cex=1.6)
+
+
+#Total
+matplot(pmat_rps[,1], rowSums(pmat_rps[,-1])/length(grid_sub$sites), type="l", lty=1, col=collst[1], lwd=1.5, xlab="time", ylab="relative abundance", xaxs="i")
+abline(v=200, lty=2)
+mtext("time", 1, line=2.3, cex=1.1)
+mtext("relative abundance", 2, line=2.3, cex=1.1)
+put.fig.letter("a.", "topleft", offset=ofs1, cex=1.6)
+arrows(200, 0.76+0.03,
+       200, 0.76,
+       length = 0.08, lwd=2, lend=4)
+
+plot(1:nrow(eig_rps2$out_lst[[1]]$output_spatial), abs(rowSums(eig_rps2$out_lst[[1]]$output_spatial[,-1])-rowSums(eig_rps2$out_lst0$output_spatial[,-1]))/length(grid_sub$sites), type="l", ylab="estimated distance", xlab="time", col=collst[1], lwd=2, xaxs="i", ylim=c(0, 0.10), cex.lab=1.5); abline(h=0, lty=3)
+mtext("time since disturbance", 1, line=2.3, cex=1.1)
+mtext("estimated distance", 2, line=2.3, cex=1.1)
+put.fig.letter("b.", "topleft", offset=ofs2, cex=1.6)
+
+plot((1:nrow(eig_rps2$eigenlst_tot))[is.finite(eig_rps2$eigenlst_tot[,1])], (eig_rps2$eigenlst_tot[,1]*(1:nrow(eig_rps2$eigenlst_tot)))[is.finite(eig_rps2$eigenlst_tot[,1])], type="l", lwd=2, col=collst[1], xlab="time span", ylab=expression(italic(paste(lambda, "t"))), xaxs="i", ylim=c(-3, 1), cex.lab=1.5); abline(h=0, lty=3)
 mtext("time span", 1, line=2.3, cex=1.1)
 mtext(expression(italic(paste(lambda, "t"))), 2, line=2.3, cex=1.1)
 put.fig.letter("c.", "topleft", offset=ofs2, cex=1.6)
@@ -1324,6 +1658,20 @@ mtext("time lag", 1, line=2.3, cex=1.1)
 mtext(expression(italic("CV")), 2, line=2.3, cex=1.1)
 put.fig.letter("b.", "topleft", offset=ofs3, cex=1.6)
 
+
+
+#Tot
+matplot(out_meta_long$output_spatial[,1], rowSums(out_meta_long$output_spatial[,-1])/length(grid_sub$sites), type="l", lty=1, col=collst[1], lwd=1.5, xlab="time", ylab="relative abundance", xaxs="i")
+abline(h=sum(getceq(clst_meta, mlst_meta)), col=collst[1], lty=2, lwd=1.5)
+mtext("time", 1, line=2.3, cex=1.1)
+mtext("relative abundance", 2, line=2.3, cex=1.1)
+put.fig.letter("a.", "topleft", offset=ofs3, cex=1.6)
+
+plot(invar_meta$pdlag_list_tot[[1]]$laglst, invar_meta$pdlag_list_tot[[1]]$CVest[,1], xlab="time lag", ylab=expression(italic(paste("CV"))), type="l", lty=1, lwd=1.5, col=collst[1], xaxs="i", ylim=c(0, 0.1)); abline(h=0, lty=3)
+mtext("time lag", 1, line=2.3, cex=1.1)
+mtext(expression(italic("CV")), 2, line=2.3, cex=1.1)
+put.fig.letter("b.", "topleft", offset=ofs3, cex=1.6)
+
 dev.off()
 
 
@@ -1355,6 +1703,20 @@ text(750, 0.28, pos=3, labels = "testing set")
 
 
 plot(invar_dist$pdlag_list[[1]]$laglst, invar_dist$pdlag_list[[1]]$CVest[,1], xlab="time lag", ylab=expression(italic(paste("CV"))), type="l", lty=1, lwd=1.5, col=collst[2], xaxs="i", ylim=c(0, 0.8)); abline(h=0, lty=3)
+mtext("time lag", 1, line=2.3, cex=1.1)
+mtext(expression(italic("CV")), 2, line=2.3, cex=1.1)
+put.fig.letter("b.", "topleft", offset=ofs3, cex=1.6)
+
+
+#Total
+matplot(out_dist_long$output_spatial[,1], rowSums(out_dist_long$output_spatial[,-1])/length(grid_sub$sites), type="l", lty=1, col=collst[1], lwd=1.5, xlab="time", ylab="relative abundance", xaxs="i")
+abline(h=0, lty=3, lwd=1.5)
+mtext("time", 1, line=2.3, cex=1.1)
+mtext("relative abundance", 2, line=2.3, cex=1.1)
+put.fig.letter("a.", "topleft", offset=ofs3, cex=1.6)
+abline(v=100, lty=3)
+
+plot(invar_dist$pdlag_list_tot[[1]]$laglst, invar_dist$pdlag_list_tot[[1]]$CVest[,1], xlab="time lag", ylab=expression(italic(paste("CV"))), type="l", lty=1, lwd=1.5, col=collst[1], xaxs="i", ylim=c(0, 0.8)); abline(h=0, lty=3)
 mtext("time lag", 1, line=2.3, cex=1.1)
 mtext(expression(italic("CV")), 2, line=2.3, cex=1.1)
 put.fig.letter("b.", "topleft", offset=ofs3, cex=1.6)
@@ -1392,6 +1754,22 @@ text(750, y22, pos=3, labels = "testing set")
 
 
 plot(invar_neut$pdlag_list[[1]]$laglst, invar_neut$pdlag_list[[1]]$CVest[,1], xlab="time lag", ylab=expression(italic(paste("CV"))), type="l", lty=1, lwd=1.5, col=collst[2], xaxs="i", ylim=c(0, 0.4)); abline(h=0, lty=3)
+mtext("time lag", 1, line=2.3, cex=1.1)
+mtext(expression(italic("CV")), 2, line=2.3, cex=1.1)
+put.fig.letter("b.", "topleft", offset=ofs3, cex=1.6)
+
+
+#Total
+matplot(out_neut_long$output[,1], rowSums(out_neut_long$output[,-1])/out_neut_long$plotdata$ngrid, type="l", lty=1, col=collst[1], lwd=1.5, xlab="time", ylab="relative abundance", xaxs="i")
+mtext("time", 1, line=2.3, cex=1.1)
+mtext("relative abundance", 2, line=2.3, cex=1.1)
+put.fig.letter("a.", "topleft", offset=ofs3, cex=1.6)
+abline(h=getceq(clst_neut, mlst_neut), lty=2)
+
+tmp<-out_neut_long$output[,2]/out_neut_long$plotdata$ngrid
+tmptm<-out_neut_long$output[,1]
+
+plot(invar_neut$pdlag_list_tot[[1]]$laglst, invar_neut$pdlag_list_tot[[1]]$CVest[,1], xlab="time lag", ylab=expression(italic(paste("CV"))), type="l", lty=1, lwd=1.5, col=collst[1], xaxs="i", ylim=c(0, 0.04)); abline(h=0, lty=3)
 mtext("time lag", 1, line=2.3, cex=1.1)
 mtext(expression(italic("CV")), 2, line=2.3, cex=1.1)
 put.fig.letter("b.", "topleft", offset=ofs3, cex=1.6)
@@ -1434,7 +1812,26 @@ mtext("time lag", 1, line=2.3, cex=1.1)
 mtext(expression(italic("CV")), 2, line=2.3, cex=1.1)
 put.fig.letter("b.", "topleft", offset=ofs3, cex=1.6)
 
+
+
+#Total
+matplot(out_psf_long$output_spatial[,1], rowSums(out_psf_long$output_spatial[,-1])/length(grid_sub$sites), type="l", lty=1, col=collst[1], lwd=1.5, xlab="time", ylab="relative abundance", xaxs="i")
+mtext("time", 1, line=2.3, cex=1.1)
+mtext("relative abundance", 2, line=2.3, cex=1.1)
+put.fig.letter("a.", "topleft", offset=ofs3, cex=1.6)
+abline(v=100, lty=3)
+
+tmp<-out_psf_long$output_spatial[,2]/length(out_psf_long$sites_sub)
+tmptm<-out_psf_long$output_spatial[,1]
+
+plot(invar_psf$pdlag_list_tot[[1]]$laglst, invar_psf$pdlag_list_tot[[1]]$CVest[,1], xlab="time lag", ylab=expression(italic(paste("CV"))), type="l", lty=1, lwd=1.5, col=collst[1], xaxs="i", ylim=c(0, 0.1)); abline(h=0, lty=3)
+mtext("time lag", 1, line=2.3, cex=1.1)
+mtext(expression(italic("CV")), 2, line=2.3, cex=1.1)
+put.fig.letter("b.", "topleft", offset=ofs3, cex=1.6)
 dev.off()
+
+
+
 
 #Plot invar, rps
 pdf("figures/memo_171206/rps_invar_spsub.pdf", width=5, height=4, colormodel = "cmyk")
@@ -1467,6 +1864,20 @@ text(750, y21, pos=1, labels = "testing set")
 
 
 plot(invar_rps$pdlag_list[[1]]$laglst, invar_rps$pdlag_list[[1]]$CVest[,1], xlab="time lag", ylab=expression(italic(paste("CV"))), type="l", lty=1, lwd=1.5, col=collst[2], xaxs="i", ylim=c(0, 0.27)); abline(h=0, lty=3)
+mtext("time lag", 1, line=2.3, cex=1.1)
+mtext(expression(italic("CV")), 2, line=2.3, cex=1.1)
+put.fig.letter("b.", "topleft", offset=ofs3, cex=1.6)
+
+
+
+#TOtal
+matplot(out_rps_long$output_spatial[,1], rowSums(out_rps_long$output_spatial[,-1])/length(grid_sub$sites), type="l", lty=1, col=collst[1], lwd=1.5, xlab="time", ylab="relative abundance", xaxs="i")
+mtext("time", 1, line=2.3, cex=1.1)
+mtext("relative abundance", 2, line=2.3, cex=1.1)
+put.fig.letter("a.", "topleft", offset=ofs3, cex=1.6)
+abline(v=100, lty=3)
+
+plot(invar_rps$pdlag_list_tot[[1]]$laglst, invar_rps$pdlag_list_tot[[1]]$CVest[,1], xlab="time lag", ylab=expression(italic(paste("CV"))), type="l", lty=1, lwd=1.5, col=collst[1], xaxs="i", ylim=c(0, 0.05)); abline(h=0, lty=3)
 mtext("time lag", 1, line=2.3, cex=1.1)
 mtext(expression(italic("CV")), 2, line=2.3, cex=1.1)
 put.fig.letter("b.", "topleft", offset=ofs3, cex=1.6)

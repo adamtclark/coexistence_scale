@@ -1015,15 +1015,15 @@ estimate_eqreturn<-function(out, simtime=100, runtype="metapopulation", perturbs
     #rerun model
     out_lst[[i]]<-rerunrun_metapopulation(out=out, tmax=simtime, runtype = runtype, perturb=pt, perturbsites=perturbsites, replace_perturb=replace_perturb, talktime=talktime, sites_sub = sites_sub, prt=prt, prtfrq=prtfrq)
     
-    #total abundance
-    out_lst[[i]]$output<-cbind(out_lst[[i]]$output, rowSums(out_lst[[i]]$output[,-1]))
-    
     #store spatial subset results, if applicable
     if(sum(sites_sub)!=0) {
       out_lst[[i]]$tmp<-out_lst[[i]]$output
       out_lst[[i]]$output<-out_lst[[i]]$output_spatial
       out_lst[[i]]$plotdata$ngrid<-length(out_lst[[i]]$sites_sub)
     }
+    
+    #total abundance
+    out_lst[[i]]$output<-cbind(out_lst[[i]]$output, rowSums(out_lst[[i]]$output[,-1]))
   }
   
   #re-run each simulation without the disturbance (to calculate divergence)
@@ -1031,15 +1031,14 @@ estimate_eqreturn<-function(out, simtime=100, runtype="metapopulation", perturbs
     pt<-rep(0, length(out$plotdata$ceq))
     out_lst0<-rerunrun_metapopulation(out=out, tmax=simtime, runtype = runtype, perturb=pt, perturbsites=perturbsites, talktime=talktime, sites_sub = sites_sub, prt=prt, prtfrq=prtfrq)
     
-    out_lst0$output<-cbind(out_lst0$output, rowSums(out_lst0$output[,-1]))
-    
     if(sum(sites_sub)!=0) {
       out_lst0$tmp<-out_lst0$output
       out_lst0$output<-out_lst0$output_spatial
       out_lst0$plotdata$ngrid<-length(out_lst0$sites_sub)
     }
+    
+    out_lst0$output<-cbind(out_lst0$output, rowSums(out_lst0$output[,-1]))
   }
-  
   
   #vectors for storing pseudo-eigenvalues (i.e. rate of return to equilibrium trajectory for each species)
   eigenlst<-matrix(ncol=length(out_lst), nrow=(simtime-1), data=NA)
@@ -1055,6 +1054,7 @@ estimate_eqreturn<-function(out, simtime=100, runtype="metapopulation", perturbs
       #distance between simulations
       pred_diff<-abs(out_lst0$output[,sppos+1]-out_lst[[sppos]]$output[,sppos+1])/(out$plotdata$ngrid)
       
+      #print(nsp)
       pred_diff_tot<-abs(out_lst0$output[,nsp+2]-out_lst[[sppos]]$output[,nsp+2])/(out$plotdata$ngrid)
     } else {
       #distance between perturbed simulation and analytical expectation
@@ -1113,11 +1113,17 @@ estimate_eqreturn<-function(out, simtime=100, runtype="metapopulation", perturbs
     }
   }
   
+  #remove added row in out_lst and out_lst0
+  for(i in 1:length(out_lst)) {
+    out_lst[[i]]$output<-out_lst[[i]]$output[,1:(nsp+1)]
+  }
+  out_lst0$output<-out_lst0$output[,1:(nsp+1)]
+  
   #eigenlist is matrix of return rates
   #eigenlst_sd shows standard deviation for elements in eigenlist
   #out_lst includes all simulated peturbed trajectories
   #out_lst0 includes all simulated non-perturbed trajectories (if applicable)
-  return(list(eigenlst=eigenlst, eigenlst_sd=eigenlst_sd, eigenlst_tot, eigenlst_sd_tot, out_lst=out_lst, out_lst0=out_lst0))
+  return(list(eigenlst=eigenlst, eigenlst_sd=eigenlst_sd, eigenlst_tot=eigenlst_tot, eigenlst_sd_tot=eigenlst_sd_tot, out_lst=out_lst, out_lst0=out_lst0))
 }
 
 
