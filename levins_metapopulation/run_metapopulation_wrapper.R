@@ -1015,6 +1015,9 @@ estimate_eqreturn<-function(out, simtime=100, runtype="metapopulation", perturbs
     #rerun model
     out_lst[[i]]<-rerunrun_metapopulation(out=out, tmax=simtime, runtype = runtype, perturb=pt, perturbsites=perturbsites, replace_perturb=replace_perturb, talktime=talktime, sites_sub = sites_sub, prt=prt, prtfrq=prtfrq)
     
+    #total abundance
+    out_lst[[i]]$output<-cbind(out_lst[[i]]$output, rowSums(out_lst[[i]]$output[,-1]))
+    
     #store spatial subset results, if applicable
     if(sum(sites_sub)!=0) {
       out_lst[[i]]$tmp<-out_lst[[i]]$output
@@ -1028,6 +1031,8 @@ estimate_eqreturn<-function(out, simtime=100, runtype="metapopulation", perturbs
     pt<-rep(0, length(out$plotdata$ceq))
     out_lst0<-rerunrun_metapopulation(out=out, tmax=simtime, runtype = runtype, perturb=pt, perturbsites=perturbsites, talktime=talktime, sites_sub = sites_sub, prt=prt, prtfrq=prtfrq)
     
+    out_lst0$output<-cbind(out_lst0$output, rowSums(out_lst0$output[,-1]))
+    
     if(sum(sites_sub)!=0) {
       out_lst0$tmp<-out_lst0$output
       out_lst0$output<-out_lst0$output_spatial
@@ -1035,27 +1040,42 @@ estimate_eqreturn<-function(out, simtime=100, runtype="metapopulation", perturbs
     }
   }
   
+  
   #vectors for storing pseudo-eigenvalues (i.e. rate of return to equilibrium trajectory for each species)
   eigenlst<-matrix(ncol=length(out_lst), nrow=(simtime-1), data=NA)
   eigenlst_sd<-matrix(ncol=length(out_lst), nrow=(simtime-1), data=NA)
   
+  eigenlst_tot<-matrix(ncol=length(out_lst), nrow=(simtime-1), data=NA)
+  eigenlst_sd_tot<-matrix(ncol=length(out_lst), nrow=(simtime-1), data=NA)
+  
   #calculate distance between trajectories
+  nsp<-length(out$plotdata$ceq)
   for(sppos in 1:length(out_lst)) {
     if(sum(useeq)==0) {
       #distance between simulations
       pred_diff<-abs(out_lst0$output[,sppos+1]-out_lst[[sppos]]$output[,sppos+1])/(out$plotdata$ngrid)
+      
+      pred_diff_tot<-abs(out_lst0$output[,nsp+2]-out_lst[[sppos]]$output[,nsp+2])/(out$plotdata$ngrid)
     } else {
       #distance between perturbed simulation and analytical expectation
       pred_diff<-abs(useeq[sppos]-(out_lst[[sppos]]$output[,sppos+1])/(out$plotdata$ngrid))
+      
+      pred_diff_tot<-abs(sum(useeq[sppos])-out_lst[[sppos]]$output[,nsp+2])/(out$plotdata$ngrid)
     }
     
     #transform distances into growth rate for each time step
     logdiftmp<-log(pred_diff[-1]/pred_diff[-length(pred_diff)])
     sbs<-is.finite(logdiftmp)
     
+    logdiftmp_tot<-log(pred_diff_tot[-1]/pred_diff_tot[-length(pred_diff_tot)])
+    sbs_tot<-is.finite(logdiftmp_tot)
+    
     #store mean growth rate for each time scale (i.e. 0 to tmax)
     eigenlst[1:(length(logdiftmp)),sppos][sbs]<-cumsum(logdiftmp[sbs])/(1:sum(sbs))
     eigenlst_sd[1:(length(logdiftmp)),sppos][sbs]<-sqrt(cumsum(logdiftmp[sbs]^2)/(1:sum(sbs))-(eigenlst[1:(length(logdiftmp)),sppos][sbs])^2)
+    
+    eigenlst_tot[1:(length(logdiftmp_tot)),sppos][sbs_tot]<-cumsum(logdiftmp_tot[sbs_tot])/(1:sum(sbs_tot))
+    eigenlst_sd_tot[1:(length(logdiftmp_tot)),sppos][sbs_tot]<-sqrt(cumsum(logdiftmp_tot[sbs_tot]^2)/(1:sum(sbs_tot))-(eigenlst_tot[1:(length(logdiftmp_tot)),sppos][sbs_tot])^2)
   }
   
   #plot results
@@ -1097,7 +1117,7 @@ estimate_eqreturn<-function(out, simtime=100, runtype="metapopulation", perturbs
   #eigenlst_sd shows standard deviation for elements in eigenlist
   #out_lst includes all simulated peturbed trajectories
   #out_lst0 includes all simulated non-perturbed trajectories (if applicable)
-  return(list(eigenlst=eigenlst, eigenlst_sd=eigenlst_sd, out_lst=out_lst, out_lst0=out_lst0))
+  return(list(eigenlst=eigenlst, eigenlst_sd=eigenlst_sd, eigenlst_tot, eigenlst_sd_tot, out_lst=out_lst, out_lst0=out_lst0))
 }
 
 
@@ -1154,15 +1174,25 @@ estimate_rarereturn<-function(out, simtime=100, burnin=100, runtype="metapopulat
   grwrare<-matrix(ncol=length(out_lst), nrow=(simtime-1))
   grwrare_sd<-matrix(ncol=length(out_lst), nrow=(simtime-1))
   
+  grwrare_tot<-matrix(ncol=length(out_lst), nrow=(simtime-1))
+  grwrare_sd_tot<-matrix(ncol=length(out_lst), nrow=(simtime-1))
+  
   #calculate growth rate for each species
   for(sppos in 1:length(out_lst)) {
     pred_grw<-out_lst[[sppos]]$output[,sppos+1]/out$plotdata$ngrid
     
+    pred_grw_tot<-rowSums(out_lst[[sppos]]$output[,-1])/out$plotdata$ngrid
+    
     #mean growth rate over time interval
     logdiftmp<-log(pred_grw[-1]/pred_grw[-length(pred_grw)])
-    grwrare[,sppos][1:length(logdiftmp)]<-cumsum(logdiftmp)/(1:(length(pred_grw)-1))
     
+    logdiftmp_tot<-log(pred_grw_tot[-1]/pred_grw_tot[-length(pred_grw_tot)])
+    
+    grwrare[,sppos][1:length(logdiftmp)]<-cumsum(logdiftmp)/(1:(length(pred_grw)-1))
     grwrare_sd[,sppos][1:length(logdiftmp)]<-sqrt(cumsum(logdiftmp^2)/(1:(length(pred_grw)-1))-(grwrare[,sppos]^2)[1:length(logdiftmp)])
+    
+    grwrare_tot[,sppos][1:length(logdiftmp_tot)]<-cumsum(logdiftmp_tot)/(1:(length(pred_grw_tot)-1))
+    grwrare_sd_tot[,sppos][1:length(logdiftmp_tot)]<-sqrt(cumsum(logdiftmp_tot^2)/(1:(length(pred_grw_tot)-1))-(grwrare_tot[,sppos]^2)[1:length(logdiftmp_tot)])
   }
   
   if(doplot) {
@@ -1196,11 +1226,11 @@ estimate_rarereturn<-function(out, simtime=100, burnin=100, runtype="metapopulat
   #grwrare_sd is matrix with standard deviations for each element in grwrare
   #out_lst is list with all simulations of growth after reintroduction
   #out0_lst is list with all simulations after population is excluded
-  return(list(grwrare=grwrare, grwrare_sd=grwrare_sd, out_lst=out_lst, out0_lst=out0_lst))
+  return(list(grwrare=grwrare, grwrare_sd=grwrare_sd, grwrare_tot=grwrare_tot, grwrare_sd_tot=grwrare_sd_tot, out_lst=out_lst, out0_lst=out0_lst))
 }
 
 
-estimate_invar<-function(out, E=0, burnin=0, Luse=0, laglst=0, niter=0, doplot=TRUE, sites_sub=0) {
+estimate_invar<-function(out, E=0, burnin=0, Luse=0, laglst=0, niter=0, doplot=TRUE, sites_sub=0, Etot=0) {
   #Calculates coefficient of variation comparing simulation dynamics to predictions based on subsets of past observations
   #Basic idea is to use a historical library of observations to predict observations n timesteps into the future
   #Theoretically, if the historical library contains enough points to define an equilibrium state, and if the system is at equilibrium,
@@ -1216,9 +1246,10 @@ estimate_invar<-function(out, E=0, burnin=0, Luse=0, laglst=0, niter=0, doplot=T
   #doplot is binary variable that determines whether or not results are plotted
   #sites_sub includes subset of sites to use. Defaults to zero, which includes all sites.
   
-  if(sum(E)==0) {
+  if((sum(E)==0) || (sum(Etot)==0)) {
     tmp<-getE(out)
     E<-tmp$Eout
+    Etot<-tmp$Eout_tot
   }
   
   if(sum(Luse)==0) {
@@ -1226,11 +1257,15 @@ estimate_invar<-function(out, E=0, burnin=0, Luse=0, laglst=0, niter=0, doplot=T
   }
   
   #exclude windows that are too long to test any reasonable lag lengths
-  Luse<-Luse[Luse<((nrow(out$output)-burnin-max(E))/2)]
+  Luse<-Luse[Luse<((nrow(out$output)-burnin-max(c(E)))/2)]
   
   #if only one E is given, expand to include one entry per species
   if(length(E)==1) {
     E<-rep(E, length(out$plotdata$ceq))
+  }
+  
+  if(length(Etot)==1) {
+    Etot<-rep(Etot, length(out$plotdata$ceq))
   }
   
   #extract data if spatial subset is being analyzed
@@ -1246,7 +1281,11 @@ estimate_invar<-function(out, E=0, burnin=0, Luse=0, laglst=0, niter=0, doplot=T
   pdL_list<-NULL
   pdlag_list<-NULL
   
+  pdL_list_tot<-NULL
+  pdlag_list_tot<-NULL
+  
   for(i in 1:length(out$plotdata$ceq)) {
+    #### Individual species
     #for each species, first identify best window size to use
     pdL_list[[i]]<-predict_vs_L(out$output[,i+1], E=E[i], burnin=burnin, Luse=Luse, niter=niter, doplot=FALSE)
     Lusetmp<-pdL_list[[i]]$Lmin
@@ -1261,6 +1300,18 @@ estimate_invar<-function(out, E=0, burnin=0, Luse=0, laglst=0, niter=0, doplot=T
     
     #use selected window size and lags to test predictive power of training and testing sets
     pdlag_list[[i]]<-test_predict_tlag(out$output[,i+1], Luse=Lusetmp, E=E[i], burnin=burnin, laglst=laglst_use, niter=niter, doplot=FALSE)
+    
+    
+    
+    #### Total biomass
+    #for total, first identify best window size to use
+    rstmp<-rowSums(out$output[,-1])
+    
+    pdL_list_tot[[i]]<-predict_vs_L(rstmp, E=Etot[i], burnin=burnin, Luse=Luse, niter=niter, doplot=FALSE)
+    Lusetmp_tot<-pdL_list_tot[[i]]$Lmin
+    
+    #use selected window size and lags to test predictive power of training and testing sets
+    pdlag_list_tot[[i]]<-test_predict_tlag(rstmp, Luse=Lusetmp_tot, E=Etot[i], burnin=burnin, laglst=laglst_use, niter=niter, doplot=FALSE)
   }
   
   if(doplot) {
@@ -1296,7 +1347,7 @@ estimate_invar<-function(out, E=0, burnin=0, Luse=0, laglst=0, niter=0, doplot=T
 
   #pdL_list includees results from window size selection
   #pdlag_list incudes results for CV for each lag
-  return(list(pdL_list=pdL_list, pdlag_list=pdlag_list))
+  return(list(pdL_list=pdL_list, pdlag_list=pdlag_list, pdL_list_tot=pdL_list_tot, pdlag_list_tot=pdlag_list_tot))
 }
 
 
@@ -1326,6 +1377,18 @@ getE<-function(out, Elst=2:10, doplot=FALSE, sites_sub=0) {
     Eout[i]<-Elst[min(which((max(simplout[[i]]$rho)-simplout[[i]]$rho)/diff(range(simplout[[i]]$rho))<0.1))]
   }
   
+  #run simplex algorithm for each species
+  Eout_tot<-numeric(length(out$plotdata$ceq))
+  simplout_tot<-NULL
+  for(i in 1:length(Eout)) {
+    simplout_tot[[i]]<-suppressWarnings(simplex(rowSums(out$output[,-1]), E=Elst))
+    
+    #selects "best" E, which is the smallest E for which the difference between rho and the maximum
+    #rho observed is smaller than 10% of the total range observed across all rho values.
+    #this is an ad-hoc method meant to help find the "saturation" point
+    Eout_tot[i]<-Elst[min(which((max(simplout_tot[[i]]$rho)-simplout_tot[[i]]$rho)/diff(range(simplout_tot[[i]]$rho))<0.1))]
+  }
+  
   if(doplot) {
     #if plotting is desired, plot actual relationshisp for rho vs. E for each species
     rng<-c(NA, NA)
@@ -1344,7 +1407,7 @@ getE<-function(out, Elst=2:10, doplot=FALSE, sites_sub=0) {
   
   #Eout is a vector with the best E for each species
   #simplout includes all rho for all E and species
-  return(list(Eout=Eout, simplout=simplout))
+  return(list(Eout=Eout, simplout=simplout, Eout_tot=Eout_tot, simplout_tot=simplout_tot))
 }
 
 
@@ -1508,6 +1571,10 @@ test_predict_tlag<-function(outcol, Luse, E=1, burnin=0, laglst=0, niter=0, dopl
 ########################################
 
 runpar<-function(...) {
+  ##TODO: Think about extracting Luse for invar as well as laguse.
+  ##TODO: Make sure to extract results for total population as well
+  
+  
   #Function to automate stability tests across models
   #Is embarrassingly parallel, and can be used to iterate runs
   
