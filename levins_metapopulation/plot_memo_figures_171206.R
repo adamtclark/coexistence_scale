@@ -7,6 +7,7 @@ require(rEDM)
 source("run_metapopulation_wrapper.R")
 require(RColorBrewer)
 source("~/Dropbox/Rfunctions/figure_functions.R")
+source("~/Dropbox/Rfunctions/logit_funs.R")
 
 #plotting offsets
 ofs1<-c(0.075, -0.04)
@@ -18,7 +19,7 @@ gridout<-makegrid(xlng = 100, ylng = 100)
 xfac<-5
 ptb<-0.1
 collst<-c("black", brewer.pal(4, "Dark2"))
-
+collst2<-adjustcolor(c("blue", "red", "black"), alpha.f = 0.8)
 
 ############################################################
 # "Global" run
@@ -44,6 +45,8 @@ getEmeta<-getE(out_meta_long, Elst = 2:10)
 E_meta<-getEmeta$Eout
 
 invar_meta<-estimate_invar(out_meta_long, E=E_meta, burnin=0, doplot=FALSE)
+
+beta_meta<-beta_estimate(out=out_meta, outlng = out_meta_long, Emat = E_meta, eigout = eig_meta2, r0out = r0_meta, burnin = 10)
 
 pdf("figures/memo_171206/levis_map.pdf", width=5, height=5, colormodel = "cmyk")
 par(mar=c(2,2,2,2), oma=c(2,2,0,0))
@@ -78,7 +81,7 @@ E_neut<-getEneut$Eout
 
 invar_neut<-estimate_invar(out_neut_long, E=E_neut, burnin=0, doplot=FALSE)
 
-
+beta_neut<-beta_estimate(out=out_neut, outlng = out_neut_long, Emat = E_neut, eigout = eig_neut2, r0out = r0_neut, burnin = 10)
 
 ##### Try disturbance model
 set.seed(171217)
@@ -107,6 +110,7 @@ invar_dist<-estimate_invar(out_dist_long, E=E_dist, burnin=100, doplot=FALSE)
 
 out_dist_nodist<-run_metapopulation(tmax=200, gridout = gridout, population = population_dist, talktime = 0, runtype = "metapopulation")
 
+beta_dist<-beta_estimate(out=out_dist, outlng = out_dist_long, Emat = E_dist, eigout = eig_dist2, r0out = r0_dist, burnin = 10)
 
 ##### Try psf model
 set.seed(180108)
@@ -129,6 +133,8 @@ getEpsf<-getE(out_psf_long, Elst = 2:10)
 E_psf<-getEpsf$Eout
 
 invar_psf<-estimate_invar(out_psf_long, E=E_psf, burnin=100, doplot=FALSE)
+
+beta_psf<-beta_estimate(out=out_psf, outlng = out_psf_long, Emat = E_psf, eigout = eig_psf2, r0out = r0_psf, burnin = 10)
 
 
 ##### Try rps model
@@ -158,7 +164,7 @@ E_rps<-getErps$Eout
 
 invar_rps<-estimate_invar(out_rps_long, E=E_rps, burnin=0, doplot=FALSE)
 
-
+beta_rps<-beta_estimate(out=out_rps, outlng = out_rps_long, Emat = E_rps, eigout = eig_rps2, r0out = r0_rps, burnin = 10)
 
 
 
@@ -1016,6 +1022,89 @@ dev.off()
 
 
 
+#Plot beta, Levins
+hlst<-c(1, 0.5, 0.2, 0.1, 0.05, 0.02, 0.01, 0.005, 0.002, 0.001)
+
+pdf("figures/memo_171206/beta_levins.pdf", width=5, height=4, colormodel = "cmyk")
+par(mar=c(2,2,2,2), oma=c(2,4,0,0))
+m<-1
+layout(m)
+tmp<-beta_meta
+
+matplot(1:nrow(tmp$beta_eig), cbind(rowMeans(tmp$beta_eig), rowMeans(tmp$beta_r0), rowMeans(tmp$beta_0)), type="l", lty=1, col=collst2, lwd=1.5, xlab="", ylab="", xaxs="i", log="y", axes=F)
+abline(h=hlst, col=1, lty=3, lwd=1)
+mtext("time", 1, line=2.3, cex=1.1)
+mtext(expression(italic("CV")), 2, line=3.8, cex=1.1)
+
+axis(1); axis(2, las=2); box()
+dev.off()
+
+#Plot beta, Neutral
+pdf("figures/memo_171206/beta_neut.pdf", width=5, height=4, colormodel = "cmyk")
+par(mar=c(2,2,2,2), oma=c(2,4,0,0))
+m<-1
+layout(m)
+tmp<-beta_neut
+
+matplot(1:nrow(tmp$beta_eig), cbind(rowMeans(tmp$beta_eig), rowMeans(tmp$beta_r0), rowMeans(tmp$beta_0)), type="l", lty=1, col=collst2, lwd=1.5, xlab="", ylab="", xaxs="i", log="y", axes=F)
+abline(h=hlst, col=1, lty=3, lwd=1)
+mtext("time", 1, line=2.3, cex=1.1)
+mtext(expression(italic("CV")), 2, line=3.8, cex=1.1)
+
+axis(1); axis(2, las=2); box()
+dev.off()
+
+#Plot beta, Dist
+pdf("figures/memo_171206/beta_dist.pdf", width=5, height=4, colormodel = "cmyk")
+par(mar=c(2,2,2,2), oma=c(2,4,0,0))
+m<-1
+layout(m)
+tmp<-beta_dist
+
+matplot(1:nrow(tmp$beta_eig), cbind(rowMeans(tmp$beta_eig), rowMeans(tmp$beta_r0), rowMeans(tmp$beta_0)), type="l", lty=1, col=collst2, lwd=1.5, xlab="", ylab="", xaxs="i", log="y", axes=F)
+abline(h=hlst, col=1, lty=3, lwd=1)
+mtext("time", 1, line=2.3, cex=1.1)
+mtext(expression(italic("CV")), 2, line=3.8, cex=1.1)
+
+axis(1); axis(2, las=2); box()
+dev.off()
+
+#Plot beta, psf
+pdf("figures/memo_171206/beta_psf.pdf", width=5, height=4, colormodel = "cmyk")
+par(mar=c(2,2,2,2), oma=c(2,4,0,0))
+m<-1
+layout(m)
+tmp<-beta_psf
+
+matplot(1:nrow(tmp$beta_eig), cbind(rowMeans(tmp$beta_eig), rowMeans(tmp$beta_r0), rowMeans(tmp$beta_0)), type="l", lty=1, col=collst2, lwd=1.5, xlab="", ylab="", xaxs="i", log="y", axes=F)
+abline(h=hlst, col=1, lty=3, lwd=1)
+mtext("time", 1, line=2.3, cex=1.1)
+mtext(expression(italic("CV")), 2, line=3.8, cex=1.1)
+
+axis(1); axis(2, las=2); box()
+dev.off()
+
+#Plot beta, rps
+pdf("figures/memo_171206/beta_rps.pdf", width=5, height=4, colormodel = "cmyk")
+par(mar=c(2,2,2,2), oma=c(2,4,0,0))
+m<-1
+layout(m)
+tmp<-beta_rps
+
+matplot(1:nrow(tmp$beta_eig), cbind(rowMeans(tmp$beta_eig), rowMeans(tmp$beta_r0), rowMeans(tmp$beta_0)), type="l", lty=1, col=collst2, lwd=1.5, xlab="", ylab="", xaxs="i", log="y", axes=F)
+abline(h=hlst, col=1, lty=3, lwd=1)
+mtext("time", 1, line=2.3, cex=1.1)
+mtext(expression(italic("CV")), 2, line=3.8, cex=1.1)
+
+axis(1); axis(2, las=2); box()
+dev.off()
+
+
+
+
+
+
+
 
 
 
@@ -1054,6 +1143,8 @@ E_meta<-getEmeta$Eout
 
 invar_meta<-estimate_invar(out_meta_long, E=E_meta, burnin=0, doplot=FALSE, sites_sub = grid_sub$sites)
 
+beta_meta<-beta_estimate(out=out_meta, outlng = out_meta_long, Emat = E_meta, eigout = eig_meta2, r0out = r0_meta, burnin = 10)
+
 
 ##### Try Hubbell neutal model
 set.seed(171206)
@@ -1071,6 +1162,8 @@ getEneut<-getE(out_neut_long, Elst = 2:10, sites_sub = grid_sub$sites)
 E_neut<-getEneut$Eout
 
 invar_neut<-estimate_invar(out_neut_long, E=E_neut, burnin=0, doplot=FALSE, sites_sub = grid_sub$sites)
+
+beta_neut<-beta_estimate(out=out_neut, outlng = out_neut_long, Emat = E_neut, eigout = eig_neut2, r0out = r0_neut, burnin = 10)
 
 
 ##### Try disturbance model
@@ -1092,6 +1185,7 @@ E_dist<-getEdist$Eout
 
 invar_dist<-estimate_invar(out = out_dist_long, E=E_dist, burnin=100, doplot=FALSE, sites_sub = grid_sub$sites)
 
+beta_dist<-beta_estimate(out=out_dist, outlng = out_dist_long, Emat = E_dist, eigout = eig_dist2, r0out = r0_dist, burnin = 10)
 
 
 
@@ -1112,6 +1206,7 @@ E_psf<-getEpsf$Eout
 
 invar_psf<-estimate_invar(out_psf_long, E=E_psf, burnin=100, doplot=FALSE, sites_sub = grid_sub$sites)
 
+beta_psf<-beta_estimate(out=out_psf, outlng = out_psf_long, Emat = E_psf, eigout = eig_psf2, r0out = r0_psf, burnin = 10)
 
 
 
@@ -1132,6 +1227,7 @@ E_rps<-getErps$Eout
 
 invar_rps<-estimate_invar(out_rps_long, E=E_rps, burnin=100, doplot=FALSE, sites_sub = grid_sub$sites)
 
+beta_rps<-beta_estimate(out=out_rps, outlng = out_rps_long, Emat = E_rps, eigout = eig_rps2, r0out = r0_rps, burnin = 10)
 
 
 
@@ -1886,5 +1982,83 @@ dev.off()
 
 
 
+
+
+
+
+#Plot beta, Levins
+pdf("figures/memo_171206/beta_levins_subsp.pdf", width=5, height=4, colormodel = "cmyk")
+par(mar=c(2,2,2,2), oma=c(2,4,0,0))
+m<-1
+layout(m)
+tmp<-beta_meta
+
+matplot(1:nrow(tmp$beta_eig), cbind(rowMeans(tmp$beta_eig), rowMeans(tmp$beta_r0), rowMeans(tmp$beta_0)), type="l", lty=1, col=collst2, lwd=1.5, xlab="", ylab="", xaxs="i", log="y", axes=F)
+abline(h=hlst, col=1, lty=3, lwd=1)
+mtext("time", 1, line=2.3, cex=1.1)
+mtext(expression(italic("CV")), 2, line=3.8, cex=1.1)
+
+axis(1); axis(2, las=2); box()
+dev.off()
+
+#Plot beta, Neutral
+pdf("figures/memo_171206/beta_neut_subsp.pdf", width=5, height=4, colormodel = "cmyk")
+par(mar=c(2,2,2,2), oma=c(2,4,0,0))
+m<-1
+layout(m)
+tmp<-beta_neut
+
+matplot(1:nrow(tmp$beta_eig), cbind(rowMeans(tmp$beta_eig), rowMeans(tmp$beta_r0), rowMeans(tmp$beta_0)), type="l", lty=1, col=collst2, lwd=1.5, xlab="", ylab="", xaxs="i", log="y", axes=F)
+abline(h=hlst, col=1, lty=3, lwd=1)
+mtext("time", 1, line=2.3, cex=1.1)
+mtext(expression(italic("CV")), 2, line=3.8, cex=1.1)
+
+axis(1); axis(2, las=2); box()
+dev.off()
+
+#Plot beta, Dist
+pdf("figures/memo_171206/beta_dist_subsp.pdf", width=5, height=4, colormodel = "cmyk")
+par(mar=c(2,2,2,2), oma=c(2,4,0,0))
+m<-1
+layout(m)
+tmp<-beta_dist
+
+matplot(1:nrow(tmp$beta_eig), cbind(rowMeans(tmp$beta_eig), rowMeans(tmp$beta_r0), rowMeans(tmp$beta_0)), type="l", lty=1, col=collst2, lwd=1.5, xlab="", ylab="", xaxs="i", log="y", axes=F)
+abline(h=hlst, col=1, lty=3, lwd=1)
+mtext("time", 1, line=2.3, cex=1.1)
+mtext(expression(italic("CV")), 2, line=3.8, cex=1.1)
+
+axis(1); axis(2, las=2); box()
+dev.off()
+
+#Plot beta, psf
+pdf("figures/memo_171206/beta_psf_subsp.pdf", width=5, height=4, colormodel = "cmyk")
+par(mar=c(2,2,2,2), oma=c(2,4,0,0))
+m<-1
+layout(m)
+tmp<-beta_psf
+
+matplot(1:nrow(tmp$beta_eig), cbind(rowMeans(tmp$beta_eig), rowMeans(tmp$beta_r0), rowMeans(tmp$beta_0)), type="l", lty=1, col=collst2, lwd=1.5, xlab="", ylab="", xaxs="i", log="y", axes=F)
+abline(h=hlst, col=1, lty=3, lwd=1)
+mtext("time", 1, line=2.3, cex=1.1)
+mtext(expression(italic("CV")), 2, line=3.8, cex=1.1)
+
+axis(1); axis(2, las=2); box()
+dev.off()
+
+#Plot beta, rps
+pdf("figures/memo_171206/beta_rps_subsp.pdf", width=5, height=4, colormodel = "cmyk")
+par(mar=c(2,2,2,2), oma=c(2,4,0,0))
+m<-1
+layout(m)
+tmp<-beta_rps
+
+matplot(1:nrow(tmp$beta_eig), cbind(rowMeans(tmp$beta_eig), rowMeans(tmp$beta_r0), rowMeans(tmp$beta_0)), type="l", lty=1, col=collst2, lwd=1.5, xlab="", ylab="", xaxs="i", log="y", axes=F)
+abline(h=hlst, col=1, lty=3, lwd=1)
+mtext("time", 1, line=2.3, cex=1.1)
+mtext(expression(italic("CV")), 2, line=3.8, cex=1.1)
+
+axis(1); axis(2, las=2); box()
+dev.off()
 
 

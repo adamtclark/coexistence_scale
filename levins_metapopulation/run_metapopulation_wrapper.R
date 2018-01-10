@@ -1356,6 +1356,79 @@ estimate_invar<-function(out, E=0, burnin=0, Luse=0, laglst=0, niter=0, doplot=T
   return(list(pdL_list=pdL_list, pdlag_list=pdlag_list, pdL_list_tot=pdL_list_tot, pdlag_list_tot=pdlag_list_tot))
 }
 
+beta_estimate<-function(out, outlng, eigout, r0out, Emat, burnin=0) {
+  #Estimate community change (i.e. CV per species) after each type of disturbance
+  #Inputs are outputs from other methods
+  
+  #check whether this is a spatial sim: if so, adapt script
+  if(sum(out$sites_sub)!=0) {
+    colnm<-"output_spatial"
+  } else {
+    colnm<-"output"
+  }
+  
+  nsp<-ncol(out[[colnm]])-1
+  
+  #Get predictions for eigen (i.e. pre vs. post disturbance)
+  predmat_eig<-matrix(nrow=nrow(eigout$out_lst[[1]][[colnm]]), ncol=nsp)
+  obsmat_eig<-predmat_eig
+  
+  for(i in 1:nsp) {
+    tmp<-c(out[[colnm]][-c(1:burnin),i+1], eigout$out_lst[[i]][[colnm]][,i+1])
+    rws<-rbind(c(1, nrow(out[[colnm]])-burnin),
+               c(1, nrow(eigout$out_lst[[i]][[colnm]]))+nrow(out[[colnm]])-burnin)
+    predtmp<-simplex(tmp, lib=rws[1,], pred=rws[2,], E = Emat[i], stats_only = FALSE)
+    
+    dmtmp<-dim(predtmp$model_output[[1]])
+    
+    predmat_eig[1:dmtmp[1],i]<-predtmp$model_output[[1]]$pred
+    obsmat_eig[1:dmtmp[1],i]<-predtmp$model_output[[1]]$obs
+  }
+  beta_eig<-sqrt((predmat_eig-obsmat_eig)^2)/predmat_eig
+  
+  #Get predictions for r0 (i.e. pre removal vs. post introduction)
+  predmat_r0<-matrix(nrow=nrow(r0out$out_lst[[1]][[colnm]]), ncol=nsp)
+  obsmat_r0<-predmat_r0
+  
+  for(i in 1:nsp) {
+    tmp<-c(out[[colnm]][-c(1:burnin),i+1], r0out$out_lst[[i]][[colnm]][,i+1])
+    rws<-rbind(c(1, nrow(out[[colnm]])-burnin),
+               c(1, nrow(r0out$out_lst[[i]][[colnm]]))+nrow(out[[colnm]])-burnin)
+    predtmp<-simplex(tmp, lib=rws[1,], pred=rws[2,], E = Emat[i], stats_only = FALSE)
+    
+    dmtmp<-dim(predtmp$model_output[[1]])
+    
+    predmat_r0[1:dmtmp[1],i]<-predtmp$model_output[[1]]$pred
+    obsmat_r0[1:dmtmp[1],i]<-predtmp$model_output[[1]]$obs
+  }
+  beta_r0<-sqrt((predmat_r0-obsmat_r0)^2)/predmat_r0
+  
+  #Get null predictions (i.e. two positions in the long time series)
+  predmat_0<-matrix(nrow=mean(nrow(predmat_eig), nrow(predmat_r0)), ncol=nsp)
+  obsmat_0<-predmat_0
+  
+  ind1<-(burnin+1):nrow(out[[colnm]])
+  ind2<-(nrow(out[[colnm]])+1):(nrow(out[[colnm]])+nrow(predmat_0))
+  for(i in 1:nsp) {
+    tmp<-c(outlng[[colnm]][ind1,i+1], outlng[[colnm]][ind2,i+1])
+    rws<-rbind(c(1, nrow(out[[colnm]])-burnin),
+               c(nrow(out[[colnm]])-burnin+1, length(tmp)))
+    predtmp<-simplex(tmp, lib=rws[1,], pred=rws[2,], E = Emat[i], stats_only = FALSE)
+    
+    dmtmp<-dim(predtmp$model_output[[1]])
+    
+    predmat_0[1:dmtmp[1],i]<-predtmp$model_output[[1]]$pred
+    obsmat_0[1:dmtmp[1],i]<-predtmp$model_output[[1]]$obs
+  }
+  beta_0<-sqrt((predmat_0-obsmat_0)^2)/predmat_0
+  
+  #"Beta" for each case is a list of CV values for each type of test (one column per species)
+  return(list(beta_eig=beta_eig, beta_r0=beta_r0, beta_0=beta_0,
+              preds=list(predmat_eig=predmat_eig, predmat_r0=predmat_r0, predmat_0=predmat_0),
+              obss=list(obsmat_eig=obsmat_eig, obsmat_r0=obsmat_r0, obsmat_0=obsmat_0)))
+}
+
+
 
 
 
