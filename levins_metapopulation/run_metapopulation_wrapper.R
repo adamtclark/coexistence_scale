@@ -622,10 +622,22 @@ rerunrun_metapopulation<-function(out, tmax, nsteps=tmax, talktime=1, runtype="m
       for(i in 1:(nprt_cyc-1)) {
         #extract output from previous run
         outtmp<-matrix(cout$output, nrow=nsteps_sub+1)
+        
+        if(sum(outtmp, na.rm=T)==0) {
+          outtmp[,1]<-1:nrow(outtmp)
+          outtmp<-outtmp[1:(nrow(outtmp)-1),]
+        }
+        
         outtmp<-outtmp[outtmp[,1]!=0 | (1:nrow(outtmp))==1,]
         
         #extract subset output from previous run
         out_spatial<-matrix(cout$output_sub, nrow=nsteps_sub+1)
+        
+        if(sum(out_spatial, na.rm=T)==0) {
+          out_spatial[,1]<-1:nrow(out_spatial)
+          out_spatial<-out_spatial[1:(nrow(out_spatial)-1),]
+        }
+        
         out_spatial<-out_spatial[out_spatial[,1]!=0 | (1:nrow(out_spatial))==1,]
         
         #create temporary list for re-run
@@ -1148,8 +1160,17 @@ estimate_rarereturn<-function(out, simtime=100, burnin=100, runtype="metapopulat
     pt<-rep(0, length(out$plotdata$ceq))
     pt[i]<-1
     
+    #if simulation is a disturbance simulation, update briefly to standard metapopulation
+    #this will make sure that disturbance events occur at the right time
+    if(runtype %in% c("disturbance")) {
+      tmptyp<-"metapopulation"
+      tmp<-rerunrun_metapopulation(out=out, tmax=0, runtype = tmptyp, perturb=prt, perturbsites=1:out$plotdata$ngrid, talktime=0, sites_sub=sites_sub)
+    } else {
+      tmp<-out
+    }
+    
     #rerun with species excluded
-    tmp<-rerunrun_metapopulation(out=out, tmax=burnin, runtype = runtype, perturb=pt, perturbsites=perturbsites, talktime=0, sites_sub=sites_sub, prt=prt, prtfrq=prtfrq, habitatdestructsites = perturbsites, habitatdestruct_species = pt)
+    tmp<-rerunrun_metapopulation(out=tmp, tmax=burnin, runtype = runtype, perturb=pt, perturbsites=perturbsites, talktime=0, sites_sub=sites_sub, prt=prt, prtfrq=prtfrq, habitatdestructsites = perturbsites, habitatdestruct_species = pt)
     out0_lst[[i]]<-tmp
     
     #now, add species back in
@@ -1157,7 +1178,7 @@ estimate_rarereturn<-function(out, simtime=100, burnin=100, runtype="metapopulat
     at[i]<-add_amount
     
     #if simulation is a disturbance simulation, update briefly to standard metapopulation
-    #this will prevent a disturbance from wiping out added individuals right after introduction
+    #this will make sure that disturbance events occur at the right time
     if(runtype %in% c("disturbance")) {
       tmptyp<-"metapopulation"
       tmp<-rerunrun_metapopulation(out=tmp, tmax=0, runtype = tmptyp, perturb=prt, perturbsites=1:tmp$plotdata$ngrid, talktime=0, sites_sub=sites_sub)
