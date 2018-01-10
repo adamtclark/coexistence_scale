@@ -268,7 +268,7 @@ run_metapopulation<-function(tmax, nsteps=tmax, gridout, population, talktime=1,
     #create extra output data for disturbance
     if(runtype%in%c("disturbance")) {
       tmax_sub<-prtfrq
-      nprt_cyc<-round(tmax/prtfrq)
+      nprt_cyc<-ceiling(tmax/prtfrq)
       nsteps_sub<-tmax_sub
       
       output<-numeric((nsteps_sub+1)*(nsp+1))
@@ -314,7 +314,7 @@ run_metapopulation<-function(tmax, nsteps=tmax, gridout, population, talktime=1,
         ceq<-numeric(nsp)
         plotdata<-list(ceq=ceq, ngrid=ngrid)
         
-        for(i in 1:(nprt_cyc-1)) {
+        for(i in 1:(nprt_cyc)) {
           #extract output from previous run
           out<-matrix(cout$output, nrow=nsteps_sub+1)
           out<-out[out[,1]!=0 | (1:nrow(out))==1,]
@@ -336,12 +336,14 @@ run_metapopulation<-function(tmax, nsteps=tmax, gridout, population, talktime=1,
           #add compmat (unused, just needed for error check)
           out_tmp$compmat<-compmat
           
-          #rerun to next disturbance event
-          #(see script for description of variables)
-          out_rerun<-rerunrun_metapopulation(out_tmp, tmax_sub, nsteps=tmax_sub, talktime=0, runtype="metapopulation", perturb=prt, sites_sub = sites_sub)
-          cout<-out_rerun$full
-          
-          cout_lst[[1+i]]<-cout
+          if(i!=nprt_cyc) {
+            #rerun to next disturbance event
+            #(see script for description of variables)
+            out_rerun<-rerunrun_metapopulation(out_tmp, tmax_sub, nsteps=tmax_sub, talktime=0, runtype="metapopulation", perturb=prt, sites_sub = sites_sub)
+            cout<-out_rerun$full
+            
+            cout_lst[[1+i]]<-cout
+          }
         }
         #save outputs to regular names
         out<-output_tot
@@ -559,7 +561,7 @@ rerunrun_metapopulation<-function(out, tmax, nsteps=tmax, talktime=1, runtype="m
   #create extra output data for disturbance
   if(runtype%in%c("disturbance")) {
     tmax_sub<-prtfrq
-    nprt_cyc<-round(tmax/prtfrq)
+    nprt_cyc<-ceiling(tmax/prtfrq)
     nsteps_sub<-tmax_sub
     
     output<-numeric((nsteps_sub+1)*(out$full$pnsp+1))
@@ -619,7 +621,7 @@ rerunrun_metapopulation<-function(out, tmax, nsteps=tmax, talktime=1, runtype="m
       ceq<-numeric(nsp)
       plotdata<-list(ceq=ceq, ngrid=ngrid)
       
-      for(i in 1:(nprt_cyc-1)) {
+      for(i in 1:(nprt_cyc)) {
         #extract output from previous run
         outtmp<-matrix(cout$output, nrow=nsteps_sub+1)
         
@@ -654,12 +656,14 @@ rerunrun_metapopulation<-function(out, tmax, nsteps=tmax, talktime=1, runtype="m
         #compmat - not used, but needed for error check
         out_tmp$compmat<-compmat
         
-        #rerun to next disturbance event
-        #(see script for description of variables)
-        out_rerun<-rerunrun_metapopulation(out_tmp, tmax_sub, nsteps=tmax_sub, talktime=0, runtype="metapopulation", perturb=prt, sites_sub = sites_sub, habitatdestructsites=habitatdestructsites, habitatdestruct_species=habitatdestruct_species)
-        cout<-out_rerun$full
-        
-        cout_lst[[1+i]]<-cout
+        if(i!=nprt_cyc) {
+          #rerun to next disturbance event
+          #(see script for description of variables)
+          out_rerun<-rerunrun_metapopulation(out_tmp, tmax_sub, nsteps=tmax_sub, talktime=0, runtype="metapopulation", perturb=prt, sites_sub = sites_sub, habitatdestructsites=habitatdestructsites, habitatdestruct_species=habitatdestruct_species)
+          cout<-out_rerun$full
+          
+          cout_lst[[1+i]]<-cout
+        }
       }
       #save outputs to regular names
       outnew<-output_tot
@@ -1160,14 +1164,7 @@ estimate_rarereturn<-function(out, simtime=100, burnin=100, runtype="metapopulat
     pt<-rep(0, length(out$plotdata$ceq))
     pt[i]<-1
     
-    #if simulation is a disturbance simulation, update briefly to standard metapopulation
-    #this will make sure that disturbance events occur at the right time
-    if(runtype %in% c("disturbance")) {
-      tmptyp<-"metapopulation"
-      tmp<-rerunrun_metapopulation(out=out, tmax=0, runtype = tmptyp, perturb=prt, perturbsites=1:out$plotdata$ngrid, talktime=0, sites_sub=sites_sub)
-    } else {
-      tmp<-out
-    }
+    tmp<-out
     
     #rerun with species excluded
     tmp<-rerunrun_metapopulation(out=tmp, tmax=burnin, runtype = runtype, perturb=pt, perturbsites=perturbsites, talktime=0, sites_sub=sites_sub, prt=prt, prtfrq=prtfrq, habitatdestructsites = perturbsites, habitatdestruct_species = pt)
