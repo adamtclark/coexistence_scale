@@ -1298,10 +1298,10 @@ estimate_invar<-function(out, E=0, burnin=0, Luse=0, laglst=0, niter=0, doplot=T
     
     #select appropriate lag list, or test that user provided bounds are reasonable
     if(sum(laglst)==0) {
-      laglst_use<-c(floor((seq((0), ((nrow(out$output)-burnin-Lusetmp)), length=20))))
+      laglst_use<-c(floor((seq((0), ((nrow(out$output)-burnin-Lusetmp-E[i])), length=20))))
     } else {
       laglst_use<-laglst
-      laglst_use<-laglst_use[laglst_use<=((nrow(out$output)-burnin-Lusetmp))]
+      laglst_use<-laglst_use[laglst_use<=((nrow(out$output)-burnin-Lusetmp-E[i]))]
     }
     
     #use selected window size and lags to test predictive power of training and testing sets
@@ -1315,6 +1315,14 @@ estimate_invar<-function(out, E=0, burnin=0, Luse=0, laglst=0, niter=0, doplot=T
     
     pdL_list_tot[[i]]<-predict_vs_L(rstmp, E=Etot[i], burnin=burnin, Luse=Luse, niter=niter, doplot=FALSE)
     Lusetmp_tot<-pdL_list_tot[[i]]$Lmin
+    
+    #select appropriate lag list, or test that user provided bounds are reasonable
+    if(sum(laglst)==0) {
+      laglst_use<-c(floor((seq((0), ((nrow(out$output)-burnin-Lusetmp_tot)), length=20))))
+    } else {
+      laglst_use<-laglst
+      laglst_use<-laglst_use[laglst_use<=((nrow(out$output)-burnin-Lusetmp_tot))]
+    }
     
     #use selected window size and lags to test predictive power of training and testing sets
     pdlag_list_tot[[i]]<-test_predict_tlag(rstmp, Luse=Lusetmp_tot, E=Etot[i], burnin=burnin, laglst=laglst_use, niter=niter, doplot=FALSE)
