@@ -10,7 +10,6 @@ source("~/Dropbox/Rfunctions/figure_functions.R")
 source("~/Dropbox/Rfunctions/logit_funs.R")
 
 #plotting offsets
-ofs2<-c(0.075, -0.09)
 ofs3<-c(0.075, -0.090)
 
 #starting parameters
@@ -46,18 +45,16 @@ eig_meta2<-estimate_eqreturn(out_meta, simtime=tsim, runtype="metapopulation", r
 
 r0_meta<-estimate_rarereturn(eig_meta1$out_lst0, simtime=tsim, burnin=tsim, runtype="metapopulation", doplot = FALSE)
 
-if(FALSE) {
-  set.seed(171205)
-  out_meta_long<-run_metapopulation(tmax=1000, gridout = gridout, population = population_meta, talktime = 0)
+set.seed(171205)
+out_meta_long<-run_metapopulation(tmax=1000, gridout = gridout, population = population_meta, talktime = 0)
   
-  getEmeta<-getE(out_meta_long, Elst = 2:10)
-  E_meta<-getEmeta$Eout
-  E_meta_tot<-getEmeta$Eout_tot
+getEmeta<-getE(out_meta_long, Elst = 2:10)
+E_meta<-getEmeta$Eout
+E_meta_tot<-getEmeta$Eout_tot
   
-  invar_meta<-estimate_invar(out = out_meta_long, E=E_meta, burnin=0, doplot=FALSE, Etot = E_meta_tot, niter = 0)
+invar_meta<-estimate_invar(out = out_meta_long, E=E_meta, burnin=0, doplot=FALSE, Etot = E_meta_tot, niter = 0)
   
-  beta_meta<-beta_estimate(out=out_meta, outlng = out_meta_long, Emat = E_meta, eigout = eig_meta2, r0out = r0_meta, burnin = 100)
-}
+beta_meta<-beta_estimate(out=out_meta, outlng = out_meta_long, Emat = E_meta, eigout = eig_meta2, r0out = r0_meta, burnin = 100)
 
 ##### Hubbell neutal model
 set.seed(1712010)
@@ -216,7 +213,7 @@ modplotfun<-function(out, eigout, r0out, collst, burnin=0, doceq=0, plotpos=1, a
   tmp_r0<-cbind(tmp_r0[,1], rowSums(tmp_r0[,-1]), tmp_r0[,-1])
   
   #combine
-  abunds<-rbind(abunds, tmp_eig, rep(NA, ncol(abunds)), tmp_eig_0[nrow(tmp_eig_0),], tmp_r0_0, tmp_r0)
+  abunds<-rbind(abunds, tmp_eig, rep(NA, ncol(abunds)), tmp_eig[nrow(tmp_eig),], tmp_r0_0, tmp_r0)
   
   pabunds<-abunds/out$plotdata$ngrid
   pabunds[,1]<-abunds[,1]
@@ -280,13 +277,13 @@ text(200, mxt, "1. peturbation", xpd=NA, srt=40, adj = c(0,0), cex=1.8)
 text(400, mxt, "2. removal", xpd=NA, srt=40, adj = c(0,0), cex=1.8)
 text(600, mxt, "3. invasion", xpd=NA, srt=40, adj = c(0,0), cex=1.8)
 
-tmp<-modplotfun(out=out_rps, eigout=eig_rps2, r0out=r0_rps, collst=collst, burnin=100, doceq=1, atsq=atsq)
+tmp<-modplotfun(out=out_dist, eigout=eig_dist2, r0out=r0_dist, collst=collst[c(1,3,2)], burnin=100, doceq=1, plotpos = 2, atsq=atsq)
 put.fig.letter("b.", "topleft", offset=ofs1, cex=fcx)
 
 tmp<-modplotfun(out=out_psf, eigout=eig_psf2, r0out=r0_psf, collst=collst, burnin=100, doceq=0, atsq=atsq)
 put.fig.letter("c.", "topleft", offset=ofs1, cex=fcx)
 
-tmp<-modplotfun(out=out_dist, eigout=eig_dist2, r0out=r0_dist, collst=collst[c(1,3,2)], burnin=100, doceq=0, plotpos = 2, atsq=atsq)
+tmp<-modplotfun(out=out_rps, eigout=eig_rps2, r0out=r0_rps, collst=collst, burnin=100, doceq=1, atsq=atsq)
 put.fig.letter("d.", "topleft", offset=ofs1, cex=fcx)
 
 tmp<-modplotfun(out=out_neut, eigout=eig_neut2, r0out=r0_neut, collst=collst, burnin=100, doceq=1, atsq=atsq)
@@ -297,5 +294,177 @@ mtext("species or community abundance", 2, line=2.5, cex=1.5, outer = T)
 dev.off()
 
 
+
+############################################################
+# Plot examples of eigen, invasion, CV, and beta
+############################################################
+#out<-out_meta; eigout<-eig_meta2; r0out<-r0_meta; collst<-collst; burnin=200; burnine=100; dburnin=100; plotpos=1; doceq=0
+
+statsplotfun<-function(out, eigout, r0out, collst, burnin=0, burnine=0, dburnin=0, plotpos=1, doceq=0, ...) {
+  ofs2<-c(0.3, -0.06)
+  ofs3<-c(0.3, -0.015)
+  fcx<-2
+  
+  
+  #original fxn
+  abunds<-out$output
+  if(burnin>0) {
+    abunds<-abunds[-c(1:burnin),]
+    abunds[,1]<-abunds[,1]-burnin
+  }
+  abunds<-cbind(abunds[,1], rowSums(abunds[,-1]), abunds[,-1])
+  
+  mxt<-ceiling(max(abunds[,1]))
+  mxt_eig<-ceiling(max(eigout$out_lst[[plotpos]]$output[,1]))
+  mxt_r0_0<-ceiling(max(r0out$out0_lst[[plotpos]]$output[,1]))
+  mxt_r0<-ceiling(max(r0out$out_lst[[plotpos]]$output[,1]))
+  
+  #eig & r0
+  tmp_eig<-eigout$out_lst[[plotpos]]$output
+  tmp_eig[,1]<-tmp_eig[,1]+mxt
+  tmp_eig<-cbind(tmp_eig[,1], rowSums(tmp_eig[,-1]), tmp_eig[,-1])
+  
+  tmp_eig_0<-eigout$out_lst0$output
+  tmp_eig_0[,1]<-tmp_eig_0[,1]+mxt
+  tmp_eig_0<-cbind(tmp_eig_0[,1], rowSums(tmp_eig_0[,-1]), tmp_eig_0[,-1])
+  
+  tmp_r0_0<-r0out$out0_lst[[plotpos]]$output
+  tmp_r0_0[,1]<-tmp_r0_0[,1]+mxt+mxt_eig
+  tmp_r0_0<-cbind(tmp_r0_0[,1], rowSums(tmp_r0_0[,-1]), tmp_r0_0[,-1])
+  
+  tmp_r0<-r0out$out_lst[[plotpos]]$output
+  tmp_r0[,1]<-tmp_r0[,1]+mxt+mxt_eig+mxt_r0_0
+  tmp_r0<-cbind(tmp_r0[,1], rowSums(tmp_r0[,-1]), tmp_r0[,-1])
+  
+  #combine
+  abunds1<-rbind(abunds, tmp_eig[1:burnine,])
+  pabunds1<-abunds1/out$plotdata$ngrid
+  pabunds1[,1]<-abunds1[,1]
+  
+  abunds2<-rbind(tmp_r0_0[-c(1:burnine),], tmp_r0)
+  abunds2[,1]<-abunds2[,1]
+  pabunds2<-abunds2/out$plotdata$ngrid
+  pabunds2[,1]<-abunds2[,1]
+  
+  ptmp_eig_0<-tmp_eig_0[1:burnine,]/out$plotdata$ngrid
+  ptmp_eig_0[,1]<-tmp_eig_0[1:burnine,1]
+  
+  #Plotting environment
+  m<-rbind(c(1,4),
+           c(2,4),
+           c(3,5))
+  layout(m)
+  par(mar=c(3,5,2,2), oma=c(2,2,0,0))
+  
+  ##### plot eigen deviation
+  #plot function
+  suppressWarnings(matplot(pabunds1[,1]+dburnin, pabunds1[,plotpos+2], type="l", lty=1, col=collst[plotpos+1], lwd=1.5, xlab="", ylab="", xaxs="i", axes=F, xlim=c(floor(min(pabunds1[,1],na.rm=T)), ceiling(max(pabunds1[,1],na.rm=T)))+dburnin, ylim=range(c(pabunds1[,plotpos+2]), ptmp_eig_0[,plotpos+2], na.rm=T), ...))
+  put.fig.letter("a.", "topleft", offset=ofs2, cex=fcx)
+  
+  abline(v=c(mxt)+dburnin, lty=2); abline(h=c(0,1), lty=3, lwd=1)
+  abline(h=c(out$plotdata$ceq[plotpos]), lty=3, col=collst[plotpos+1], lwd=1)
+  axis(1, cex.axis=1.6)
+  axis(2, las=2, cex.axis=1.6); box()
+  if(sum(doceq)==2) {
+    abline(h=c(sum(out$plotdata$ceq), out$plotdata$ceq[plotpos]), lty=3, col=collst[plotpos+1], lwd=1)
+  } else if(sum(doceq)==1) {
+    abline(h=sum(out$plotdata$ceq), lty=3, col=collst, lwd=1)
+  }
+  
+  matlines(ptmp_eig_0[,1]+dburnin, ptmp_eig_0[,plotpos+2], lty=2, col=collst[plotpos+1], lwd=1.5)
+  
+  ap1<-tmp_eig_0[1,plotpos+2]/out$plotdata$ngrid
+  ap2<-tmp_eig[1,plotpos+2]/out$plotdata$ngrid
+  arrows(mxt+dburnin, ap1, mxt+dburnin, ap2, lend=2, length = 0.06, col=1, lwd=1.5)
+  
+  mtext("simulation time", 1, line=2.5, cex=1.2, outer = F)
+  mtext("abundance", 2, line=4.5, cex=1.2, outer = F)
+  
+  
+  #plot distance
+  dst<-abs(pabunds1[-c(1:mxt),plotpos+2]-ptmp_eig_0[,plotpos+2])
+  suppressWarnings(matplot(pabunds1[-c(1:mxt),1]+dburnin, dst, type="l", lty=1, col=collst[plotpos+1], lwd=1.5, xlab="", ylab="", xaxs="i", axes=F, xlim=c(floor(mxt), ceiling(max(pabunds1[,1],na.rm=T)))+dburnin, ...))
+  put.fig.letter("b.", "topleft", offset=ofs2, cex=fcx)
+  
+  abline(v=c(mxt)+dburnin, lty=2); abline(h=c(0), lty=3, lwd=1)
+  axis(1, cex.axis=1.6)
+  axis(2, las=2, cex.axis=1.6); box()
+  
+  mtext("simulation time", 1, line=2.5, cex=1.2, outer = F)
+  mtext("distance", 2, line=4.5, cex=1.2, outer = F)
+  
+  #plot eigenvalue
+  eigest<-log(dst[-1]/dst[-length(dst)])
+  sbs<-is.finite(eigest)
+  eigest_tot<-cumsum(eigest[sbs])
+  
+  suppressWarnings(matplot((pabunds1[-c(1:(mxt+1)),1]+dburnin)[sbs], eigest_tot, type="l", lty=1, col=collst[plotpos+1], lwd=1.5, xlab="", ylab="", xaxs="i", axes=F, xlim=c(floor(mxt), ceiling(max(pabunds1[,1],na.rm=T)))+dburnin, ylim=range(c(eigest_tot, 0), na.rm=T), ...))
+  put.fig.letter("c.", "topleft", offset=ofs2, cex=fcx)
+  
+  abline(v=c(mxt), lty=2); abline(h=c(0), lty=3, lwd=1)
+  axis(1, cex.axis=1.6)
+  axis(2, las=2, cex.axis=1.6); box()
+  
+  mtext("simulation time", 1, line=2.5, cex=1.2, outer = F)
+  mtext(expression(paste(italic(lambda), italic("t"))), 2, line=3.5, cex=1.2, outer = F)
+  
+  
+  ##### plot invasion
+  #plot function
+  suppressWarnings(matplot(pabunds2[,1]+dburnin, pabunds2[,-c(1:2)], type="l", lty=1, col=collst[-1], lwd=1.5, xlab="", ylab="", xaxs="i", axes=F, xlim=c(floor(min(pabunds2[,1],na.rm=T)), ceiling(max(pabunds2[,1],na.rm=T)))+dburnin, ...))
+  put.fig.letter("d.", "topleft", offset=ofs3, cex=fcx)
+  
+  abline(v=c(burnine, burnine+mxt_r0_0)+mxt_eig+dburnin, lty=2); abline(h=c(0,1), lty=3, lwd=1)
+  if(sum(doceq)==2) {
+    abline(h=c(sum(out$plotdata$ceq), out$plotdata$ceq), lty=3, col=collst, lwd=1)
+  } else if(sum(doceq)==1) {
+    abline(h=sum(out$plotdata$ceq), lty=3, col=collst, lwd=1)
+  }
+  axis(1, cex.axis=1.6)
+  axis(2, las=2, cex.axis=1.6); box()
+  
+  ap1<-tmp_eig[nrow(tmp_eig),plotpos+2]/out$plotdata$ngrid
+  ap2<-0
+  arrows(burnine+mxt_eig+dburnin, ap1, burnine+mxt_eig+dburnin, ap2, lend=2, length = 0.06, col=1, lwd=1.5)
+  
+  ap1<-tmp_r0[1,plotpos+2]/out$plotdata$ngrid
+  ap2<-0
+  ap1<-max(c(ap1, ap2+diff(range(pabunds2[,-1],na.rm=T))*0.1))
+  arrows(burnine+mxt_eig+mxt_r0_0+dburnin, ap2, burnine+mxt_eig+mxt_r0_0+dburnin, ap1, lend=2, length = 0.06, col=1, lwd=1.5)
+  
+  mtext("simulation time", 1, line=2.5, cex=1.2, outer = F)
+  mtext("abundance", 2, line=3.5, cex=1.2, outer = F)
+  
+  #plot r0
+  grw<-tmp_r0[,plotpos+2]/out$plotdata$ngrid
+  grw<-log(grw[-1]/grw[-length(grw)])
+  sbs<-is.finite(grw)
+  grw_tot<-cumsum(grw[sbs])
+  
+  suppressWarnings(matplot(((1:length(grw_tot))+burnine+mxt_eig+mxt_r0_0+dburnin)[sbs], grw_tot, type="l", lty=1, col=collst[plotpos+1], lwd=1.5, xlab="", ylab="", xaxs="i", axes=F, ...))
+  put.fig.letter("e.", "topleft", offset=ofs2, cex=fcx)
+  
+  axis(1, cex.axis=1.6)
+  axis(2, las=2, cex.axis=1.6); box()
+  abline(h=0, lty=3)
+  
+  mtext("simulation time", 1, line=2.5, cex=1.2, outer = F)
+  mtext(expression(paste(italic(r[0]), italic("t"))), 2, line=3.5, cex=1.2, outer = F)
+  
+  return(list(pabunds1=pabunds1, pabunds2=pabunds2))
+}
+
+
+
+pdf("figures/FIGURE_eig_r0_examples.pdf", width=5, height=6, colormodel = "cmyk")
+tmp<-statsplotfun(out=out_meta, eigout=eig_meta2, r0out=r0_meta, collst=collst, burnin=200, burnine=100, dburnin=100, plotpos=1, doceq = 2)
+dev.off()
+
+
+
+tmp<-statsplotfun(out=out_dist, eigout=eig_dist2, r0out=r0_dist, collst=collst, burnin=200, burnine=100, dburnin=100, plotpos=1, doceq = 1)  
+tmp<-statsplotfun(out=out_psf, eigout=eig_psf2, r0out=r0_psf, collst=collst, burnin=200, burnine=100, dburnin=100, plotpos=1, doceq = 1)  
+tmp<-statsplotfun(out=out_rps, eigout=eig_rps2, r0out=r0_rps, collst=collst, burnin=200, burnine=100, dburnin=100, plotpos=1, doceq = 1)  
+tmp<-statsplotfun(out=out_neut, eigout=eig_neut2, r0out=r0_neut, collst=collst, burnin=200, burnine=100, dburnin=100, plotpos=1, doceq = 1)  
 
 
