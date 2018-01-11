@@ -317,10 +317,18 @@ run_metapopulation<-function(tmax, nsteps=tmax, gridout, population, talktime=1,
         for(i in 1:(nprt_cyc)) {
           #extract output from previous run
           out<-matrix(cout$output, nrow=nsteps_sub+1)
+          if(sum(out, na.rm=T)==0) {
+            out[,1]<-0:(nrow(out)-1)
+            out<-out[1:(nrow(out)-1),]
+          }
           out<-out[out[,1]!=0 | (1:nrow(out))==1,]
           
           #extract subset output from previous run
           out_spatial<-matrix(cout$output_sub, nrow=nsteps_sub+1)
+          if(sum(out_spatial, na.rm=T)==0) {
+            out_spatial[,1]<-0:(nrow(out_spatial)-1)
+            out_spatial<-out_spatial[1:(nrow(out_spatial)-1),]
+          }
           out_spatial<-out_spatial[out_spatial[,1]!=0 | (1:nrow(out_spatial))==1,]
           
           #create temporary list for re-run
@@ -353,6 +361,10 @@ run_metapopulation<-function(tmax, nsteps=tmax, gridout, population, talktime=1,
       } else {
         #if only one disturbance cycle occurrs, then extract information as usual
         out_spatial<-matrix(cout$output_sub, nrow=nsteps+1)
+        if(sum(out_spatial, na.rm=T)==0) {
+          out_spatial[,1]<-0:(nrow(out_spatial)-1)
+          #out_spatial<-out_spatial[1:(nrow(out_spatial)-1),]
+        }
         out_spatial<-out_spatial[out_spatial[,1]!=0 | (1:nrow(out_spatial))==1,]
       }
       
@@ -383,6 +395,10 @@ run_metapopulation<-function(tmax, nsteps=tmax, gridout, population, talktime=1,
       
       #save output
       out_spatial<-matrix(cout$output_sub, nrow=nsteps+1)
+      if(sum(out_spatial, na.rm=T)==0) {
+        out_spatial[,1]<-0:(nrow(out_spatial)-1)
+        #out_spatial<-out_spatial[1:(nrow(out_spatial)-1),]
+      }
       out_spatial<-out_spatial[out_spatial[,1]!=0 | (1:nrow(out_spatial))==1,]
     } else if(runtype=="psf") {
       cout<-psfwrapper(population=population, gridout=gridout, sites_sub=sites_sub, abundances=abundances,
@@ -390,6 +406,10 @@ run_metapopulation<-function(tmax, nsteps=tmax, gridout, population, talktime=1,
       
       #save output
       out_spatial<-matrix(cout$output_sub, nrow=nsteps+1)
+      if(sum(out_spatial, na.rm=T)==0) {
+        out_spatial[,1]<-0:(nrow(out_spatial)-1)
+        #out_spatial<-out_spatial[1:(nrow(out_spatial)-1),]
+      }
       out_spatial<-out_spatial[out_spatial[,1]!=0 | (1:nrow(out_spatial))==1,]
       out_spatial<-out_spatial[1:tmax,]
     }
@@ -413,6 +433,10 @@ run_metapopulation<-function(tmax, nsteps=tmax, gridout, population, talktime=1,
     plotdata<-list(ceq=ceq, ngrid=ngrid)
     
     #remove empty output data
+    if(sum(out, na.rm=T)==0) {
+      out[,1]<-0:(nrow(out)-1)
+      #out<-out[1:(nrow(out)-1),]
+    }
     out<-out[out[,1]!=0 | (1:nrow(out))==1,]
     if(runtype=="psf") {
       out<-out[1:tmax,]
@@ -624,22 +648,18 @@ rerunrun_metapopulation<-function(out, tmax, nsteps=tmax, talktime=1, runtype="m
       for(i in 1:(nprt_cyc)) {
         #extract output from previous run
         outtmp<-matrix(cout$output, nrow=nsteps_sub+1)
-        
         if(sum(outtmp, na.rm=T)==0) {
-          outtmp[,1]<-1:nrow(outtmp)
+          outtmp[,1]<-0:(nrow(outtmp)-1)
           outtmp<-outtmp[1:(nrow(outtmp)-1),]
         }
-        
         outtmp<-outtmp[outtmp[,1]!=0 | (1:nrow(outtmp))==1,]
         
         #extract subset output from previous run
         out_spatial<-matrix(cout$output_sub, nrow=nsteps_sub+1)
-        
         if(sum(out_spatial, na.rm=T)==0) {
-          out_spatial[,1]<-1:nrow(out_spatial)
+          out_spatial[,1]<-0:(nrow(out_spatial)-1)
           out_spatial<-out_spatial[1:(nrow(out_spatial)-1),]
         }
-        
         out_spatial<-out_spatial[out_spatial[,1]!=0 | (1:nrow(out_spatial))==1,]
         
         #create temporary list for re-run
@@ -673,6 +693,10 @@ rerunrun_metapopulation<-function(out, tmax, nsteps=tmax, talktime=1, runtype="m
     } else {
       #if only one disturbance cycle occurrs, then extract information as usual
       out_spatial<-matrix(cout$output_sub, nrow=nsteps+1)
+      if(sum(out_spatial, na.rm=T)==0) {
+        out_spatial[,1]<-0:(nrow(out_spatial)-1)
+        #out_spatial<-out_spatial[1:(nrow(out_spatial)-1),]
+      }
       out_spatial<-out_spatial[out_spatial[,1]!=0 | (1:nrow(out_spatial))==1,]
     }
     
@@ -709,6 +733,10 @@ rerunrun_metapopulation<-function(out, tmax, nsteps=tmax, talktime=1, runtype="m
     
     #save output
     out_spatial<-matrix(cout$output_sub, nrow=nsteps+1)
+    if(sum(out_spatial, na.rm=T)==0) {
+      out_spatial[,1]<-0:(nrow(out_spatial)-1)
+      #out_spatial<-out_spatial[1:(nrow(out_spatial)-1),]
+    }
     out_spatial<-out_spatial[out_spatial[,1]!=0 | (1:nrow(out_spatial))==1,]
   }  else if(runtype=="psf") {
     cout<-psfwrapper(population=out$full$population, gridout=out$full$gridout, sites_sub=sites_sub, abundances=abundances,
@@ -721,6 +749,10 @@ rerunrun_metapopulation<-function(out, tmax, nsteps=tmax, talktime=1, runtype="m
     
     #save output
     out_spatial<-matrix(cout$output_sub, nrow=nsteps+1)
+    if(sum(out_spatial, na.rm=T)==0) {
+      out_spatial[,1]<-0:(nrow(out_spatial)-1)
+      #out_spatial<-out_spatial[1:(nrow(out_spatial)-1),]
+    }
     out_spatial<-out_spatial[out_spatial[,1]!=0 | (1:nrow(out_spatial))==1,]
     out_spatial<-out_spatial[1:tmax,]
   }
@@ -745,6 +777,10 @@ rerunrun_metapopulation<-function(out, tmax, nsteps=tmax, talktime=1, runtype="m
   plotdata<-list(ceq=ceq, ngrid=ngrid)
   
   #remove empty output data
+  if(sum(outnew, na.rm=T)==0) {
+    outnew[,1]<-0:(nrow(outnew)-1)
+    #outnew<-outnew[1:(nrow(outnew)-1),]
+  }
   outnew<-outnew[outnew[,1]!=0 | (1:nrow(outnew))==1,]
   if(runtype=="psf") {
     outnew<-outnew[1:tmax,]
