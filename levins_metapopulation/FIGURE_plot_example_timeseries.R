@@ -10,7 +10,7 @@ source("~/Dropbox/Rfunctions/figure_functions.R")
 source("~/Dropbox/Rfunctions/logit_funs.R")
 
 #plotting offsets
-ofs1<-c(0.04, -0.16)
+ofs1<-c(0.028, -0.17)
 ofs2<-c(0.075, -0.09)
 ofs3<-c(0.075, -0.090)
 
@@ -19,8 +19,8 @@ gridout<-makegrid(xlng = 100, ylng = 100)
 xfac<-3
 xfac_fast<-7
 ptb<-0.2
-collst<-adjustcolor(c("black", brewer.pal(4, "Set1")), alpha.f = 0.8)
-collst2<-adjustcolor(c("blue", "red", "black"), alpha.f = 0.8)
+collst<-adjustcolor(c("grey51", brewer.pal(4, "Set1")), alpha.f = 0.7)
+collst2<-adjustcolor(c("blue", "red", "black"), alpha.f = 0.7)
 
 #simulation lengths
 tinit<-300
@@ -76,6 +76,7 @@ eig_neut1<-estimate_eqreturn(out_neut, simtime=tsim, runtype="neutral", replace_
 eig_neut2<-estimate_eqreturn(out_neut, simtime=tsim, runtype="neutral", replace_perturb = 0, talktime=0, prtb=ptb, doplot = FALSE)
 
 r0_neut<-estimate_rarereturn(out = eig_neut2$out_lst0, simtime=tsim, burnin=tsim, runtype="neutral", doplot = FALSE)
+
 
 if(FALSE) {
   set.seed(171206)
@@ -240,34 +241,58 @@ modplotfun<-function(out, eigout, r0out, collst, burnin=0, doceq=0, plotpos=1, a
   axis(2, las=2); box()
   
   #add in perturbation null
-  matlines(ptmp_eig_0[,1], ptmp_eig_0[,-1], lty=2, col=adjustcolor(collst, alpha.f = 0.75), lwd=c(1, rep(1, ncol(pabunds)-2)))
+  matlines(ptmp_eig_0[,1], ptmp_eig_0[,-1], lty=2, col=collst, lwd=c(1, rep(1, ncol(pabunds)-2)))
+  
+  #Add in disturbance lines
+  ap1<-tmp_eig_0[1,plotpos+2]/out$plotdata$ngrid
+  ap2<-tmp_eig[1,plotpos+2]/out$plotdata$ngrid
+  ap1<-max(c(ap1, ap2+diff(range(pabunds[,-1],na.rm=T))*0.1))
+  arrows(mxt, ap1, mxt, ap2, lend=2, length = 0.06, col=1, lwd=1.5)
+  
+  ap1<-tmp_eig[nrow(tmp_eig),plotpos+2]/out$plotdata$ngrid
+  ap2<-0
+  ap1<-max(c(ap1, ap2+diff(range(pabunds[,-1],na.rm=T))*0.1))
+  arrows(mxt+mxt_eig, ap1, mxt+mxt_eig, ap2, lend=2, length = 0.06, col=1, lwd=1.5)
+  
+  ap1<-tmp_r0[1,plotpos+2]/out$plotdata$ngrid
+  ap2<-0
+  ap1<-max(c(ap1, ap2+diff(range(pabunds[,-1],na.rm=T))*0.1))
+  arrows(mxt+mxt_eig+mxt_r0_0, ap2, mxt+mxt_eig+mxt_r0_0, ap1, lend=2, length = 0.06, col=1, lwd=1.5)
+  
+  return(pabunds)
 }
 
 
-pdf("figures/FIGURE_model_examples.pdf", width=4, height=9, colormodel = "cmyk")
+pdf("figures/FIGURE_model_examples.pdf", width=5, height=7, colormodel = "cmyk")
 m<-as.matrix(1:5)
 layout(m)
-par(mar=c(1,1,3,1), oma=c(4,4,0,0))
+par(mar=c(1,1,2.5,1), oma=c(3,3.5,2.8,0))
 atsq<-seq(0, 800, by=200)
 fcx<-1.4
 
-modplotfun(out=out_meta, eigout=eig_meta2, r0out=r0_meta, collst=collst, burnin=100, doceq=2, atsq=atsq)
+tmp<-modplotfun(out=out_meta, eigout=eig_meta2, r0out=r0_meta, collst=collst, burnin=100, doceq=2, atsq=atsq)
 put.fig.letter("a.", "topleft", offset=ofs1, cex=fcx)
 
-modplotfun(out=out_rps, eigout=eig_rps2, r0out=r0_rps, collst=collst, burnin=100, doceq=1, atsq=atsq)
+#label perturbations
+mxt<-max(tmp[,-1], na.rm=T)+diff(range(tmp[,-1], na.rm=T))*0.08
+text(200, mxt, "1. peturbation", xpd=NA, srt=45, adj = c(0,0), cex=1.2)
+text(400, mxt, "2. removal", xpd=NA, srt=45, adj = c(0,0), cex=1.2)
+text(600, mxt, "3. invasion", xpd=NA, srt=45, adj = c(0,0), cex=1.2)
+
+tmp<-modplotfun(out=out_rps, eigout=eig_rps2, r0out=r0_rps, collst=collst, burnin=100, doceq=1, atsq=atsq)
 put.fig.letter("b.", "topleft", offset=ofs1, cex=fcx)
 
-modplotfun(out=out_psf, eigout=eig_psf2, r0out=r0_psf, collst=collst, burnin=100, doceq=0, atsq=atsq)
+tmp<-modplotfun(out=out_psf, eigout=eig_psf2, r0out=r0_psf, collst=collst, burnin=100, doceq=0, atsq=atsq)
 put.fig.letter("c.", "topleft", offset=ofs1, cex=fcx)
 
-modplotfun(out=out_dist, eigout=eig_dist2, r0out=r0_dist, collst=collst, burnin=100, doceq=0, plotpos = 2, atsq=atsq)
+tmp<-modplotfun(out=out_dist, eigout=eig_dist2, r0out=r0_dist, collst=collst[c(1,3,2)], burnin=100, doceq=0, plotpos = 2, atsq=atsq)
 put.fig.letter("d.", "topleft", offset=ofs1, cex=fcx)
 
-modplotfun(out=out_neut, eigout=eig_neut2, r0out=r0_neut, collst=collst, burnin=100, doceq=1, atsq=atsq)
+tmp<-modplotfun(out=out_neut, eigout=eig_neut2, r0out=r0_neut, collst=collst, burnin=100, doceq=1, atsq=atsq)
 put.fig.letter("e.", "topleft", offset=ofs1, cex=fcx)
 
-mtext("time", 1, line=1.8, cex=1.1, outer = T)
-mtext("abundance", 2, line=2, cex=1.1, outer = T)
+mtext("simulation time", 1, line=1.8, cex=1.1, outer = T)
+mtext("species or community abundance", 2, line=2, cex=1.1, outer = T)
 dev.off()
 
 
