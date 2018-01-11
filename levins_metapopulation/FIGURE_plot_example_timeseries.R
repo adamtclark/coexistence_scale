@@ -10,7 +10,6 @@ source("~/Dropbox/Rfunctions/figure_functions.R")
 source("~/Dropbox/Rfunctions/logit_funs.R")
 
 #plotting offsets
-ofs1<-c(0.028, -0.17)
 ofs2<-c(0.075, -0.09)
 ofs3<-c(0.075, -0.090)
 
@@ -18,7 +17,7 @@ ofs3<-c(0.075, -0.090)
 gridout<-makegrid(xlng = 100, ylng = 100)
 xfac<-3
 xfac_fast<-7
-ptb<-0.2
+ptb<-0.33
 collst<-adjustcolor(c("grey51", brewer.pal(4, "Set1")), alpha.f = 0.7)
 collst2<-adjustcolor(c("blue", "red", "black"), alpha.f = 0.7)
 
@@ -45,7 +44,7 @@ out_meta<-run_metapopulation(tmax=tinit, gridout = gridout, population = populat
 eig_meta1<-estimate_eqreturn(out_meta, simtime=tsim, runtype="metapopulation", replace_perturb = 1, talktime=0, prtb=ptb, doplot = FALSE)
 eig_meta2<-estimate_eqreturn(out_meta, simtime=tsim, runtype="metapopulation", replace_perturb = 0, talktime=0, prtb=ptb, doplot = FALSE)
 
-r0_meta<-estimate_rarereturn(eig_meta2$out_lst0, simtime=tsim, burnin=tsim, runtype="metapopulation", doplot = FALSE)
+r0_meta<-estimate_rarereturn(eig_meta1$out_lst0, simtime=tsim, burnin=tsim, runtype="metapopulation", doplot = FALSE)
 
 if(FALSE) {
   set.seed(171205)
@@ -75,7 +74,7 @@ set.seed(171210)
 eig_neut1<-estimate_eqreturn(out_neut, simtime=tsim, runtype="neutral", replace_perturb = 1, talktime=0, prtb=ptb, doplot = FALSE)
 eig_neut2<-estimate_eqreturn(out_neut, simtime=tsim, runtype="neutral", replace_perturb = 0, talktime=0, prtb=ptb, doplot = FALSE)
 
-r0_neut<-estimate_rarereturn(out = eig_neut2$out_lst0, simtime=tsim, burnin=tsim, runtype="neutral", doplot = FALSE)
+r0_neut<-estimate_rarereturn(out = eig_neut1$out_lst0, simtime=tsim, burnin=tsim, runtype="neutral", doplot = FALSE)
 
 
 if(FALSE) {
@@ -106,7 +105,7 @@ out_dist_0<-rerunrun_metapopulation(out=out_dist, tmax=0, talktime = 0, runtype 
 eig_dist1<-estimate_eqreturn(out_dist_0, simtime=tsim, runtype="disturbance", replace_perturb = 1, talktime=0, prtb=ptb, doplot = FALSE, prt = distlst,  prtfrq = prtfrq)
 eig_dist2<-estimate_eqreturn(out_dist_0, simtime=tsim, runtype="disturbance", replace_perturb = 0, talktime=0, prtb=ptb, doplot = FALSE, prt = distlst,  prtfrq = prtfrq)
 
-out_dist_0<-rerunrun_metapopulation(out=eig_dist2$out_lst0, tmax=0, talktime = 0, runtype = "metapopulation", perturb = distlst, replace_perturb = 0)
+out_dist_0<-rerunrun_metapopulation(out=eig_dist1$out_lst0, tmax=0, talktime = 0, runtype = "metapopulation", perturb = distlst, replace_perturb = 0)
 r0_dist<-estimate_rarereturn(out_dist_0, simtime=tsim, burnin=tsim, runtype="disturbance", doplot = FALSE, prt = distlst,  prtfrq = prtfrq)
 
 if(FALSE) {
@@ -135,7 +134,7 @@ out_psf<-run_metapopulation(tmax=tinit, gridout = gridout, population = populati
 eig_psf1<-estimate_eqreturn(out_psf, simtime=tsim, runtype="psf", replace_perturb = 1, talktime=0, prtb=ptb, doplot = FALSE)
 eig_psf2<-estimate_eqreturn(out_psf, simtime=tsim, runtype="psf", replace_perturb = 0, talktime=0, prtb=ptb, doplot = FALSE)
 
-r0_psf<-estimate_rarereturn(eig_psf2$out_lst0, simtime=tsim, burnin=tsim, runtype="psf", doplot = FALSE)
+r0_psf<-estimate_rarereturn(eig_psf1$out_lst0, simtime=tsim, burnin=tsim, runtype="psf", doplot = FALSE)
 
 if(FALSE) {
   set.seed(180108)
@@ -166,7 +165,7 @@ out_rps<-run_metapopulation(tmax=tinit, gridout = gridout, population = populati
 eig_rps1<-estimate_eqreturn(out_rps, simtime=tsim, runtype="rps", replace_perturb = 1, talktime=0, prtb=ptb, doplot = FALSE)
 eig_rps2<-estimate_eqreturn(out_rps, simtime=tsim, runtype="rps", replace_perturb = 0, talktime=0, prtb=ptb, doplot = FALSE)
 
-r0_rps<-estimate_rarereturn(out = eig_rps2$out_lst0, simtime=tsim, burnin=tsim, runtype="rps", doplot = FALSE)
+r0_rps<-estimate_rarereturn(out = eig_rps1$out_lst0, simtime=tsim, burnin=tsim, runtype="rps", doplot = FALSE)
 
 if(FALSE) {
   set.seed(180104)
@@ -226,7 +225,7 @@ modplotfun<-function(out, eigout, r0out, collst, burnin=0, doceq=0, plotpos=1, a
   ptmp_eig_0[,1]<-tmp_eig_0[,1]
   
   #plot
-  matplot(pabunds[,1], pabunds[,-1], type="l", lty=1, col=collst, lwd=c(1.5, rep(1.5, ncol(pabunds)-2)), xlab="", ylab="", xaxs="i", axes=F, ...)
+  suppressWarnings(matplot(pabunds[,1], pabunds[,-1], type="l", lty=1, col=collst, lwd=c(1.5, rep(1.5, ncol(pabunds)-2)), xlab="", ylab="", xaxs="i", axes=F, ...))
   abline(v=c(mxt, mxt+mxt_eig, mxt+mxt_eig+mxt_r0_0), lty=2); abline(h=c(0,1), lty=3, lwd=1)
   if(sum(doceq)==2) {
     abline(h=c(sum(out$plotdata$ceq), out$plotdata$ceq), lty=3, col=collst, lwd=1)
@@ -234,11 +233,11 @@ modplotfun<-function(out, eigout, r0out, collst, burnin=0, doceq=0, plotpos=1, a
     abline(h=sum(out$plotdata$ceq), lty=3, col=collst, lwd=1)
   }
   if(sum(atsq)==0) {
-    axis(1)
+    axis(1, cex.axis=1.6)
   } else {
-    axis(1, at=c(min(pabunds[,1], na.rm=T), atsq[-c(1, length(atsq))], max(pabunds[,1], na.rm=T)), labels=atsq, xpd=NA)
+    axis(1, at=c(min(pabunds[,1], na.rm=T), atsq[-c(1, length(atsq))], max(pabunds[,1], na.rm=T)), labels=atsq, xpd=NA, cex.axis=1.6)
   }
-  axis(2, las=2); box()
+  axis(2, las=2, cex.axis=1.6); box()
   
   #add in perturbation null
   matlines(ptmp_eig_0[,1], ptmp_eig_0[,-1], lty=2, col=collst, lwd=c(1, rep(1, ncol(pabunds)-2)))
@@ -263,21 +262,23 @@ modplotfun<-function(out, eigout, r0out, collst, burnin=0, doceq=0, plotpos=1, a
 }
 
 
-pdf("figures/FIGURE_model_examples.pdf", width=5, height=7, colormodel = "cmyk")
+pdf("figures/FIGURE_model_examples.pdf", width=7, height=10, colormodel = "cmyk")
 m<-as.matrix(1:5)
 layout(m)
-par(mar=c(1,1,2.5,1), oma=c(3,3.5,2.8,0))
+par(mar=c(1,1,2.5,1), oma=c(3.5,4.5,4.5,0.5))
 atsq<-seq(0, 800, by=200)
-fcx<-1.4
+fcx<-2
+
+ofs1<-c(0.02, -0.1)
 
 tmp<-modplotfun(out=out_meta, eigout=eig_meta2, r0out=r0_meta, collst=collst, burnin=100, doceq=2, atsq=atsq)
 put.fig.letter("a.", "topleft", offset=ofs1, cex=fcx)
 
 #label perturbations
 mxt<-max(tmp[,-1], na.rm=T)+diff(range(tmp[,-1], na.rm=T))*0.08
-text(200, mxt, "1. peturbation", xpd=NA, srt=45, adj = c(0,0), cex=1.2)
-text(400, mxt, "2. removal", xpd=NA, srt=45, adj = c(0,0), cex=1.2)
-text(600, mxt, "3. invasion", xpd=NA, srt=45, adj = c(0,0), cex=1.2)
+text(200, mxt, "1. peturbation", xpd=NA, srt=40, adj = c(0,0), cex=1.8)
+text(400, mxt, "2. removal", xpd=NA, srt=40, adj = c(0,0), cex=1.8)
+text(600, mxt, "3. invasion", xpd=NA, srt=40, adj = c(0,0), cex=1.8)
 
 tmp<-modplotfun(out=out_rps, eigout=eig_rps2, r0out=r0_rps, collst=collst, burnin=100, doceq=1, atsq=atsq)
 put.fig.letter("b.", "topleft", offset=ofs1, cex=fcx)
@@ -291,8 +292,8 @@ put.fig.letter("d.", "topleft", offset=ofs1, cex=fcx)
 tmp<-modplotfun(out=out_neut, eigout=eig_neut2, r0out=r0_neut, collst=collst, burnin=100, doceq=1, atsq=atsq)
 put.fig.letter("e.", "topleft", offset=ofs1, cex=fcx)
 
-mtext("simulation time", 1, line=1.8, cex=1.1, outer = T)
-mtext("species or community abundance", 2, line=2, cex=1.1, outer = T)
+mtext("simulation time", 1, line=2, cex=1.5, outer = T)
+mtext("species or community abundance", 2, line=2.5, cex=1.5, outer = T)
 dev.off()
 
 
