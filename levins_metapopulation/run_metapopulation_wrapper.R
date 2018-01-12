@@ -1418,7 +1418,7 @@ estimate_invar<-function(out, E=0, burnin=0, Luse=0, laglst=0, niter=0, doplot=T
   return(list(pdL_list=pdL_list, pdlag_list=pdlag_list, pdL_list_tot=pdL_list_tot, pdlag_list_tot=pdlag_list_tot))
 }
 
-beta_estimate<-function(out, outlng, eigout, r0out, Emat, burnin=0) {
+beta_estimate<-function(out, outlng, eigout, r0out, Emat, burnin=0, eigonly=FALSE) {
   #Estimate community change (i.e. CV per species) after each type of disturbance
   #Inputs are outputs from other methods
   
@@ -1435,6 +1435,7 @@ beta_estimate<-function(out, outlng, eigout, r0out, Emat, burnin=0) {
   predmat_eig<-matrix(nrow=nrow(eigout$out_lst[[1]][[colnm]]), ncol=nsp)
   obsmat_eig<-predmat_eig
   
+
   for(i in 1:nsp) {
     tmp<-c(out[[colnm]][-c(1:burnin),i+1], eigout$out_lst[[i]][[colnm]][,i+1])
     rws<-rbind(c(1, nrow(out[[colnm]])-burnin),
@@ -1448,46 +1449,59 @@ beta_estimate<-function(out, outlng, eigout, r0out, Emat, burnin=0) {
   }
   beta_eig<-sqrt((predmat_eig-obsmat_eig)^2)/predmat_eig
   
-  #Get predictions for r0 (i.e. pre removal vs. post introduction)
-  predmat_r0<-matrix(nrow=nrow(r0out$out_lst[[1]][[colnm]]), ncol=nsp)
-  obsmat_r0<-predmat_r0
-  
-  for(i in 1:nsp) {
-    tmp<-c(out[[colnm]][-c(1:burnin),i+1], r0out$out_lst[[i]][[colnm]][,i+1])
-    rws<-rbind(c(1, nrow(out[[colnm]])-burnin),
-               c(1, nrow(r0out$out_lst[[i]][[colnm]]))+nrow(out[[colnm]])-burnin)
-    predtmp<-simplex(tmp, lib=rws[1,], pred=rws[2,], E = Emat[i], stats_only = FALSE)
+  if(!eigonly) {
+    #Get predictions for r0 (i.e. pre removal vs. post introduction)
+    predmat_r0<-matrix(nrow=nrow(r0out$out_lst[[1]][[colnm]]), ncol=nsp)
+    obsmat_r0<-predmat_r0
     
-    dmtmp<-dim(predtmp$model_output[[1]])
+    for(i in 1:nsp) {
+      tmp<-c(out[[colnm]][-c(1:burnin),i+1], r0out$out_lst[[i]][[colnm]][,i+1])
+      rws<-rbind(c(1, nrow(out[[colnm]])-burnin),
+                 c(1, nrow(r0out$out_lst[[i]][[colnm]]))+nrow(out[[colnm]])-burnin)
+      predtmp<-simplex(tmp, lib=rws[1,], pred=rws[2,], E = Emat[i], stats_only = FALSE)
+      
+      dmtmp<-dim(predtmp$model_output[[1]])
+      
+      predmat_r0[1:dmtmp[1],i]<-predtmp$model_output[[1]]$pred
+      obsmat_r0[1:dmtmp[1],i]<-predtmp$model_output[[1]]$obs
+    }
+    beta_r0<-sqrt((predmat_r0-obsmat_r0)^2)/predmat_r0
     
-    predmat_r0[1:dmtmp[1],i]<-predtmp$model_output[[1]]$pred
-    obsmat_r0[1:dmtmp[1],i]<-predtmp$model_output[[1]]$obs
+    #Get null predictions (i.e. two positions in the long time series)
+    predmat_0<-matrix(nrow=mean(nrow(predmat_eig), nrow(predmat_r0)), ncol=nsp)
+    obsmat_0<-predmat_0
+    
+    ind1<-(burnin+1):nrow(out[[colnm]])
+    ind2<-(nrow(out[[colnm]])+1):(nrow(out[[colnm]])+nrow(predmat_0))
+    mxlng<-nrow(outlng[[colnm]])
+    if(any(c(ind1, ind2)>mxlng)) {
+      mx<-max(c(ind1, ind2), na.rm=T)
+      ind1<-(burnin+1):(mxlng-nrow(predmat_0))
+      ind2<-(mxlng-nrow(predmat_0)+1):mxlng
+    }
+    
+    for(i in 1:nsp) {
+      tmp<-c(out[[colnm]][ind1,i+1], outlng[[colnm]][ind2,i+1])
+      rws<-rbind(c(1, length(ind1)),
+                 c(length(ind1)+1, length(tmp)))
+      predtmp<-simplex(tmp, lib=rws[1,], pred=rws[2,], E = Emat[i], stats_only = FALSE)
+      
+      dmtmp<-dim(predtmp$model_output[[1]])
+      
+      predmat_0[1:dmtmp[1],i]<-predtmp$model_output[[1]]$pred
+      obsmat_0[1:dmtmp[1],i]<-predtmp$model_output[[1]]$obs
+    }
+    beta_0<-sqrt((predmat_0-obsmat_0)^2)/predmat_0
+    
+    #"Beta" for each case is a list of CV values for each type of test (one column per species)
+    return(list(beta_eig=beta_eig, beta_r0=beta_r0, beta_0=beta_0,
+                preds=list(predmat_eig=predmat_eig, predmat_r0=predmat_r0, predmat_0=predmat_0),
+                obss=list(obsmat_eig=obsmat_eig, obsmat_r0=obsmat_r0, obsmat_0=obsmat_0)))
+  } else {
+    return(list(beta_eig=beta_eig,
+                preds=list(predmat_eig=predmat_eig),
+                obss=list(obsmat_eig=obsmat_eig)))
   }
-  beta_r0<-sqrt((predmat_r0-obsmat_r0)^2)/predmat_r0
-  
-  #Get null predictions (i.e. two positions in the long time series)
-  predmat_0<-matrix(nrow=mean(nrow(predmat_eig), nrow(predmat_r0)), ncol=nsp)
-  obsmat_0<-predmat_0
-  
-  ind1<-(burnin+1):nrow(out[[colnm]])
-  ind2<-(nrow(out[[colnm]])+1):(nrow(out[[colnm]])+nrow(predmat_0))
-  for(i in 1:nsp) {
-    tmp<-c(outlng[[colnm]][ind1,i+1], outlng[[colnm]][ind2,i+1])
-    rws<-rbind(c(1, nrow(out[[colnm]])-burnin),
-               c(nrow(out[[colnm]])-burnin+1, length(tmp)))
-    predtmp<-simplex(tmp, lib=rws[1,], pred=rws[2,], E = Emat[i], stats_only = FALSE)
-    
-    dmtmp<-dim(predtmp$model_output[[1]])
-    
-    predmat_0[1:dmtmp[1],i]<-predtmp$model_output[[1]]$pred
-    obsmat_0[1:dmtmp[1],i]<-predtmp$model_output[[1]]$obs
-  }
-  beta_0<-sqrt((predmat_0-obsmat_0)^2)/predmat_0
-  
-  #"Beta" for each case is a list of CV values for each type of test (one column per species)
-  return(list(beta_eig=beta_eig, beta_r0=beta_r0, beta_0=beta_0,
-              preds=list(predmat_eig=predmat_eig, predmat_r0=predmat_r0, predmat_0=predmat_0),
-              obss=list(obsmat_eig=obsmat_eig, obsmat_r0=obsmat_r0, obsmat_0=obsmat_0)))
 }
 
 
@@ -1712,84 +1726,161 @@ test_predict_tlag<-function(outcol, Luse, E=1, burnin=0, laglst=0, niter=0, dopl
 ########################################
 
 runpar<-function(...) {
-  ##TODO: Think about extracting Luse for invar as well as laguse.
-  ##TODO: Make sure to extract results for total population as well
-  
-  
   #Function to automate stability tests across models
   #Is embarrassingly parallel, and can be used to iterate runs
   
   require(rEDM)
   
-  #run simulations
+  ##### run simulations
   #run levins
   out_meta<-run_metapopulation(tmax=tmax, gridout = gridout, population = population_meta, talktime = 0, runtype = "metapopulation", sites_sub = grid_sub$sites)
+  out_meta_long<-run_metapopulation(tmax=tmax_long, gridout = gridout, population = population_meta, talktime = 0, runtype = "metapopulation", sites_sub = grid_sub$sites)
   
-  getEmeta<-getE(out_meta, Elst = 2:10, sites_sub = grid_sub$sites)
+  getEmeta<-getE(out_meta_long, Elst = 2:10, sites_sub = grid_sub$sites)
   E_meta<-getEmeta$Eout
-  E_meta[E_meta<minE]<-minE
+  E_meta_tot<-getEmeta$Eout_tot
   
   eig_meta1<-estimate_eqreturn(out_meta, simtime=simtime, runtype="metapopulation", replace_perturb = 1, talktime=0, prtb=ptb, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites, doplot=FALSE)
   eig_meta2<-estimate_eqreturn(out_meta, simtime=simtime, runtype="metapopulation", replace_perturb = 0, talktime=0, prtb=ptb, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites, doplot=FALSE)
   r0_meta<-estimate_rarereturn(out_meta, simtime=simtime, burnin=burnin, runtype="metapopulation", perturbsites = grid_sub$sites, sites_sub = grid_sub$sites, doplot=FALSE)
-  invar_meta<-estimate_invar(out_meta, E=E_meta, burnin=invarburn, doplot=FALSE, sites_sub = grid_sub$sites, laglst = lglst)
+  invar_meta<-estimate_invar(out_meta_long, E=E_meta, burnin=invarburn, doplot=FALSE, Etot=E_meta_tot, sites_sub = grid_sub$sites, laglst = lglst, niter = 1)
+  
+  beta_meta1<-beta_estimate(out=out_meta, outlng = out_meta_long, Emat = E_meta, eigout = eig_meta1, r0out = r0_meta, burnin = burnin, eigonly = TRUE)
+  beta_meta2<-beta_estimate(out=out_meta, outlng = out_meta_long, Emat = E_meta, eigout = eig_meta2, r0out = r0_meta, burnin = burnin)
   
   #run disturbance
   out_dist<-run_metapopulation(tmax=tmax, gridout = gridout, population = population_dist, talktime = 0, runtype = "disturbance", sites_sub = grid_sub$sites, prt = distlst, prtfrq = distfrq)
+  out_dist_long<-run_metapopulation(tmax=tmax_long, gridout = gridout, population = population_dist, talktime = 0, runtype = "disturbance", sites_sub = grid_sub$sites, prt = distlst, prtfrq = distfrq)
   
-  getEdist<-getE(out_dist, Elst = 2:10, sites_sub = grid_sub$sites)
+  getEdist<-getE(out_dist_long, Elst = 2:10, sites_sub = grid_sub$sites)
   E_dist<-getEdist$Eout
-  E_dist[E_dist<minE]<-minE
+  E_dist_tot<-getEdist$Eout_tot
   
   eig_dist1<-estimate_eqreturn(out_dist, simtime=simtime, runtype="disturbance", replace_perturb = 1, talktime=0, prtb=ptb, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites, doplot=FALSE, prt = distlst, prtfrq = distfrq)
   eig_dist2<-estimate_eqreturn(out_dist, simtime=simtime, runtype="disturbance", replace_perturb = 0, talktime=0, prtb=ptb, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites, doplot=FALSE, prt = distlst, prtfrq = distfrq)
   r0_dist<-estimate_rarereturn(out_dist, simtime=simtime, burnin=burnin, runtype="disturbance", perturbsites = grid_sub$sites, sites_sub = grid_sub$sites, doplot=FALSE, prt = distlst, prtfrq = distfrq)
-  invar_dist<-estimate_invar(out_dist, E=E_dist, burnin=invarburn, doplot=FALSE, sites_sub = grid_sub$sites, laglst = lglst)
+  invar_dist<-estimate_invar(out_dist_long, E=E_dist, burnin=invarburn, doplot=FALSE, Etot = E_dist_tot, sites_sub = grid_sub$sites, laglst = lglst, niter = 1)
+  
+  beta_dist1<-beta_estimate(out=out_dist, outlng = out_dist_long, Emat = E_dist, eigout = eig_dist1, r0out = r0_dist, burnin = burnin, eigonly = TRUE)
+  beta_dist2<-beta_estimate(out=out_dist, outlng = out_dist_long, Emat = E_dist, eigout = eig_dist2, r0out = r0_dist, burnin = burnin)
   
   #run neutral
   out_neut<-run_metapopulation(tmax=tmax, gridout = gridout, population = population_neut, talktime = 0, runtype = "neutral", sites_sub = grid_sub$sites)
+  out_neut_long<-run_metapopulation(tmax=tmax_long, gridout = gridout, population = population_neut, talktime = 0, runtype = "neutral", sites_sub = grid_sub$sites)
   
   getEneut<-getE(out_neut, Elst = 2:10)
   E_neut<-getEneut$Eout
-  E_neut[E_neut<minE]<-minE
+  E_neut_tot<-getEneut$Eout_tot
   
   eig_neut1<-estimate_eqreturn(out_neut, simtime=simtime, runtype="neutral", replace_perturb = 1, talktime=0, prtb=ptb, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites, doplot=FALSE)
   eig_neut2<-estimate_eqreturn(out_neut, simtime=simtime, runtype="neutral", replace_perturb = 0, talktime=0, prtb=ptb, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites, doplot=FALSE)
   r0_neut<-estimate_rarereturn(out_neut, simtime=simtime, burnin=burnin, runtype="neutral", perturbsites = grid_sub$sites, sites_sub = grid_sub$sites, doplot=FALSE)
-  invar_neut<-estimate_invar(out_neut, E=E_neut, burnin=invarburn, doplot=FALSE, sites_sub = grid_sub$sites, laglst = lglst)
+  invar_neut<-estimate_invar(out_neut_long, E=E_neut, burnin=invarburn, doplot=FALSE, Etot = E_neut_tot, sites_sub = grid_sub$sites, laglst = lglst, niter = 1)
   
+  beta_neut1<-beta_estimate(out=out_neut, outlng = out_neut_long, Emat = E_neut, eigout = eig_neut1, r0out = r0_neut, burnin = burnin, eigonly = TRUE)
+  beta_neut2<-beta_estimate(out=out_neut, outlng = out_neut_long, Emat = E_neut, eigout = eig_neut2, r0out = r0_neut, burnin = burnin)
+  
+  #run psf
+  out_psf<-run_metapopulation(tmax=tmax, gridout = gridout, population = population_psf, talktime = 0, runtype = "psf", sites_sub = grid_sub$sites)
+  out_psf_long<-run_metapopulation(tmax=tmax_long, gridout = gridout, population = population_psf, talktime = 0, runtype = "psf", sites_sub = grid_sub$sites)
+  
+  getEpsf<-getE(out_psf, Elst = 2:10)
+  E_psf<-getEpsf$Eout
+  E_psf_tot<-getEpsf$Eout_tot
+  
+  eig_psf1<-estimate_eqreturn(out_psf, simtime=simtime, runtype="psf", replace_perturb = 1, talktime=0, prtb=ptb, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites, doplot = FALSE)
+  eig_psf2<-estimate_eqreturn(out_psf, simtime=simtime, runtype="psf", replace_perturb = 0, talktime=0, prtb=ptb, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites, doplot = FALSE)
+  r0_psf<-estimate_rarereturn(out_psf, simtime=simtime, burnin=burnin, runtype="psf", perturbsites = grid_sub$sites, sites_sub = grid_sub$sites, doplot = FALSE)
+  invar_psf<-estimate_invar(out_psf_long, E=E_psf, burnin=invarburn, doplot=FALSE, Etot = E_psf_tot, sites_sub = grid_sub$sites, laglst = lglst, niter = 1)
+
+  beta_psf1<-beta_estimate(out=out_psf, outlng = out_psf_long, Emat = E_psf, eigout = eig_psf1, r0out = r0_psf, burnin = burnin, eigonly = TRUE)
+  beta_psf2<-beta_estimate(out=out_psf, outlng = out_psf_long, Emat = E_psf, eigout = eig_psf2, r0out = r0_psf, burnin = burnin)
+  
+  #run rps
+  out_rps<-run_metapopulation(tmax=tmax, gridout = gridout, population = population_rps, talktime = 0, runtype = "rps", sites_sub = grid_sub$sites, compmat = intmat_rps)
+  out_rps_long<-run_metapopulation(tmax=tmax_long, gridout = gridout, population = population_rps, talktime = 0, runtype = "rps", sites_sub = grid_sub$sites, compmat = intmat_rps)
+  
+  getErps<-getE(out_rps, Elst = 2:10)
+  E_rps<-getErps$Eout
+  E_rps_tot<-getErps$Eout_tot
+  
+  eig_rps1<-estimate_eqreturn(out_rps, simtime=simtime, runtype="rps", replace_perturb = 1, talktime=0, prtb=ptb, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites, doplot = FALSE)
+  eig_rps2<-estimate_eqreturn(out_rps, simtime=simtime, runtype="rps", replace_perturb = 0, talktime=0, prtb=ptb, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites, doplot = FALSE)
+  r0_rps<-estimate_rarereturn(out_rps, simtime=simtime, burnin=burnin, runtype="rps", perturbsites = grid_sub$sites, sites_sub = grid_sub$sites, doplot = FALSE)
+  invar_rps<-estimate_invar(out_rps_long, E=E_rps, burnin=invarburn, doplot=FALSE, Etot = E_rps_tot, sites_sub = grid_sub$sites, laglst = lglst, niter = 1)
+  
+  beta_rps1<-beta_estimate(out=out_rps, outlng = out_rps_long, Emat = E_rps, eigout = eig_rps1, r0out = r0_rps, burnin = burnin, eigonly = TRUE)
+  beta_rps2<-beta_estimate(out=out_rps, outlng = out_rps_long, Emat = E_rps, eigout = eig_rps2, r0out = r0_rps, burnin = burnin)
+  
+  ##### save output
   #make output matrix
   nsp<-length(clst_meta)
-  neq<-nrow(eig_meta1$eigenlst)
-  nlg<-length(invar_meta$pdlag_list[[1]]$laglst)
-  mlng<-max(c(neq, nlg))
-  matout<-matrix(nrow=mlng, ncol=nsp*15, data=NA)
   
   #collect and output data
-  matout[1:neq,(1:nsp)+nsp*(0)]<-eig_meta1$eigenlst
-  matout[1:neq,(1:nsp)+nsp*(1)]<-eig_meta2$eigenlst
-  matout[1:neq,(1:nsp)+nsp*(2)]<-r0_meta$grwrare
+  matout<-cbind(makemat(eig1out=eig_meta1, eig2out=eig_meta2, r0out=r0_meta, beta1out=beta_meta1, beta2out=beta_meta2, nsp=nsp),
+                makemat(eig1out=eig_dist1, eig2out=eig_dist2, r0out=r0_dist, beta1out=beta_dist1, beta2out=beta_dist2, nsp=nsp),
+                makemat(eig1out=eig_psf1, eig2out=eig_psf2, r0out=r0_psf, beta1out=beta_psf1, beta2out=beta_psf2, nsp=nsp),
+                makemat(eig1out=eig_rps1, eig2out=eig_rps2, r0out=r0_rps, beta1out=beta_rps1, beta2out=beta_rps2, nsp=nsp+2),
+                makemat(eig1out=eig_neut1, eig2out=eig_neut2, r0out=r0_neut, beta1out=beta_neut1, beta2out=beta_neut2, nsp=nsp))
   
-  matout[1:neq,(1:nsp)+nsp*(3)]<-eig_dist1$eigenlst
-  matout[1:neq,(1:nsp)+nsp*(4)]<-eig_dist2$eigenlst
-  matout[1:neq,(1:nsp)+nsp*(5)]<-r0_dist$grwrare
+  matout_inv<-cbind(makemat_inv(invar_meta, lglst),
+                    makemat_inv(invar_dist, lglst),
+                    makemat_inv(invar_psf, lglst),
+                    makemat_inv(invar_rps, lglst),
+                    makemat_inv(invar_neut, lglst))
   
-  matout[1:neq,(1:nsp)+nsp*(6)]<-eig_neut1$eigenlst
-  matout[1:neq,(1:nsp)+nsp*(7)]<-eig_neut2$eigenlst
-  matout[1:neq,(1:nsp)+nsp*(8)]<-r0_neut$grwrare
+  if(nrow(matout)>nrow(matout_inv)) {
+    matout_inv<-rbind(matout_inv, matrix(ncol=ncol(matout_inv), nrow=nrow(matout)-nrow(matout_inv)))
+  } else if(nrow(matout)<nrow(matout_inv)) {
+    matout<-rbind(matout, matrix(ncol=ncol(matout), nrow=nrow(matout_inv)-nrow(matout)))
+  }
+  matout<-cbind(matout, matout_inv)
   
-  for(ii in 1:length(invar_meta$pdlag_list)) {
-    matout[1:length(invar_meta$pdlag_list[[ii]]$laglst),nsp*9+(ii)+5*(ii-1)]<-invar_meta$pdlag_list[[ii]]$laglst
-    matout[1:length(invar_meta$pdlag_list[[ii]]$laglst),nsp*9+(ii)+5*(ii-1)+1]<-invar_meta$pdlag_list[[ii]]$CVest[,3]
-    
-    matout[1:length(invar_dist$pdlag_list[[ii]]$laglst),nsp*9+(ii)+5*(ii-1)+2]<-invar_dist$pdlag_list[[ii]]$laglst
-    matout[1:length(invar_dist$pdlag_list[[ii]]$laglst),nsp*9+(ii)+5*(ii-1)+3]<-invar_dist$pdlag_list[[ii]]$CVest[,3]
-    
-    matout[1:length(invar_neut$pdlag_list[[ii]]$laglst),nsp*9+(ii)+5*(ii-1)+4]<-invar_neut$pdlag_list[[ii]]$laglst
-    matout[1:length(invar_neut$pdlag_list[[ii]]$laglst),nsp*9+(ii)+5*(ii-1)+5]<-invar_neut$pdlag_list[[ii]]$CVest[,3]
+  matout<-t(matout)
+  return(matout)
+}
+
+makemat<-function(eig1out, eig2out, r0out, beta1out, beta2out, nsp) {
+  tmpmat<-matrix(ncol=nsp*10, nrow=max(c(nrow(eig1out$eigenlst),
+                            nrow(eig2out$eigenlst),
+                            nrow(r0out$grwrare),
+                            nrow(eig1out$eigenlst_tot),
+                            nrow(eig2out$eigenlst_tot),
+                            nrow(r0out$grwrare_tot),
+                            nrow(beta1out$beta_eig),
+                            nrow(beta2out$beta_eig),
+                            nrow(beta2out$beta_r0),
+                            nrow(beta2out$beta_0)), na.rm=T))
+  
+  nn<-0
+  tmpmat[1:nrow(eig1out$eigenlst),(1:nsp)+nsp*(nn)]<-eig1out$eigenlst; nn<-nn+1
+  tmpmat[1:nrow(eig2out$eigenlst),(1:nsp)+nsp*(nn)]<-eig2out$eigenlst; nn<-nn+1
+  tmpmat[1:nrow(r0out$grwrare),(1:nsp)+nsp*(nn)]<-r0out$grwrare; nn<-nn+1
+  
+  tmpmat[1:nrow(eig1out$eigenlst_tot),(1:nsp)+nsp*(nn)]<-eig1out$eigenlst_tot; nn<-nn+1
+  tmpmat[1:nrow(eig2out$eigenlst_tot),(1:nsp)+nsp*(nn)]<-eig2out$eigenlst_tot; nn<-nn+1
+  tmpmat[1:nrow(r0out$grwrare_tot),(1:nsp)+nsp*(nn)]<-r0out$grwrare_tot; nn<-nn+1
+  
+  tmpmat[1:nrow(beta1out$beta_eig),(1:nsp)+nsp*(nn)]<-beta1out$beta_eig; nn<-nn+1
+  tmpmat[1:nrow(beta2out$beta_eig),(1:nsp)+nsp*(nn)]<-beta2out$beta_eig; nn<-nn+1
+  tmpmat[1:nrow(beta2out$beta_r0),(1:nsp)+nsp*(nn)]<-beta2out$beta_r0; nn<-nn+1
+  tmpmat[1:nrow(beta2out$beta_0),(1:nsp)+nsp*(nn)]<-beta2out$beta_0
+  
+  return(tmpmat)
+}
+
+makemat_inv<-function(invout, lglst) {
+  tmpmat<-matrix(ncol=length(invout$pdlag_list)*2, nrow=length(lglst))
+                                         
+  for(ii in 1:length(invout$pdlag_list)) {
+    tmpmat[1:nrow(invout$pdlag_list[[ii]]$CVest),ii]<-invout$pdlag_list[[ii]]$CVest[,3]
   }
   
-  return(t(matout))
+  for(ii in 1:length(invout$pdlag_list)) {
+    tmpmat[1:nrow(invout$pdlag_list_tot[[ii]]$CVest),ii+length(invout$pdlag_list)]<-invout$pdlag_list_tot[[ii]]$CVest[,3]
+  }
+  
+  return(tmpmat)
 }
 
 
