@@ -544,10 +544,10 @@ dev.off()
 
 pdf("figures/SUP_FIGURE_CV_examples_allmodels.pdf", width=6, height=4, colormodel = "cmyk")
 tmp<-CVplotfun(outlong=out_meta_long, invarout=invar_meta, betaout=beta_meta, collst=collst, collst2=collst2, burnin=200, plotpos=1, doceq=2, cleanupbeta=20)
-tmp<-CVplotfun(outlong=out_neut_long, invarout=invar_neut, betaout=beta_neut, collst=collst, collst2=collst2, burnin=200, plotpos=1, doceq=2, cleanupbeta=20)
-tmp<-CVplotfun(outlong=out_dist_long, invarout=invar_dist, betaout=beta_dist, collst=collst, collst2=collst2, burnin=200, plotpos=1, doceq=2, cleanupbeta=20)
-tmp<-CVplotfun(outlong=out_psf_long, invarout=invar_psf, betaout=beta_psf, collst=collst, collst2=collst2, burnin=200, plotpos=1, doceq=2, cleanupbeta=20)
-tmp<-CVplotfun(outlong=out_rps_long, invarout=invar_rps, betaout=beta_rps, collst=collst, collst2=collst2, burnin=200, plotpos=1, doceq=2, cleanupbeta=20)
+tmp<-CVplotfun(outlong=out_neut_long, invarout=invar_neut, betaout=beta_neut, collst=collst, collst2=collst2, burnin=200, plotpos=1, doceq=0, cleanupbeta=20)
+tmp<-CVplotfun(outlong=out_dist_long, invarout=invar_dist, betaout=beta_dist, collst=collst, collst2=collst2, burnin=200, plotpos=1, doceq=1, cleanupbeta=20)
+tmp<-CVplotfun(outlong=out_psf_long, invarout=invar_psf, betaout=beta_psf, collst=collst, collst2=collst2, burnin=200, plotpos=1, doceq=0, cleanupbeta=20)
+tmp<-CVplotfun(outlong=out_rps_long, invarout=invar_rps, betaout=beta_rps, collst=collst, collst2=collst2, burnin=200, plotpos=1, doceq=0, cleanupbeta=20)
 dev.off()
 
 
@@ -557,7 +557,7 @@ dev.off()
 grid_sub<-grid_subset(gridout, size = 0.01)
 grid_sub2<-grid_subset(gridout, size = 0.5)
 
-pdf("figures/FIGURE_spatialsubset_map.pdf", width=5, height=5, colormodel = "cmyk")
+pdf("figures/SUP_FIGURE_spatialsubset_map.pdf", width=5, height=5, colormodel = "cmyk")
 par(mar=c(2,2,2,2), oma=c(2,2,0,0))
 plot_map(out_meta, gridout = gridout, grid_sub = grid_sub, collst=collst[-1])
 
