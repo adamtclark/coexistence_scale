@@ -81,8 +81,6 @@ clusterExport(cl, c("invarburn",
                     "makemat", "makemat_inv"))
 
 #run simulations
-matout_tot<-NULL
-
 for(i in 1:length(scalelst)) {
   grid_sub<-grid_subset(gridout, size = scalelst[i])
   
@@ -94,10 +92,17 @@ for(i in 1:length(scalelst)) {
   if(!is.character(clusterout)) {
     tmp<-t(matrix(nrow=nrow(clusterout[[1]]), unlist(clusterout)))
     
-    matout_tot<-rbind(matout_tot, cbind(scale=scalelst[i], tscale=1:ncol(clusterout[[1]]), iter=rep(1:niterations, each=ncol(clusterout[[1]])), tmp))
+    matout_tot<-cbind(scale=scalelst[i], tscale=1:ncol(clusterout[[1]]), iter=rep(1:niterations, each=ncol(clusterout[[1]])), tmp)
+    
+    #separate
+    matout_dyn<-matout_tot[,1:123]
+    matout_cv<-matout_tot[,c(1,3,124:147)]
+    matout_cv<-cbind(lag=c(lglst, rep(NA, ncol(clusterout[[1]])-length(lglst))), matout_cv)
+    matout_cv<-matout_cv[!is.na(matout_cv[,"lag"]),]
     
     #save outputs to csv
-    write.csv(matout_tot, "output/matout_tot.csv", row.names=F)
+    write.csv(matout_dyn, paste("output/matout_dyn_", scalelst[i], ".csv", sep=""), row.names=F)
+    write.csv(matout_cv, paste("output/matout_cv_", scalelst[i], ".csv", sep=""), row.names=F)
   }
   
   print(round(i/length(scalelst),2))
