@@ -4,9 +4,9 @@
 #$ -o iman.out$JOB_ID
 #$ -j y
 #$ -S /bin/bash
-#$ -l h_rt=20:00:00 
-#$ -l h_vmem=10G
-#$ -pe smp 32
+#$ -l h_rt=10:00:00 
+#$ -l h_vmem=6G
+#$ -pe smp 20
 #$ -m ea
 #$ -M adam.tclark@gmail.com
 

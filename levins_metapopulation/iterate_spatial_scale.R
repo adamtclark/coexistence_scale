@@ -12,7 +12,7 @@ source("run_metapopulation_wrapper.R")
 
 #set up for runs
 niterations<-1000   #CHANGE TO ALTER NUMBER OF ITERATIONS
-scalelst<-c(0.01, 0.05, 0.1, 0.5, 0.75, 1)
+scalelst<-c(0.005, 0.01, 0.05, 0.1, 0.5, 0.75, 1)
 radlst<-Inf
 
 #set up simulations
@@ -27,7 +27,7 @@ burnin<-200 #burning for growth rate when rare method
 simtime<-200 #time spans for equilibria dectection
 invarburn<-200
 
-lglst<-round(seq(0, tmax*0.8-10, length=10)) #lags for invar test
+lglst<-round(seq(0, tmax_long*0.8-10, length=10)) #lags for invar test
 
 clst_meta = c(0.15, 0.35)*xfac
 mlst_meta = rep(0.1, length(clst_meta))*xfac
