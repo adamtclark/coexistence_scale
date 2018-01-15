@@ -1733,7 +1733,11 @@ runpar<-function(...) {
   
   ##### run simulations
   #run levins
+  sd<-round(runif(1)*1e9)
+  
+  set.seed(sd)
   out_meta<-run_metapopulation(tmax=tmax, gridout = gridout, population = population_meta, talktime = 0, runtype = "metapopulation", sites_sub = grid_sub$sites)
+  set.seed(sd)
   out_meta_long<-run_metapopulation(tmax=tmax_long, gridout = gridout, population = population_meta, talktime = 0, runtype = "metapopulation", sites_sub = grid_sub$sites)
   
   getEmeta<-getE(out_meta_long, Elst = 2:10, sites_sub = grid_sub$sites)
@@ -1749,7 +1753,11 @@ runpar<-function(...) {
   beta_meta2<-beta_estimate(out=out_meta, outlng = out_meta_long, Emat = E_meta, eigout = eig_meta2, r0out = r0_meta, burnin = burnin)
   
   #run disturbance
+  sd<-round(runif(1)*1e9)
+  
+  set.seed(sd)
   out_dist<-run_metapopulation(tmax=tmax, gridout = gridout, population = population_dist, talktime = 0, runtype = "disturbance", sites_sub = grid_sub$sites, prt = distlst, prtfrq = distfrq)
+  set.seed(sd)
   out_dist_long<-run_metapopulation(tmax=tmax_long, gridout = gridout, population = population_dist, talktime = 0, runtype = "disturbance", sites_sub = grid_sub$sites, prt = distlst, prtfrq = distfrq)
   
   getEdist<-getE(out_dist_long, Elst = 2:10, sites_sub = grid_sub$sites)
@@ -1765,7 +1773,11 @@ runpar<-function(...) {
   beta_dist2<-beta_estimate(out=out_dist, outlng = out_dist_long, Emat = E_dist, eigout = eig_dist2, r0out = r0_dist, burnin = burnin)
   
   #run neutral
+  sd<-round(runif(1)*1e9)
+  
+  set.seed(sd)
   out_neut<-run_metapopulation(tmax=tmax, gridout = gridout, population = population_neut, talktime = 0, runtype = "neutral", sites_sub = grid_sub$sites)
+  set.seed(sd)
   out_neut_long<-run_metapopulation(tmax=tmax_long, gridout = gridout, population = population_neut, talktime = 0, runtype = "neutral", sites_sub = grid_sub$sites)
   
   getEneut<-getE(out_neut, Elst = 2:10)
@@ -1781,7 +1793,11 @@ runpar<-function(...) {
   beta_neut2<-beta_estimate(out=out_neut, outlng = out_neut_long, Emat = E_neut, eigout = eig_neut2, r0out = r0_neut, burnin = burnin)
   
   #run psf
+  sd<-round(runif(1)*1e9)
+  
+  set.seed(sd)
   out_psf<-run_metapopulation(tmax=tmax, gridout = gridout, population = population_psf, talktime = 0, runtype = "psf", sites_sub = grid_sub$sites)
+  set.seed(sd)
   out_psf_long<-run_metapopulation(tmax=tmax_long, gridout = gridout, population = population_psf, talktime = 0, runtype = "psf", sites_sub = grid_sub$sites)
   
   getEpsf<-getE(out_psf, Elst = 2:10)
@@ -1797,7 +1813,11 @@ runpar<-function(...) {
   beta_psf2<-beta_estimate(out=out_psf, outlng = out_psf_long, Emat = E_psf, eigout = eig_psf2, r0out = r0_psf, burnin = burnin)
   
   #run rps
+  sd<-round(runif(1)*1e9)
+  
+  set.seed(sd)
   out_rps<-run_metapopulation(tmax=tmax, gridout = gridout, population = population_rps, talktime = 0, runtype = "rps", sites_sub = grid_sub$sites, compmat = intmat_rps)
+  set.seed(sd)
   out_rps_long<-run_metapopulation(tmax=tmax_long, gridout = gridout, population = population_rps, talktime = 0, runtype = "rps", sites_sub = grid_sub$sites, compmat = intmat_rps)
   
   getErps<-getE(out_rps, Elst = 2:10)
