@@ -303,7 +303,7 @@ dev.off()
 # Contour
 ###############
 #arrayout=matout_eig_pop; xlst=tscalelst; cifun=function(x,...) is.finite(x); funcol=3; tmlst=TRUE
-plot_cont<-function(arrayout, xscalslst, xlst, splitcol=0, nlevels=10, sqlst=0, logx=FALSE, logy=FALSE, logz=FALSE, coltype=1, logxps=0, nstart=1, ...) {
+plot_cont<-function(arrayout, xscalslst, xlst, splitcol=0, nlevels=10, sqlst=0, logx=FALSE, logy=FALSE, logz=FALSE, coltype=1, logxps=0, nstart=1, ciplot=FALSE, cimat=0, ...) {
 
   if(sum(abs(sqlst), na.rm=T)==0) {
     rng<-range(arrayout[,,,3], na.rm=T)
@@ -347,10 +347,39 @@ plot_cont<-function(arrayout, xscalslst, xlst, splitcol=0, nlevels=10, sqlst=0, 
       collst2<-adjustcolor(c(rainbow(sum(sqlst<dm), start=0.15, end=.4), rev(rainbow(sum(sqlst>dm), start=0.75, end=0.85))), alpha.f = 0.6)
     }
     
+    if(ciplot) {
+      sqlst<-seq(-3, 3, by=1)
+      collst2<-c("white", "blue", "lightblue", "grey", "pink", "red", "white")
+      
+      tmpz<-array(dim=dim(arrayout[,,j,3]))
+      
+      if(sum(abs(cimat), na.rm=T)==0) {
+        tmpz[which(is.finite(arrayout[,,j,3]))]<-0
+        
+        tmpz[which(arrayout[,,j,4]<0)]<-(-1)
+        tmpz[which(arrayout[,,j,5]<0)]<-(-2)
+        
+        tmpz[which(arrayout[,,j,2]>0)]<-(1)
+        tmpz[which(arrayout[,,j,1]>0)]<-(2)
+      } else {
+        tmpz[which(is.finite(arrayout[,,j,3]))]<-0
+        
+        tmpz[which(arrayout[,,j,4]<cimat[,,j])]<-(-1)
+        tmpz[which(arrayout[,,j,5]<cimat[,,j])]<-(-2)
+        
+        tmpz[which(arrayout[,,j,2]>cimat[,,j])]<-(1)
+        tmpz[which(arrayout[,,j,1]>cimat[,,j])]<-(2)
+      }
+      
+      tmpz<-t(tmpz)
+    } else {
+      tmpz<-t(arrayout[,,j,3])
+    }
+    
     tmpps<-colSums(abs(arrayout[,,j,3]), na.rm=T)!=0
     filled.contour3(x = xlst, 
                     y = xscalslst, 
-                    z = t(arrayout[,,j,3]), levels = sqlst, col=collst2,axes=F,
+                    z = tmpz, levels = sqlst, col=collst2,axes=F,
                     xlim=range(xlst[tmpps]))
     put.fig.letter(paste(letters[nstart], ".", sep=""), "topleft", offset=ofs1, cex=1.6)
     nstart<-nstart+1
@@ -358,7 +387,7 @@ plot_cont<-function(arrayout, xscalslst, xlst, splitcol=0, nlevels=10, sqlst=0, 
     if(logz) {
       contour(x = xlst, 
               y = xscalslst, 
-              z = t(arrayout[,,j,3]),
+              z = tmpz,
               levels = sqlst,
               labels=10^sqlst,
               add=TRUE,axes=F,
@@ -366,12 +395,14 @@ plot_cont<-function(arrayout, xscalslst, xlst, splitcol=0, nlevels=10, sqlst=0, 
     } else {
       contour(x = xlst, 
               y = xscalslst, 
-              z = t(arrayout[,,j,3]),
+              z = tmpz,
               levels = sqlst,
               labels=round(sqlst,2),
               add=TRUE,axes=F,
               xlim=range(xlst[tmpps]))
     }
+    
+    
     if(logx) {
       if(sum(abs(logxps))==0) {
         tmp<-round(10^seq(min(xlst), max(xlst), length=6)/50, 1)*50
@@ -422,7 +453,6 @@ tmp<-plot_cont(matout_r0_pop, log(scalslst,10), log(tscalelst, 10), nlevels=10, 
 
 par(mar=c(2,3.5,1,1))
 filled.legend(z=matrix(sqtmp), levels=sqtmp, col=adjustcolor(c(rev(rainbow(sum(sqtmp<0), start=0.55, end=.70)), rev(rainbow(sum(sqtmp>0), start=0, end=0.1))), alpha.f = 0.6), key.axes = axis(4, at = sqtmp, las=2))
-mtext("")
 
 mtext(text = "levins", side = 4, outer = TRUE, line = -5.5, adj = .94, cex=1.2)
 mtext(text = "disturbance", side = 4, outer = TRUE, line = -5.5, adj = 0.74, cex=1.2)
@@ -450,10 +480,10 @@ logxpos<-c(1,2,5,10,20,50,150,500, 1000)
 ofs1<-c(0.25, -0.002)
 sqtmp<-c(-5, -4, -3, -2, log10(0.03), -1, log10(0.3), log10(0.5), 0, log10(1.5), log10(3))
 par(mar=c(2,3,1,0), oma=c(2.5,2,2,3))
-tmp<-plot_cont(log(matout_invar_tot), log(scalslst,10), log(laglst+1,10), nlevels=5, splitcol = log(0.5, 10), logx=TRUE, logy=TRUE, logz=TRUE, coltype = 2, sqlst = sqtmp, nstart = 1, logxps = logxpos)
+tmp<-plot_cont(log(matout_invar_tot,10), log(scalslst,10), log(laglst+1,10), nlevels=5, splitcol = log(0.5, 10), logx=TRUE, logy=TRUE, logz=TRUE, coltype = 2, sqlst = sqtmp, nstart = 1, logxps = logxpos)
 
 
-tmp<-plot_cont(log(matout_invar_pop), log(scalslst,10), log(laglst+1,10), nlevels=5, splitcol = log(0.5, 10), logx=TRUE, logy=TRUE, logz=TRUE, coltype = 2, sqlst = sqtmp, nstart = 6, logxps = logxpos)
+tmp<-plot_cont(log(matout_invar_pop,10), log(scalslst,10), log(laglst+1,10), nlevels=5, splitcol = log(0.5, 10), logx=TRUE, logy=TRUE, logz=TRUE, coltype = 2, sqlst = sqtmp, nstart = 6, logxps = logxpos)
 #arrayout=log(matout_beta_e,10); xscalslst=log(scalslst, 10); xlst=log(tscalelst, 10); tmlst=TRUE; splitcol=0; nlevels=5; sqlst=0; logx=TRUE; logy=TRUE; logz=TRUE; coltype=2
 
 
@@ -464,7 +494,6 @@ tmp<-plot_cont(log(matout_beta_r,10), log(scalslst, 10), log(tscalelst, 10), nle
 
 par(mar=c(2,3.5,1,1))
 filled.legend(z=matrix(sqtmp), levels=sqtmp, col=adjustcolor(c(rainbow(sum(sqlst<log(0.5, 10)), start=0.15, end=.4), rev(rainbow(sum(sqlst>log(0.5, 10)), start=0.75, end=0.85))), alpha.f = 0.6), key.axes = axis(4, at = sqtmp, labels = 10^sqtmp, las=2))
-mtext("")
 
 mtext(text = "levins", side = 4, outer = TRUE, line = -5.5, adj = .94, cex=1.2)
 mtext(text = "disturbance", side = 4, outer = TRUE, line = -5.5, adj = 0.74, cex=1.2)
@@ -484,5 +513,85 @@ mtext(text = expression(paste("time steps since event")), side = 1, outer = TRUE
 
 mtext(text = expression(paste("spatial scale, fraction of maximum")), side = 2, outer = TRUE, line = -0.1, cex=1.2, adj = 0.46)
 dev.off()
+
+
+
+
+
+
+
+
+#CI plots...
+
+pdf("figures/SUP_FIGURE_sim_CI_continuous_dyn_results.pdf", width=6.5, height=8, colormodel = "cmyk")
+sqtmp<-c(-1.5, -1, -0.5, -0.2, -0.1, 0, 0.1, 0.2, 0.5, 1, 1.5)
+logxpos<-c(1,2,5,10,20,50,150,200)
+
+m<-matrix(nrow=5, 1:15)
+m<-cbind(m, 16)
+layout(m, widths=c(1,1,1,0.5))
+
+par(mar=c(2,3,1,0), oma=c(2.5,2,2,4.5))
+ofs1<-c(0.255, -0.002)
+tmp<-plot_cont(matout_eig_tot, log(scalslst,10), log(tscalelst, 10), nlevels=10, logx=TRUE, logy=TRUE, sqlst = sqtmp, logxps = logxpos, nstart = 1, ciplot = TRUE)
+tmp<-plot_cont(matout_eig_pop, log(scalslst,10), log(tscalelst, 10), nlevels=10, logx=TRUE, logy=TRUE, sqlst = sqtmp, logxps = logxpos, nstart = 6, ciplot = TRUE)
+tmp<-plot_cont(matout_r0_pop, log(scalslst,10), log(tscalelst, 10), nlevels=10, logx=TRUE, logy=TRUE, sqlst = sqtmp, logxps = logxpos, nstart = 11, ciplot = TRUE)
+
+par(mar=c(2,3.5,1,1))
+sqtmp<-seq(-2, 2)
+filled.legend(z=matrix(sqtmp), levels=sqtmp, col=c("blue", "lightblue", "pink", "red"), key.axes = axis(4, at = seq(-1.5, 1.5), labels = c("97.5% < 0", "+1SD < 0", "-1SD > 0", "2.25% > 0"), las=2))
+
+mtext(text = "levins", side = 4, outer = TRUE, line = -5.5, adj = .94, cex=1.2)
+mtext(text = "disturbance", side = 4, outer = TRUE, line = -5.5, adj = 0.74, cex=1.2)
+mtext(text = "PSF", side = 4, outer = TRUE, line = -5.5, adj = 0.515, cex=1.2)
+mtext(text = "RPS", side = 4, outer = TRUE, line = -5.5, adj = 0.305, cex=1.2)
+mtext(text = "neutral", side = 4, outer = TRUE, line = -5.5, adj = .08, cex=1.2)
+
+mtext(text = expression(paste(lambda, italic(t), ", community")), side = 3, outer = TRUE, line = 0, adj = .095, cex=1.2)
+mtext(text = expression(paste(lambda, italic(t), ", population")), side = 3, outer = TRUE, line = 0, adj = .4505, cex=1.2)
+mtext(text = expression(paste(r[0], ", population")), side = 3, outer = TRUE, line = 0, adj = 0.805, cex=1.2)
+
+mtext(text = expression(paste("temporal scale, time steps")), side = 1, outer = TRUE, line = 1.3, cex=1.2, adj = 0.45)
+mtext(text = expression(paste("spatial scale, fraction of maximum")), side = 2, outer = TRUE, line = -0.1, cex=1.2, adj = 0.46)
+dev.off()
+
+
+
+pdf("figures/SUP_FIGURE_sim_CI_continuous_cv_results.pdf", width=5.5, height=8, colormodel = "cmyk")
+m<-matrix(nrow=5, 1:10)
+m<-cbind(m, 11)
+layout(m, widths=c(1,1,0.5))
+
+logxpos<-c(1,2,5,10,20,50,150,500, 1000)
+
+ofs1<-c(0.24, -0.002)
+sqtmp<-c(-5, -4, -3, -2, log10(0.03), -1, log10(0.3), log10(0.5), 0, log10(1.5), log10(3))
+par(mar=c(2,3,1,0), oma=c(2.5,2,2,4.5))
+
+logxpos<-c(1,2,5,10,20,50,150,200)
+tmp<-plot_cont(log(matout_beta_e,10), log(scalslst, 10), log(tscalelst, 10), nlevels=5, splitcol = log(0.5, 10), logx=TRUE, logy=TRUE, logz=FALSE, coltype = 2, sqlst = sqtmp, nstart = 1, logxps = logxpos, ciplot = TRUE, cimat=log(matout_beta_0,10)[,,,3])
+tmp<-plot_cont(log(matout_beta_r,10), log(scalslst, 10), log(tscalelst, 10), nlevels=5, splitcol = log(0.5, 10), logx=TRUE, logy=TRUE, logz=FALSE, coltype = 2, sqlst = sqtmp, nstart = 6, logxps = logxpos, ciplot = TRUE, cimat=log(matout_beta_0,10)[,,,3])
+#plot_cont(matout_beta_0, log(tscalelst, 10), nlevels=5, splitcol = FALSE, rng=c(0,1))
+
+par(mar=c(2,3.5,1,1))
+sqtmp<-seq(-2, 2)
+filled.legend(z=matrix(sqtmp), levels=sqtmp, col=c("blue", "lightblue", "pink", "red"), key.axes = axis(4, at = seq(-1.5, 1.5), labels = c("97.5% < 0", "+1SD < 0", "-1SD > 0", "2.25% > 0"), las=2))
+
+mtext(text = "levins", side = 4, outer = TRUE, line = -5.5, adj = .94, cex=1.2)
+mtext(text = "disturbance", side = 4, outer = TRUE, line = -5.5, adj = 0.74, cex=1.2)
+mtext(text = "PSF", side = 4, outer = TRUE, line = -5.5, adj = 0.515, cex=1.2)
+mtext(text = "RPS", side = 4, outer = TRUE, line = -5.5, adj = 0.305, cex=1.2)
+mtext(text = "neutral", side = 4, outer = TRUE, line = -5.5, adj = .08, cex=1.2)
+
+mtext(text = expression(paste(italic(CV[beta]), ", ", italic(lambda[t]))), side = 3, outer = TRUE, line = 0, adj = 0.22, cex=1.2)
+mtext(text = expression(paste(italic(CV[beta]), ", ", italic(r[0]))), side = 3, outer = TRUE, line = 0, adj = .66, cex=1.2)
+
+mtext(text = expression(paste("time steps since event")), side = 1, outer = TRUE, line = 1.3, cex=1.2, adj = 0.42)
+
+
+mtext(text = expression(paste("spatial scale, fraction of maximum")), side = 2, outer = TRUE, line = -0.1, cex=1.2, adj = 0.46)
+dev.off()
+
+
 
 
