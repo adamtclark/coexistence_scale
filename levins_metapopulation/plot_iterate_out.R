@@ -438,7 +438,7 @@ plot_cont<-function(arrayout, xscalslst, xlst, splitcol=0, nlevels=10, sqlst=0, 
 #TODO: add in plots with p-values
 
 pdf("figures/FIGURE_sim_continuous_dyn_results.pdf", width=6.5, height=8, colormodel = "cmyk")
-sqtmp<-c(-1.5, -1, -0.5, -0.2, -0.1, 0, 0.1, 0.2, 0.5, 1, 1.5)
+sqtmp<-c(-1.5, -1, -0.5, -0.25, -0.1, 0, 0.1, 0.25, 0.5, 1, 1.5)
 logxpos<-c(1,2,5,10,20,50,150,200)
 
 m<-matrix(nrow=5, 1:15)
@@ -478,7 +478,10 @@ layout(m, widths=c(1,1,1,1,0.5))
 logxpos<-c(1,2,5,10,20,50,150,500, 1000)
 
 ofs1<-c(0.25, -0.002)
-sqtmp<-c(-5, -4, -3, -2, log10(0.03), -1, log10(0.3), log10(0.5), 0, log10(1.5), log10(3))
+#sqtmp<-c(-5, -4, -3, -2, log10(0.03), -1, log10(0.3), log10(0.5), 0, log10(1.5), log10(3))
+#sqtmp<-c(log10(0.005), log10(0.01), log10(0.02), log10(0.05), log10(0.1), log10(0.2), log10(0.5), log10(1), log10(1.2), log10(1.5), log10(2))
+sqtmp<-log10(c(0.005, 0.01, 0.015, 0.025, 0.05, 0.075, 0.15, 0.25, 0.5, 0.75, 1, 2))
+
 par(mar=c(2,3,1,0), oma=c(2.5,2,2,3))
 tmp<-plot_cont(log(matout_invar_tot,10), log(scalslst,10), log(laglst+1,10), nlevels=5, splitcol = log(0.5, 10), logx=TRUE, logy=TRUE, logz=TRUE, coltype = 2, sqlst = sqtmp, nstart = 1, logxps = logxpos)
 
@@ -493,7 +496,7 @@ tmp<-plot_cont(log(matout_beta_r,10), log(scalslst, 10), log(tscalelst, 10), nle
 #plot_cont(matout_beta_0, log(tscalelst, 10), nlevels=5, splitcol = FALSE, rng=c(0,1))
 
 par(mar=c(2,3.5,1,1))
-filled.legend(z=matrix(sqtmp), levels=sqtmp, col=adjustcolor(c(rainbow(sum(sqlst<log(0.5, 10)), start=0.15, end=.4), rev(rainbow(sum(sqlst>log(0.5, 10)), start=0.75, end=0.85))), alpha.f = 0.6), key.axes = axis(4, at = sqtmp, labels = 10^sqtmp, las=2))
+filled.legend(z=matrix(sqtmp), levels=sqtmp, col=adjustcolor(c(rainbow(sum(sqtmp<log(0.5, 10)), start=0.15, end=.4), rev(rainbow(sum(sqtmp>log(0.5, 10)), start=0.75, end=0.85))), alpha.f = 0.6), key.axes = axis(4, at = sqtmp, labels = 10^sqtmp, las=2))
 
 mtext(text = "levins", side = 4, outer = TRUE, line = -5.5, adj = .94, cex=1.2)
 mtext(text = "disturbance", side = 4, outer = TRUE, line = -5.5, adj = 0.74, cex=1.2)
@@ -556,7 +559,6 @@ mtext(text = expression(paste("spatial scale, fraction of maximum")), side = 2, 
 dev.off()
 
 
-
 pdf("figures/SUP_FIGURE_sim_CI_continuous_cv_results.pdf", width=5.5, height=8, colormodel = "cmyk")
 m<-matrix(nrow=5, 1:10)
 m<-cbind(m, 11)
@@ -575,7 +577,7 @@ tmp<-plot_cont(log(matout_beta_r,10), log(scalslst, 10), log(tscalelst, 10), nle
 
 par(mar=c(2,3.5,1,1))
 sqtmp<-seq(-2, 2)
-filled.legend(z=matrix(sqtmp), levels=sqtmp, col=c("blue", "lightblue", "pink", "red"), key.axes = axis(4, at = seq(-1.5, 1.5), labels = c("97.5% < 0", "+1SD < 0", "-1SD > 0", "2.25% > 0"), las=2))
+filled.legend(z=matrix(sqtmp), levels=sqtmp, col=c("blue", "lightblue", "pink", "red"), key.axes = axis(4, at = seq(-1.5, 1.5), labels = c(expression(paste("97.5% < ", beta[0])), expression(paste("+1SD < ", beta[0])), expression(paste("-1SD > ", beta[0])), expression(paste("2.25% > ", beta[0]))), las=2))
 
 mtext(text = "levins", side = 4, outer = TRUE, line = -5.5, adj = .94, cex=1.2)
 mtext(text = "disturbance", side = 4, outer = TRUE, line = -5.5, adj = 0.74, cex=1.2)

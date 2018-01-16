@@ -248,7 +248,7 @@ modplotfun<-function(out, eigout, r0out, collst, burnin=0, doceq=0, plotpos=1, a
 pdf("figures/FIGURE_model_examples.pdf", width=7, height=10, colormodel = "cmyk")
 m<-as.matrix(1:5)
 layout(m)
-par(mar=c(1,1,2.5,1), oma=c(3.5,4.5,4.5,0.5))
+par(mar=c(1,1,2.5,1), oma=c(3.5,4.5,4.5,2.5))
 atsq<-seq(0, 800, by=200)
 fcx<-2
 
@@ -277,6 +277,12 @@ put.fig.letter("e.", "topleft", offset=ofs1, cex=fcx)
 
 mtext("simulation time", 1, line=2, cex=1.5, outer = T)
 mtext("species or community abundance", 2, line=2.5, cex=1.5, outer = T)
+
+mtext(text = "levins", side = 4, outer = TRUE, line = 0.5, adj = .91, cex=1.2)
+mtext(text = "disturbance", side = 4, outer = TRUE, line = 0.5, adj = 0.715, cex=1.2)
+mtext(text = "PSF", side = 4, outer = TRUE, line = 0.5, adj = 0.49, cex=1.2)
+mtext(text = "RPS", side = 4, outer = TRUE, line = 0.5, adj = 0.278, cex=1.2)
+mtext(text = "neutral", side = 4, outer = TRUE, line = 0.5, adj = .06, cex=1.2)
 dev.off()
 
 
