@@ -250,10 +250,10 @@ pdf("figures/SUP_FIGURE_sim_categorical_dyn_results.pdf", width=6, height=8, col
 par(mfcol=c(length(modlst), 3), mar=c(2,4,1,1), oma=c(2.5,0.5,1,1.5))
 
 plot_disc(matout_eig_tot, tscalelst, scalesuse, cifun = function(x,...) {x<0}, funcol = 4, smooth=0, nstart=1)
-mtext(text = expression(paste("community perturbation response, ", lambda, italic(t))), side = 2, outer = TRUE, line = -2.2, cex=1.2)
+mtext(text = expression(paste("community perturbation response, ", lambda)), side = 2, outer = TRUE, line = -2.2, cex=1.2)
 
 plot_disc(matout_eig_pop, tscalelst, scalesuse, cifun = function(x,...) {x<0}, funcol = 4, smooth=0, nstart=6)
-mtext(text = expression(paste("population perturbation response, ", lambda, italic(t))), side = 2, outer = TRUE, line = -1.8-14.2, cex=1.2)
+mtext(text = expression(paste("population perturbation response, ", lambda)), side = 2, outer = TRUE, line = -1.8-14.2, cex=1.2)
 mtext(text = expression(paste("temporal span, time steps")), side = 1, outer = FALSE, line = 3.5, cex=1.2)
 
 plot_disc(matout_r0_pop, tscalelst, scalesuse, cifun = function(x,...) {x>0}, funcol = 2, smooth=0, nstart=11)
@@ -467,8 +467,8 @@ mtext(text = "PSF", side = 4, outer = TRUE, line = -5.5, adj = 0.515, cex=1.2)
 mtext(text = "RPS", side = 4, outer = TRUE, line = -5.5, adj = 0.305, cex=1.2)
 mtext(text = "neutral", side = 4, outer = TRUE, line = -5.5, adj = .08, cex=1.2)
 
-mtext(text = expression(paste(lambda, italic(t), ", community")), side = 3, outer = TRUE, line = 0, adj = .095, cex=1.2)
-mtext(text = expression(paste(lambda, italic(t), ", population")), side = 3, outer = TRUE, line = 0, adj = .4505, cex=1.2)
+mtext(text = expression(paste(lambda, ", community")), side = 3, outer = TRUE, line = 0, adj = .095, cex=1.2)
+mtext(text = expression(paste(lambda, ", population")), side = 3, outer = TRUE, line = 0, adj = .4505, cex=1.2)
 mtext(text = expression(paste(r[0], ", population")), side = 3, outer = TRUE, line = 0, adj = 0.805, cex=1.2)
 
 mtext(text = expression(paste("temporal span, time steps")), side = 1, outer = TRUE, line = 1.3, cex=1.2, adj = 0.45)
@@ -496,8 +496,8 @@ par(mar=c(2,3,1,0), oma=c(2.5,2,2,3))
 
 
 logxpos<-c(1,2,5,10,20,50,150,200)
-tmp<-plot_cont(log(matout_beta_0_tot,10), log(scalslst, 10), log(tscalelst, 10), nlevels=5, splitcol = log(0.5, 10), logx=TRUE, logy=TRUE, logz=TRUE, coltype = 2, sqlst = sqtmp, nstart = 11, logxps = logxpos)
-tmp<-plot_cont(log(matout_beta_0,10), log(scalslst, 10), log(tscalelst, 10), nlevels=5, splitcol = log(0.5, 10), logx=TRUE, logy=TRUE, logz=TRUE, coltype = 2, sqlst = sqtmp, nstart = 11, logxps = logxpos)
+tmp<-plot_cont(log(matout_beta_0_tot,10), log(scalslst, 10), log(tscalelst, 10), nlevels=5, splitcol = log(0.5, 10), logx=TRUE, logy=TRUE, logz=TRUE, coltype = 2, sqlst = sqtmp, nstart = 1, logxps = logxpos)
+tmp<-plot_cont(log(matout_beta_0,10), log(scalslst, 10), log(tscalelst, 10), nlevels=5, splitcol = log(0.5, 10), logx=TRUE, logy=TRUE, logz=TRUE, coltype = 2, sqlst = sqtmp, nstart = 6, logxps = logxpos)
 tmp<-plot_cont(log(matout_beta_e,10), log(scalslst, 10), log(tscalelst, 10), nlevels=5, splitcol = log(0.5, 10), logx=TRUE, logy=TRUE, logz=TRUE, coltype = 2, sqlst = sqtmp, nstart = 11, logxps = logxpos)
 tmp<-plot_cont(log(matout_beta_r,10), log(scalslst, 10), log(tscalelst, 10), nlevels=5, splitcol = log(0.5, 10), logx=TRUE, logy=TRUE, logz=TRUE, coltype = 2, sqlst = sqtmp, nstart = 16, logxps = logxpos)
 
@@ -514,7 +514,7 @@ mtext(text = "neutral", side = 4, outer = TRUE, line = -5.5, adj = .08, cex=1.2)
 mtext(text = expression(paste(italic(CV), ", community")), side = 3, outer = TRUE, line = 0, adj = .055, cex=1.2)
 mtext(text = expression(paste(italic(CV), ", population")), side = 3, outer = TRUE, line = 0, adj = 0.327, cex=1.2)
 
-mtext(text = expression(paste(italic(CV), ", ", italic(lambda[t]))), side = 3, outer = TRUE, line = 0, adj = 0.59, cex=1.2)
+mtext(text = expression(paste(italic(CV), ", ", italic(lambda))), side = 3, outer = TRUE, line = 0, adj = 0.59, cex=1.2)
 mtext(text = expression(paste(italic(CV), ", ", italic(r[0]))), side = 3, outer = TRUE, line = 0, adj = .828, cex=1.2)
 
 mtext(text = expression(paste("temporal lag, time steps")), side = 1, outer = TRUE, line = 1.3, cex=1.2, adj = 0.15)
@@ -557,8 +557,8 @@ mtext(text = "PSF", side = 4, outer = TRUE, line = -5.5, adj = 0.515, cex=1.2)
 mtext(text = "RPS", side = 4, outer = TRUE, line = -5.5, adj = 0.305, cex=1.2)
 mtext(text = "neutral", side = 4, outer = TRUE, line = -5.5, adj = .08, cex=1.2)
 
-mtext(text = expression(paste(lambda, italic(t), ", community")), side = 3, outer = TRUE, line = 0, adj = .095, cex=1.2)
-mtext(text = expression(paste(lambda, italic(t), ", population")), side = 3, outer = TRUE, line = 0, adj = .4505, cex=1.2)
+mtext(text = expression(paste(lambda, ", community")), side = 3, outer = TRUE, line = 0, adj = .095, cex=1.2)
+mtext(text = expression(paste(lambda, ", population")), side = 3, outer = TRUE, line = 0, adj = .4505, cex=1.2)
 mtext(text = expression(paste(r[0], ", population")), side = 3, outer = TRUE, line = 0, adj = 0.805, cex=1.2)
 
 mtext(text = expression(paste("temporal span, time steps")), side = 1, outer = TRUE, line = 1.3, cex=1.2, adj = 0.45)
@@ -592,7 +592,7 @@ mtext(text = "PSF", side = 4, outer = TRUE, line = -5.5, adj = 0.515, cex=1.2)
 mtext(text = "RPS", side = 4, outer = TRUE, line = -5.5, adj = 0.305, cex=1.2)
 mtext(text = "neutral", side = 4, outer = TRUE, line = -5.5, adj = .08, cex=1.2)
 
-mtext(text = expression(paste(italic(CV[beta]), ", ", italic(lambda[t]))), side = 3, outer = TRUE, line = 0, adj = 0.22, cex=1.2)
+mtext(text = expression(paste(italic(CV[beta]), ", ", italic(lambda))), side = 3, outer = TRUE, line = 0, adj = 0.22, cex=1.2)
 mtext(text = expression(paste(italic(CV[beta]), ", ", italic(r[0]))), side = 3, outer = TRUE, line = 0, adj = .66, cex=1.2)
 
 mtext(text = expression(paste("time steps since event")), side = 1, outer = TRUE, line = 1.3, cex=1.2, adj = 0.42)

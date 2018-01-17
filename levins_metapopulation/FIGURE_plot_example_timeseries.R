@@ -398,7 +398,7 @@ statsplotfun<-function(out, eigout, r0out, collst, burnin=0, burnine=0, dburnin=
   axis(2, las=2, cex.axis=1.6); box()
   
   mtext("simulation time", 1, line=2.5, cex=1.2, outer = F)
-  mtext(expression(paste(italic(lambda), italic("t"))), 2, line=3.5, cex=1.2, outer = F)
+  mtext(expression(paste(italic(lambda))), 2, line=3.5, cex=1.2, outer = F)
   
   
   ##### plot invasion
@@ -441,7 +441,7 @@ statsplotfun<-function(out, eigout, r0out, collst, burnin=0, burnine=0, dburnin=
   abline(h=0, lty=3)
   
   mtext("simulation time", 1, line=2.5, cex=1.2, outer = F)
-  mtext(expression(paste(italic(r[0]), italic("t"))), 2, line=3.5, cex=1.2, outer = F)
+  mtext(expression(paste(italic(r[0]))), 2, line=3.5, cex=1.2, outer = F)
   
   return(list(pabunds1=pabunds1, pabunds2=pabunds2))
 }
