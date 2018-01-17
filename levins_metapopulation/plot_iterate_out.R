@@ -247,10 +247,10 @@ collst<-adjustcolor(rev(c(rainbow(2, start=0.7, end=0.55), rainbow(2, start=0.1,
 ofs1<-c(0.3, -0.002)
   
 pdf("figures/SUP_FIGURE_sim_categorical_dyn_results.pdf", width=6, height=8, colormodel = "cmyk")
-par(mfcol=c(length(modlst), 3), mar=c(2,4,1,1), oma=c(2.5,0.5,1,1.5))
+par(mfcol=c(length(modlst), 3), mar=c(2,4,1,1), oma=c(2.5,1,1,1.5))
 
 plot_disc(matout_eig_tot, tscalelst, scalesuse, cifun = function(x,...) {x<0}, funcol = 4, smooth=0, nstart=1)
-mtext(text = expression(paste("community perturbation response, ", lambda)), side = 2, outer = TRUE, line = -2.2, cex=1.2)
+mtext(text = expression(paste("community perturbation response, ", lambda)), side = 2, outer = TRUE, line = -1.5, cex=1.2)
 
 plot_disc(matout_eig_pop, tscalelst, scalesuse, cifun = function(x,...) {x<0}, funcol = 4, smooth=0, nstart=6)
 mtext(text = expression(paste("population perturbation response, ", lambda)), side = 2, outer = TRUE, line = -1.8-14.2, cex=1.2)
