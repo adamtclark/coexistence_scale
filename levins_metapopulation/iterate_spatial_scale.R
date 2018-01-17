@@ -95,8 +95,8 @@ for(i in 1:length(scalelst)) {
     matout_tot<-cbind(scale=scalelst[i], tscale=1:ncol(clusterout[[1]]), iter=rep(1:niterations, each=ncol(clusterout[[1]])), tmp)
     
     #separate
-    matout_dyn<-matout_tot[,1:123]
-    matout_cv<-matout_tot[,c(1,3,124:147)]
+    matout_dyn<-matout_tot[,1:128]
+    matout_cv<-matout_tot[,c(1,3,129:152)]
     matout_cv<-cbind(lag=c(lglst, rep(NA, ncol(clusterout[[1]])-length(lglst))), matout_cv)
     matout_cv<-matout_cv[!is.na(matout_cv[,"lag"]),]
     

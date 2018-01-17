@@ -11,75 +11,76 @@ source("~/Dropbox/Rfunctions/filled.contour3.R")
 ###################################
 # Load output data
 ###################################
-nsp<-2
-
-flst<-dir("output/")
-flst_dyn<-flst[grep("dyn", flst)]
-flst_cv<-flst[grep("cv", flst)]
-
-matout_dyn<-data.frame(fread(paste("output/", flst_dyn[1], sep="")))
-matout_cv<-data.frame(fread(paste("output/", flst_cv[1], sep="")))
-
-spn1<-paste(rep(c("eig1_pop", "eig2_pop", "r0_pop", "eig1_tot", "eig2_tot", "r0_tot", "beta1_e", "beta2_e", "beta_r", "beta_0"), each=2), c("sp1", "sp2"), sep=".")
-spn2<-paste(rep(c("eig1_pop", "eig2_pop", "r0_pop", "eig1_tot", "eig2_tot", "r0_tot", "beta1_e", "beta2_e", "beta_r", "beta_0"), each=4), c("sp1", "sp2", "sp3", "sp4"), sep=".")
-
-spcv1<-paste(rep(c("CV_pop", "CV_tot"), each=2), c("sp1", "sp2"), sep=".")
-spcv2<-paste(rep(c("CV_pop", "CV_tot"), each=4), c("sp1", "sp2", "sp3", "sp4"), sep=".")
-
-clnm_dyn<-c("scale", "tscale", "iter",
-        paste(spn1, "meta", sep="."),
-        paste(spn1, "dist", sep="."),
-        paste(spn1, "psf", sep="."),
-        paste(spn2, "rps", sep="."),
-        paste(spn1, "neut", sep="."))
-clnm_cv<-c("lag", "scale", "iter",
-        paste(spcv1, "meta", sep="."),
-        paste(spcv1, "dist", sep="."),
-        paste(spcv1, "psf", sep="."),
-        paste(spcv2, "rps", sep="."),
-        paste(spcv1, "neut", sep="."))
-
-#check that dimensions are right:
-colnames(matout_dyn)<-clnm_dyn
-colnames(matout_cv)<-clnm_cv
-
-#Locations          
-e1pop<-grep("eig1_pop", clnm_dyn)
-e2pop<-grep("eig2_pop", clnm_dyn)
-r0pop<-grep("r0_pop", clnm_dyn)
-e1tot<-grep("eig1_tot", clnm_dyn)
-e2tot<-grep("eig2_tot", clnm_dyn)
-r0tot<-grep("r0_tot", clnm_dyn)
-bt1e<-grep("beta1_e", clnm_dyn)
-bt2e<-grep("beta2_e", clnm_dyn)
-btr<-grep("beta_r", clnm_dyn)
-bt0<-grep("beta_0", clnm_dyn)
-
-cvpop<-grep("CV_pop", clnm_cv)
-cvtot<-grep("CV_tot", clnm_cv)
-                        
-#Modeltype
-modlst<-unique(unlist(matrix(nrow=3, unlist(strsplit(clnm_dyn[e1pop], ".", fixed=T)))[3,]))
-
-#lists
-scalslst<-as.numeric(as.character(gsub(".csv", "", gsub("matout_dyn_", "", flst_dyn, fixed=TRUE), fixed=TRUE)))
-tscalelst<-sort(unique(matout_dyn$tscale))
-iterlst<-sort(unique(matout_dyn$iter))
-
-laglst<-sort(unique(matout_cv$lag))
-
-qtl_lims<-c(0.025, pnorm(-1, 0, 1), 0.5, pnorm(1, 0, 1), 0.975)
-
-###################################
-# Set up plotting data
-###################################
-#Two types of plots:
-#1. discrete subset of scales
-#2. countour plot
-#For all cases, calculate:
-#max(eigen); min(r0); mean(beta); mean(cv)
-
 if(FALSE) {
+  nsp<-2
+  
+  flst<-dir("output/")
+  flst_dyn<-flst[grep("dyn", flst)]
+  flst_cv<-flst[grep("cv", flst)]
+  
+  matout_dyn<-data.frame(fread(paste("output/", flst_dyn[1], sep="")))
+  matout_cv<-data.frame(fread(paste("output/", flst_cv[1], sep="")))
+  
+  spn1<-paste(rep(c("eig1_pop", "eig2_pop", "r0_pop", "eig1_tot", "eig2_tot", "r0_tot", "beta1_e", "beta2_e", "beta_r", "beta_0"), each=2), c("sp1", "sp2"), sep=".")
+  spn2<-paste(rep(c("eig1_pop", "eig2_pop", "r0_pop", "eig1_tot", "eig2_tot", "r0_tot", "beta1_e", "beta2_e", "beta_r", "beta_0"), each=4), c("sp1", "sp2", "sp3", "sp4"), sep=".")
+  
+  spcv1<-paste(rep(c("CV_pop", "CV_tot"), each=2), c("sp1", "sp2"), sep=".")
+  spcv2<-paste(rep(c("CV_pop", "CV_tot"), each=4), c("sp1", "sp2", "sp3", "sp4"), sep=".")
+  
+  clnm_dyn<-c("scale", "tscale", "iter",
+          paste(spn1, "meta", sep="."),
+          paste(spn1, "dist", sep="."),
+          paste(spn1, "psf", sep="."),
+          paste(spn2, "rps", sep="."),
+          paste(spn1, "neut", sep="."))
+  clnm_cv<-c("lag", "scale", "iter",
+          paste(spcv1, "meta", sep="."),
+          paste(spcv1, "dist", sep="."),
+          paste(spcv1, "psf", sep="."),
+          paste(spcv2, "rps", sep="."),
+          paste(spcv1, "neut", sep="."))
+  
+  #check that dimensions are right:
+  colnames(matout_dyn)<-clnm_dyn
+  colnames(matout_cv)<-clnm_cv
+  
+  #Locations          
+  e1pop<-grep("eig1_pop", clnm_dyn)
+  e2pop<-grep("eig2_pop", clnm_dyn)
+  r0pop<-grep("r0_pop", clnm_dyn)
+  e1tot<-grep("eig1_tot", clnm_dyn)
+  e2tot<-grep("eig2_tot", clnm_dyn)
+  r0tot<-grep("r0_tot", clnm_dyn)
+  bt1e<-grep("beta1_e", clnm_dyn)
+  bt2e<-grep("beta2_e", clnm_dyn)
+  btr<-grep("beta_r", clnm_dyn)
+  bt0<-grep("beta_0", clnm_dyn)
+  
+  cvpop<-grep("CV_pop", clnm_cv)
+  cvtot<-grep("CV_tot", clnm_cv)
+                          
+  #Modeltype
+  modlst<-unique(unlist(matrix(nrow=3, unlist(strsplit(clnm_dyn[e1pop], ".", fixed=T)))[3,]))
+  
+  #lists
+  scalslst<-as.numeric(as.character(gsub(".csv", "", gsub("matout_dyn_", "", flst_dyn, fixed=TRUE), fixed=TRUE)))
+  tscalelst<-sort(unique(matout_dyn$tscale))
+  iterlst<-sort(unique(matout_dyn$iter))
+  
+  laglst<-sort(unique(matout_cv$lag))
+  
+  qtl_lims<-c(0.025, pnorm(-1, 0, 1), 0.5, pnorm(1, 0, 1), 0.975)
+  
+  ###################################
+  # Set up plotting data
+  ###################################
+  #Two types of plots:
+  #1. discrete subset of scales
+  #2. countour plot
+  #For all cases, calculate:
+  #max(eigen); min(r0); mean(beta); mean(cv)
+  
+
   matout_eig_pop<-array(dim=c(length(scalslst), length(tscalelst), length(modlst), length(qtl_lims)))
   matout_r0_pop<-array(dim=c(length(scalslst), length(tscalelst), length(modlst), length(qtl_lims)))
   
@@ -486,14 +487,15 @@ par(mar=c(2,3,1,0), oma=c(2.5,2,2,3))
 tmp<-plot_cont(log(matout_invar_tot,10), log(scalslst,10), log(laglst+1,10), nlevels=5, splitcol = log(0.5, 10), logx=TRUE, logy=TRUE, logz=TRUE, coltype = 2, sqlst = sqtmp, nstart = 1, logxps = logxpos)
 
 
-tmp<-plot_cont(log(matout_invar_pop,10), log(scalslst,10), log(laglst+1,10), nlevels=5, splitcol = log(0.5, 10), logx=TRUE, logy=TRUE, logz=TRUE, coltype = 2, sqlst = sqtmp, nstart = 6, logxps = logxpos)
+#tmp<-plot_cont(log(matout_invar_pop,10), log(scalslst,10), log(laglst+1,10), nlevels=5, splitcol = log(0.5, 10), logx=TRUE, logy=TRUE, logz=TRUE, coltype = 2, sqlst = sqtmp, nstart = 6, logxps = logxpos)
 #arrayout=log(matout_beta_e,10); xscalslst=log(scalslst, 10); xlst=log(tscalelst, 10); tmlst=TRUE; splitcol=0; nlevels=5; sqlst=0; logx=TRUE; logy=TRUE; logz=TRUE; coltype=2
 
 
 logxpos<-c(1,2,5,10,20,50,150,200)
+tmp<-plot_cont(log(matout_beta_0,10), log(scalslst, 10), log(tscalelst, 10), nlevels=5, splitcol = log(0.5, 10), logx=TRUE, logy=TRUE, logz=TRUE, coltype = 2, sqlst = sqtmp, nstart = 11, logxps = logxpos)
 tmp<-plot_cont(log(matout_beta_e,10), log(scalslst, 10), log(tscalelst, 10), nlevels=5, splitcol = log(0.5, 10), logx=TRUE, logy=TRUE, logz=TRUE, coltype = 2, sqlst = sqtmp, nstart = 11, logxps = logxpos)
 tmp<-plot_cont(log(matout_beta_r,10), log(scalslst, 10), log(tscalelst, 10), nlevels=5, splitcol = log(0.5, 10), logx=TRUE, logy=TRUE, logz=TRUE, coltype = 2, sqlst = sqtmp, nstart = 16, logxps = logxpos)
-#plot_cont(matout_beta_0, log(tscalelst, 10), nlevels=5, splitcol = FALSE, rng=c(0,1))
+
 
 par(mar=c(2,3.5,1,1))
 filled.legend(z=matrix(sqtmp), levels=sqtmp, col=adjustcolor(c(rainbow(sum(sqtmp<log(0.5, 10)), start=0.15, end=.4), rev(rainbow(sum(sqtmp>log(0.5, 10)), start=0.75, end=0.85))), alpha.f = 0.6), key.axes = axis(4, at = sqtmp, labels = 10^sqtmp, las=2))

@@ -1492,9 +1492,10 @@ beta_estimate<-function(out, outlng, eigout, r0out, Emat, burnin=0, eigonly=FALS
       obsmat_0[1:dmtmp[1],i]<-predtmp$model_output[[1]]$obs
     }
     beta_0<-sqrt((predmat_0-obsmat_0)^2)/predmat_0
+    beta_0_tot<-sqrt((rowSums(predmat_0)-rowSums(obsmat_0))^2)/rowSums(predmat_0)
     
     #"Beta" for each case is a list of CV values for each type of test (one column per species)
-    return(list(beta_eig=beta_eig, beta_r0=beta_r0, beta_0=beta_0,
+    return(list(beta_eig=beta_eig, beta_r0=beta_r0, beta_0=beta_0, beta_0_tot=beta_0_tot,
                 preds=list(predmat_eig=predmat_eig, predmat_r0=predmat_r0, predmat_0=predmat_0),
                 obss=list(obsmat_eig=obsmat_eig, obsmat_r0=obsmat_r0, obsmat_0=obsmat_0)))
   } else {
@@ -1861,7 +1862,7 @@ runpar<-function(...) {
 }
 
 makemat<-function(eig1out, eig2out, r0out, beta1out, beta2out, nsp) {
-  tmpmat<-matrix(ncol=nsp*10, nrow=max(c(nrow(eig1out$eigenlst),
+  tmpmat<-matrix(ncol=nsp*10+1, nrow=max(c(nrow(eig1out$eigenlst),
                             nrow(eig2out$eigenlst),
                             nrow(r0out$grwrare),
                             nrow(eig1out$eigenlst_tot),
@@ -1870,7 +1871,8 @@ makemat<-function(eig1out, eig2out, r0out, beta1out, beta2out, nsp) {
                             nrow(beta1out$beta_eig),
                             nrow(beta2out$beta_eig),
                             nrow(beta2out$beta_r0),
-                            nrow(beta2out$beta_0)), na.rm=T))
+                            nrow(beta2out$beta_0),
+                            length(beta2out$beta_0_tot)),na.rm=T))
   
   nn<-0
   tmpmat[1:nrow(eig1out$eigenlst),(1:nsp)+nsp*(nn)]<-eig1out$eigenlst; nn<-nn+1
@@ -1884,7 +1886,8 @@ makemat<-function(eig1out, eig2out, r0out, beta1out, beta2out, nsp) {
   tmpmat[1:nrow(beta1out$beta_eig),(1:nsp)+nsp*(nn)]<-beta1out$beta_eig; nn<-nn+1
   tmpmat[1:nrow(beta2out$beta_eig),(1:nsp)+nsp*(nn)]<-beta2out$beta_eig; nn<-nn+1
   tmpmat[1:nrow(beta2out$beta_r0),(1:nsp)+nsp*(nn)]<-beta2out$beta_r0; nn<-nn+1
-  tmpmat[1:nrow(beta2out$beta_0),(1:nsp)+nsp*(nn)]<-beta2out$beta_0
+  tmpmat[1:nrow(beta2out$beta_0),(1:nsp)+nsp*(nn)]<-beta2out$beta_0; nn<-nn+1
+  tmpmat[1:nrow(beta2out$beta_0),1+nsp*(nn)]<-beta2out$beta_0_tot
   
   return(tmpmat)
 }
