@@ -24,6 +24,9 @@ if(FALSE) {
   spn1<-paste(rep(c("eig1_pop", "eig2_pop", "r0_pop", "eig1_tot", "eig2_tot", "r0_tot", "beta1_e", "beta2_e", "beta_r", "beta_0"), each=2), c("sp1", "sp2"), sep=".")
   spn2<-paste(rep(c("eig1_pop", "eig2_pop", "r0_pop", "eig1_tot", "eig2_tot", "r0_tot", "beta1_e", "beta2_e", "beta_r", "beta_0"), each=4), c("sp1", "sp2", "sp3", "sp4"), sep=".")
   
+  spn1<-c(spn1, "beta_0_tot")
+  spn2<-c(spn2, "beta_0_tot")
+  
   spcv1<-paste(rep(c("CV_pop", "CV_tot"), each=2), c("sp1", "sp2"), sep=".")
   spcv2<-paste(rep(c("CV_pop", "CV_tot"), each=4), c("sp1", "sp2", "sp3", "sp4"), sep=".")
   
@@ -55,6 +58,7 @@ if(FALSE) {
   bt2e<-grep("beta2_e", clnm_dyn)
   btr<-grep("beta_r", clnm_dyn)
   bt0<-grep("beta_0", clnm_dyn)
+  bt0_tot<-grep("beta_0_tot", clnm_dyn)
   
   cvpop<-grep("CV_pop", clnm_cv)
   cvtot<-grep("CV_tot", clnm_cv)
@@ -90,6 +94,7 @@ if(FALSE) {
   matout_beta_e<-array(dim=c(length(scalslst), length(tscalelst), length(modlst), length(qtl_lims)))
   matout_beta_r<-array(dim=c(length(scalslst), length(tscalelst), length(modlst), length(qtl_lims)))
   matout_beta_0<-array(dim=c(length(scalslst), length(tscalelst), length(modlst), length(qtl_lims)))
+  matout_beta_0_tot<-array(dim=c(length(scalslst), length(tscalelst), length(modlst), length(qtl_lims)))
   
   matout_invar_pop<-array(dim=c(length(scalslst), length(laglst), length(modlst), length(qtl_lims)))
   matout_invar_tot<-array(dim=c(length(scalslst), length(laglst), length(modlst), length(qtl_lims)))
@@ -145,6 +150,7 @@ if(FALSE) {
         matout_beta_e[i,j,k,]<-unname(qtfun(rowMeans(matout_dyn[sbs,intersect(bt2e, subscol)], na.rm=T), qtl_lims, na.rm=TRUE))
         matout_beta_r[i,j,k,]<-unname(qtfun(rowMeans(matout_dyn[sbs,intersect(btr, subscol)], na.rm=T), qtl_lims, na.rm=TRUE))
         matout_beta_0[i,j,k,]<-unname(qtfun(rowMeans(matout_dyn[sbs,intersect(bt0, subscol)], na.rm=T), qtl_lims, na.rm=TRUE))
+        matout_beta_0_tot[i,j,k,]<-unname(qtfun(matout_dyn[sbs,intersect(bt0_tot, subscol)], qtl_lims, na.rm=TRUE))
       }
       
       if(j/20 == floor(j/20)) {
@@ -201,7 +207,7 @@ plot_disc<-function(arrayout, xlst, scalesuse=c(1,2,4,6), cifun=function(x,...) 
       rng<-range(c(0, arrayout[scalesuse,,j,3]), na.rm=T)
     }
     
-    plot(range(xlst[colSums(abs(arrayout[scalesuse,,j,3]), na.rm=T)!=0]), rng, type="n", xlab="", ylab="", xaxs="i", axes=FALSE, ...)
+    plot(range(xlst[colSums(abs(arrayout[scalesuse,,j,3]), na.rm=T)!=0],na.rm=T), rng, type="n", xlab="", ylab="", xaxs="i", axes=FALSE, ...)
     axis(1); axis(2, las=2); box()
     abline(h=0, lty=3)
     put.fig.letter(paste(letters[nstart], ".", sep=""), "topleft", offset=ofs1, cex=1.6)
@@ -248,7 +254,7 @@ mtext(text = expression(paste("community perturbation response, ", lambda, itali
 
 plot_disc(matout_eig_pop, tscalelst, scalesuse, cifun = function(x,...) {x<0}, funcol = 4, smooth=0, nstart=6)
 mtext(text = expression(paste("population perturbation response, ", lambda, italic(t))), side = 2, outer = TRUE, line = -1.8-14.2, cex=1.2)
-mtext(text = expression(paste("temporal scale, time steps")), side = 1, outer = FALSE, line = 3.5, cex=1.2)
+mtext(text = expression(paste("temporal span, time steps")), side = 1, outer = FALSE, line = 3.5, cex=1.2)
 
 plot_disc(matout_r0_pop, tscalelst, scalesuse, cifun = function(x,...) {x>0}, funcol = 2, smooth=0, nstart=11)
 mtext(text = expression(paste("invasion rate when rare, ", italic(r[0]))), side = 2, outer = TRUE, line = -1.8-14.2-14.5, cex=1.2)
@@ -266,12 +272,14 @@ par(mfcol=c(length(modlst), 4), mar=c(2,4,1,1), oma=c(2.5,1,1,1.5))
 
 #ofs1<-c(0.3, -0.01)
 #par(mar=c(2,4,1,0))
-plot_disc(matout_invar_tot, laglst, scalesuse, tmlst = FALSE, nstart=1)
+#plot_disc(matout_invar_tot, laglst, scalesuse, tmlst = FALSE, nstart=1)
+plot_disc(matout_beta_0_tot, tscalelst, scalesuse, tmlst = FALSE, nstart=1)
 mtext(text = expression(paste("lagged community prediction decay, ", italic("CV"))), side = 2, outer = TRUE, line = -1.1, cex=1.2)
 
 #ofs1<-c(0.23, -0.01)
 #par(mar=c(2,3,1,1))
-plot_disc(matout_invar_pop, laglst, scalesuse, tmlst = FALSE, nstart=6)
+#plot_disc(matout_invar_pop, laglst, scalesuse, tmlst = FALSE, nstart=6)
+plot_disc(matout_beta_0, tscalelst, scalesuse, tmlst = FALSE, nstart=6)
 mtext(text = expression(paste("lagged population prediction decay, ", italic("CV"))), side = 2, outer = TRUE, line = -15.8, cex=1.2)
 
 #ofs1<-c(0.33, -0.01)
@@ -436,8 +444,6 @@ plot_cont<-function(arrayout, xscalslst, xlst, splitcol=0, nlevels=10, sqlst=0, 
   return(list(sqlst=sqlst, collst2=collst2))
 }
 
-#TODO: add in plots with p-values
-
 pdf("figures/FIGURE_sim_continuous_dyn_results.pdf", width=6.5, height=8, colormodel = "cmyk")
 sqtmp<-c(-1.5, -1, -0.5, -0.25, -0.1, 0, 0.1, 0.25, 0.5, 1, 1.5)
 logxpos<-c(1,2,5,10,20,50,150,200)
@@ -446,7 +452,7 @@ m<-matrix(nrow=5, 1:15)
 m<-cbind(m, 16)
 layout(m, widths=c(1,1,1,0.5))
 
-par(mar=c(2,3,1,0), oma=c(2.5,2,2,2))
+par(mar=c(2,3,1,0), oma=c(2.5,2,2,2.5))
 ofs1<-c(0.255, -0.002)
 tmp<-plot_cont(matout_eig_tot, log(scalslst,10), log(tscalelst, 10), nlevels=10, logx=TRUE, logy=TRUE, sqlst = sqtmp, logxps = logxpos, nstart = 1)
 tmp<-plot_cont(matout_eig_pop, log(scalslst,10), log(tscalelst, 10), nlevels=10, logx=TRUE, logy=TRUE, sqlst = sqtmp, logxps = logxpos, nstart = 6)
@@ -465,8 +471,8 @@ mtext(text = expression(paste(lambda, italic(t), ", community")), side = 3, oute
 mtext(text = expression(paste(lambda, italic(t), ", population")), side = 3, outer = TRUE, line = 0, adj = .4505, cex=1.2)
 mtext(text = expression(paste(r[0], ", population")), side = 3, outer = TRUE, line = 0, adj = 0.805, cex=1.2)
 
-mtext(text = expression(paste("temporal scale, time steps")), side = 1, outer = TRUE, line = 1.3, cex=1.2, adj = 0.45)
-mtext(text = expression(paste("spatial scale, fraction of maximum")), side = 2, outer = TRUE, line = -0.1, cex=1.2, adj = 0.46)
+mtext(text = expression(paste("temporal span, time steps")), side = 1, outer = TRUE, line = 1.3, cex=1.2, adj = 0.45)
+mtext(text = expression(paste("spatial span, fraction of maximum")), side = 2, outer = TRUE, line = -0.1, cex=1.2, adj = 0.46)
 dev.off()
 
 
@@ -484,14 +490,13 @@ ofs1<-c(0.25, -0.002)
 sqtmp<-log10(c(0.005, 0.01, 0.015, 0.025, 0.05, 0.075, 0.15, 0.25, 0.5, 0.75, 1, 2))
 
 par(mar=c(2,3,1,0), oma=c(2.5,2,2,3))
-tmp<-plot_cont(log(matout_invar_tot,10), log(scalslst,10), log(laglst+1,10), nlevels=5, splitcol = log(0.5, 10), logx=TRUE, logy=TRUE, logz=TRUE, coltype = 2, sqlst = sqtmp, nstart = 1, logxps = logxpos)
-
-
+#tmp<-plot_cont(log(matout_invar_tot,10), log(scalslst,10), log(laglst+1,10), nlevels=5, splitcol = log(0.5, 10), logx=TRUE, logy=TRUE, logz=TRUE, coltype = 2, sqlst = sqtmp, nstart = 1, logxps = logxpos)
 #tmp<-plot_cont(log(matout_invar_pop,10), log(scalslst,10), log(laglst+1,10), nlevels=5, splitcol = log(0.5, 10), logx=TRUE, logy=TRUE, logz=TRUE, coltype = 2, sqlst = sqtmp, nstart = 6, logxps = logxpos)
 #arrayout=log(matout_beta_e,10); xscalslst=log(scalslst, 10); xlst=log(tscalelst, 10); tmlst=TRUE; splitcol=0; nlevels=5; sqlst=0; logx=TRUE; logy=TRUE; logz=TRUE; coltype=2
 
 
 logxpos<-c(1,2,5,10,20,50,150,200)
+tmp<-plot_cont(log(matout_beta_0_tot,10), log(scalslst, 10), log(tscalelst, 10), nlevels=5, splitcol = log(0.5, 10), logx=TRUE, logy=TRUE, logz=TRUE, coltype = 2, sqlst = sqtmp, nstart = 11, logxps = logxpos)
 tmp<-plot_cont(log(matout_beta_0,10), log(scalslst, 10), log(tscalelst, 10), nlevels=5, splitcol = log(0.5, 10), logx=TRUE, logy=TRUE, logz=TRUE, coltype = 2, sqlst = sqtmp, nstart = 11, logxps = logxpos)
 tmp<-plot_cont(log(matout_beta_e,10), log(scalslst, 10), log(tscalelst, 10), nlevels=5, splitcol = log(0.5, 10), logx=TRUE, logy=TRUE, logz=TRUE, coltype = 2, sqlst = sqtmp, nstart = 11, logxps = logxpos)
 tmp<-plot_cont(log(matout_beta_r,10), log(scalslst, 10), log(tscalelst, 10), nlevels=5, splitcol = log(0.5, 10), logx=TRUE, logy=TRUE, logz=TRUE, coltype = 2, sqlst = sqtmp, nstart = 16, logxps = logxpos)
@@ -506,17 +511,17 @@ mtext(text = "PSF", side = 4, outer = TRUE, line = -5.5, adj = 0.515, cex=1.2)
 mtext(text = "RPS", side = 4, outer = TRUE, line = -5.5, adj = 0.305, cex=1.2)
 mtext(text = "neutral", side = 4, outer = TRUE, line = -5.5, adj = .08, cex=1.2)
 
-mtext(text = expression(paste(italic(CV[tau]), ", community")), side = 3, outer = TRUE, line = 0, adj = .055, cex=1.2)
-mtext(text = expression(paste(italic(CV[tau]), ", population")), side = 3, outer = TRUE, line = 0, adj = 0.327, cex=1.2)
+mtext(text = expression(paste(italic(CV), ", community")), side = 3, outer = TRUE, line = 0, adj = .055, cex=1.2)
+mtext(text = expression(paste(italic(CV), ", population")), side = 3, outer = TRUE, line = 0, adj = 0.327, cex=1.2)
 
-mtext(text = expression(paste(italic(CV[beta]), ", ", italic(lambda[t]))), side = 3, outer = TRUE, line = 0, adj = 0.59, cex=1.2)
-mtext(text = expression(paste(italic(CV[beta]), ", ", italic(r[0]))), side = 3, outer = TRUE, line = 0, adj = .828, cex=1.2)
+mtext(text = expression(paste(italic(CV), ", ", italic(lambda[t]))), side = 3, outer = TRUE, line = 0, adj = 0.59, cex=1.2)
+mtext(text = expression(paste(italic(CV), ", ", italic(r[0]))), side = 3, outer = TRUE, line = 0, adj = .828, cex=1.2)
 
 mtext(text = expression(paste("temporal lag, time steps")), side = 1, outer = TRUE, line = 1.3, cex=1.2, adj = 0.15)
 mtext(text = expression(paste("time steps since event")), side = 1, outer = TRUE, line = 1.3, cex=1.2, adj = 0.75)
 
 
-mtext(text = expression(paste("spatial scale, fraction of maximum")), side = 2, outer = TRUE, line = -0.1, cex=1.2, adj = 0.46)
+mtext(text = expression(paste("spatial span, fraction of maximum")), side = 2, outer = TRUE, line = -0.1, cex=1.2, adj = 0.46)
 dev.off()
 
 
@@ -556,8 +561,8 @@ mtext(text = expression(paste(lambda, italic(t), ", community")), side = 3, oute
 mtext(text = expression(paste(lambda, italic(t), ", population")), side = 3, outer = TRUE, line = 0, adj = .4505, cex=1.2)
 mtext(text = expression(paste(r[0], ", population")), side = 3, outer = TRUE, line = 0, adj = 0.805, cex=1.2)
 
-mtext(text = expression(paste("temporal scale, time steps")), side = 1, outer = TRUE, line = 1.3, cex=1.2, adj = 0.45)
-mtext(text = expression(paste("spatial scale, fraction of maximum")), side = 2, outer = TRUE, line = -0.1, cex=1.2, adj = 0.46)
+mtext(text = expression(paste("temporal span, time steps")), side = 1, outer = TRUE, line = 1.3, cex=1.2, adj = 0.45)
+mtext(text = expression(paste("spatial span, fraction of maximum")), side = 2, outer = TRUE, line = -0.1, cex=1.2, adj = 0.46)
 dev.off()
 
 
@@ -593,7 +598,7 @@ mtext(text = expression(paste(italic(CV[beta]), ", ", italic(r[0]))), side = 3, 
 mtext(text = expression(paste("time steps since event")), side = 1, outer = TRUE, line = 1.3, cex=1.2, adj = 0.42)
 
 
-mtext(text = expression(paste("spatial scale, fraction of maximum")), side = 2, outer = TRUE, line = -0.1, cex=1.2, adj = 0.46)
+mtext(text = expression(paste("spatial span, fraction of maximum")), side = 2, outer = TRUE, line = -0.1, cex=1.2, adj = 0.46)
 dev.off()
 
 
