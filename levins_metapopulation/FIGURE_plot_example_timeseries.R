@@ -270,6 +270,7 @@ tmp<-modplotfun(out=out_psf, eigout=eig_psf2, r0out=r0_psf, collst=collst, burni
 put.fig.letter("c.", "topleft", offset=ofs1, cex=fcx)
 
 tmp<-modplotfun(out=out_rps, eigout=eig_rps2, r0out=r0_rps, collst=collst, burnin=100, doceq=1, atsq=atsq)
+abline(h=rep(out_rps$plotdata$ceq[1]/4,4), lty=3, col=collst[-1])
 put.fig.letter("d.", "topleft", offset=ofs1, cex=fcx)
 
 tmp<-modplotfun(out=out_neut, eigout=eig_neut2, r0out=r0_neut, collst=collst, burnin=100, doceq=1, atsq=atsq)
