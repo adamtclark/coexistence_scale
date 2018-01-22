@@ -549,7 +549,7 @@ tmp<-plot_cont(matout_r0_pop, log(scalslst,10), log(tscalelst, 10), nlevels=10, 
 
 par(mar=c(2,3.5,1,1))
 sqtmp<-seq(-2, 2)
-filled.legend(z=matrix(sqtmp), levels=sqtmp, col=c("blue", "lightblue", "pink", "red"), key.axes = axis(4, at = seq(-1.5, 1.5), labels = c("97.5% < 0", "+1SD < 0", "-1SD > 0", "2.25% > 0"), las=2))
+filled.legend(z=matrix(sqtmp), levels=sqtmp, col=c("blue", "lightblue", "pink", "red"), key.axes = axis(4, at = seq(-1.5, 1.5), labels = c("97.5% < 0", "+1SD < 0", "-1SD > 0", "2.5% > 0"), las=2))
 
 mtext(text = "levins", side = 4, outer = TRUE, line = -5.5, adj = .94, cex=1.2)
 mtext(text = "disturbance", side = 4, outer = TRUE, line = -5.5, adj = 0.74, cex=1.2)
@@ -584,7 +584,7 @@ tmp<-plot_cont(log(matout_beta_r,10), log(scalslst, 10), log(tscalelst, 10), nle
 
 par(mar=c(2,3.5,1,1))
 sqtmp<-seq(-2, 2)
-filled.legend(z=matrix(sqtmp), levels=sqtmp, col=c("blue", "lightblue", "pink", "red"), key.axes = axis(4, at = seq(-1.5, 1.5), labels = c(expression(paste("97.5% < ", beta[0])), expression(paste("+1SD < ", beta[0])), expression(paste("-1SD > ", beta[0])), expression(paste("2.25% > ", beta[0]))), las=2))
+filled.legend(z=matrix(sqtmp), levels=sqtmp, col=c("blue", "lightblue", "pink", "red"), key.axes = axis(4, at = seq(-1.5, 1.5), labels = c(expression(paste("97.5% < ", beta[0])), expression(paste("+1SD < ", beta[0])), expression(paste("-1SD > ", beta[0])), expression(paste("2.5% > ", beta[0]))), las=2))
 
 mtext(text = "levins", side = 4, outer = TRUE, line = -5.5, adj = .94, cex=1.2)
 mtext(text = "disturbance", side = 4, outer = TRUE, line = -5.5, adj = 0.74, cex=1.2)
