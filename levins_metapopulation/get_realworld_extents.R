@@ -5,6 +5,9 @@ require(data.table)
 require(RColorBrewer)
 source("~/Dropbox/Rfunctions/figure_functions.R")
 
+
+
+if(FALSE) {
 d001<-read.table("data/e001_Plant aboveground biomass data.txt", header=T, sep="\t")
 d002<-read.table("data/e002_Plant aboveground biomass data.txt", header=T, sep="\t")
 d014<-data.frame(fread("data/e014_long_covars_161017.csv"))
@@ -68,7 +71,7 @@ cumsum(rev(table(tapply(inut$year, inut$index, function(x) diff(range(x))))))
 
 #0.2-0.5 m 2-4
 
-
+}
 
 
 #Make plots:
