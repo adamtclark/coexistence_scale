@@ -604,3 +604,196 @@ dev.off()
 
 
 
+
+
+
+
+
+
+###############
+# Plot specific model details
+###############
+source("run_metapopulation_wrapper.R")
+
+collst3<-adjustcolor(c("grey51", brewer.pal(4, "Set1")), alpha.f = 0.7)
+
+##### 1. Show Peturbation vs. stochastic changes at small scales
+set.seed(22012018)
+runtype = "metapopulation"
+gridout<-makegrid(xlng = 100, ylng = 100)
+population<-populate(gridout, nlst = 0.1, clst = c(0.15, 0.35)*3, mlst = rep(0.3, 2), radlst = Inf)
+grid_sub<-grid_subset(gridout, size = 0.01)
+out<-run_metapopulation(tmax=300, nsteps = 300, gridout, population, talktime = 0, sites_sub = grid_sub$sites)
+eqret1<-estimate_eqreturn(out, replace_perturb = 0, prtb = 0.2, simtime = 200, perturbsites = grid_sub$sites, sites_sub = grid_sub$sites, doplot = FALSE)
+#eqret2<-estimate_eqreturn(out, replace_perturb = 1, simtime = 1000, perturbsites = grid_sub$sites, doplot = FALSE)
+
+tmp<-eqret1$out_lst[[1]]$output_spatial
+tmp[,1]<-tmp[,1]+max(out$output_spatial[,1])
+tmp<-rbind(out$output_spatial, tmp)
+
+
+pdf("figures/SUP_FIGURE_dem_stoch_vs_pert.pdf", width=4, height=3, colormodel = "cmyk")
+par(mar=c(4,4,1,1), oma=c(0,0,0,0))
+
+sbs<--c(1:250)
+plot(tmp[sbs,1]+1-100, tmp[sbs,2], type="l", col=collst3[2], lwd=1.5, xlab="", ylab="", axes=F, xaxs="i")
+axis(1); axis(2, las=2); box()
+abline(v=300-100, lty=2)
+abline(h=out$plotdata$ceq[1]*length(grid_sub$sites), col=collst3[2], lty=3)
+
+mtext(text = expression(paste("simulation time")), side = 1, outer = F, line = 2.5, cex=1.2, adj = 0.42)
+mtext(text = expression(paste("number of individuals")), side = 2, outer = F, line = 2.5, cex=1.2, adj = 0.42)
+
+#Add var
+lms<-mean(eqret1$out_lst[[1]]$output_spatial[,2])+sd(eqret1$out_lst[[1]]$output_spatial[,2])*c(-1,1)
+polygon(c(0, 1000, 1000, 0), c(lms[c(1,1,2,2)]), col=adjustcolor(collst3[2], alpha.f = 0.5))
+
+arrows(tmp[300,1]+1-100, tmp[300,2], tmp[301,1]+1-100, tmp[301,2], length = 0.12, lwd=1.5, angle = 20)
+dev.off()
+
+
+##### 2. Show growth/invasion around disturbance events in dist. model
+matout_dyn<-data.frame(fread(paste("output/", flst_dyn[grep("_1.csv", flst_dyn)], sep=""), verbose=FALSE))
+sbs<-which(matout_dyn$scale==1)
+subscol<-grep(modlst[2], clnm_dyn)
+
+ofs2<-c(0.275, -0.017)
+pdf("figures/SUP_FIGURE_disturbance_example.pdf", width=6, height=3, colormodel = "cmyk")
+par(mar=c(4,4,1,1), oma=c(0,0,0,0), mfrow=c(1,2))
+#Eigen
+sp1<-tapply(matout_dyn[sbs,intersect(e2pop, subscol)[1]], matout_dyn[sbs,"tscale"], function(x) median(x, na.rm=T))
+sp2<-tapply(matout_dyn[sbs,intersect(e2pop, subscol)[2]], matout_dyn[sbs,"tscale"], function(x) median(x, na.rm=T))
+
+matplot(tscalelst, cbind(sp1, sp2)*tscalelst, type="l", lwd=1.5, col=collst3[3:2], lty=1, xlab="", ylab="", axes=F)
+abline(h=0, lty=3)
+abline(v=c(0, 50, 100, 150, 200), lty=2)
+axis(1); axis(2, las=2); box()
+
+mtext("time since event", 1, line=2.5, cex=1.2)
+mtext(expression(paste(italic(lambda))), 2.5, line=2.5, cex=1.2)
+put.fig.letter("a.", "topleft", offset=ofs2, cex=1.2)
+
+#r0
+sp1<-tapply(matout_dyn[sbs,intersect(r0pop, subscol)[1]], matout_dyn[sbs,"tscale"], function(x) median(x, na.rm=T))
+sp2<-tapply(matout_dyn[sbs,intersect(r0pop, subscol)[2]], matout_dyn[sbs,"tscale"], function(x) median(x, na.rm=T))
+
+matplot(tscalelst, cbind(sp1, sp2)*tscalelst, type="l", lwd=1.5, col=collst3[3:2], lty=1, xlab="", ylab="", axes=F)
+abline(h=0, lty=3)
+abline(v=c(0, 50, 100, 150, 200), lty=2)
+axis(1); axis(2, las=2); box()
+
+mtext("time since event", 1, line=2.5, cex=1.2)
+mtext(expression(paste(italic(r[0]))), 2.5, line=2.5, cex=1.2)
+put.fig.letter("b.", "topleft", offset=ofs2, cex=1.2)
+dev.off()
+
+
+##### 3. Show neutral mass effects/die-off at mid-scales
+set.seed(23012018)
+runtype = "neutral"
+gridout<-makegrid(xlng = 100, ylng = 100)
+population<-populate(gridout, nlst = 0.1, clst = rep(0.5, 2)*3, mlst = rep(0.7, 2), radlst = Inf)
+
+grid_sub1<-grid_subset(gridout, size = 0.2)
+grid_sub2<-grid_subset(gridout, size = 0.01)
+
+set.seed(28012018)
+out1<-run_metapopulation(tmax=300, nsteps = 300, runtype = "neutral", gridout, population, talktime = 0, sites_sub = grid_sub1$sites)
+set.seed(28012018)
+out2<-run_metapopulation(tmax=300, nsteps = 300, runtype = "neutral", gridout, population, talktime = 0, sites_sub = grid_sub2$sites)
+
+r0_neut1<-estimate_rarereturn(out1, simtime=200, burnin=200, runtype="neutral", perturbsites = grid_sub1$sites, sites_sub = grid_sub1$sites, doplot=FALSE)
+r0_neut2<-estimate_rarereturn(out2, simtime=200, burnin=200, runtype="neutral", perturbsites = grid_sub2$sites, sites_sub = grid_sub2$sites, doplot=FALSE)
+
+pdf("figures/SUP_FIGURE_neutral_extinction.pdf", width=6, height=3, colormodel = "cmyk")
+par(mar=c(4,4,1,1), oma=c(0,0,0,0), mfrow=c(1,2))
+
+tmp1<-r0_neut1$out0_lst[[1]]$output
+tmp1[,1]<-tmp1[,1]+max(out1$output[,1])
+tmp1<-rbind(out1$output, tmp1)
+
+tmp2<-r0_neut2$out0_lst[[1]]$output
+tmp2[,1]<-tmp2[,1]+max(out2$output[,1])
+tmp2<-rbind(out2$output, tmp2)
+
+sbs<--c(1:250)
+plot(tmp1[sbs,1]+1-100, tmp1[sbs,2]/out1$plotdata$ngrid, type="l", col=collst3[2], lwd=1.5, xlab="", ylab="", axes=F, xaxs="i", ylim=c(0, 0.4))
+axis(1); axis(2, las=2); box()
+abline(v=300-100, lty=2); abline(h=0, lty=3)
+arrows(tmp1[300,1]+1-100, tmp1[300,2]/out1$plotdata$ngrid, tmp1[301,1]+1-100, tmp1[301,2]/out1$plotdata$ngrid, length = 0.12, lwd=1.5, angle = 20)
+put.fig.letter("a.", "topleft", offset=ofs2, cex=1.2)
+
+mtext(text = expression(paste("simulation time")), side = 1, outer = F, line = 2.5, cex=1.2, adj = 0.42)
+mtext(text = expression(paste("abundance")), side = 2, outer = F, line = 2.5, cex=1.2, adj = 0.42)
+
+plot(tmp2[sbs,1]+1-100, tmp2[sbs,2]/out1$plotdata$ngrid, type="l", col=collst3[2], lwd=1.5, xlab="", ylab="", axes=F, xaxs="i", ylim=c(0, 0.4))
+axis(1); axis(2, las=2); box()
+abline(v=300-100, lty=2); abline(h=0, lty=3)
+arrows(tmp2[300,1]+1-100, tmp2[300,2]/out1$plotdata$ngrid+0.01, tmp2[301,1]+1-100, tmp2[301,2]/out1$plotdata$ngrid-0.02, length = 0.12, lwd=1.5, angle = 20)
+
+mtext(text = expression(paste("simulation time")), side = 1, outer = F, line = 2.5, cex=1.2, adj = 0.42)
+mtext(text = expression(paste("abundance")), side = 2, outer = F, line = 2.5, cex=1.2, adj = 0.42)
+put.fig.letter("b.", "topleft", offset=ofs2, cex=1.2)
+dev.off()
+
+
+
+
+##### 4. Show recovery from perturbation at population etc. scale.
+set.seed(22012018)
+runtype = "neutral"
+gridout<-makegrid(xlng = 100, ylng = 100)
+population<-populate(gridout, nlst = 0.1, clst = rep(0.5, 2)*3, mlst = rep(0.7, 2), radlst = Inf)
+out<-run_metapopulation(tmax=300, nsteps = 300, gridout, population, talktime = 0, runtype = runtype)
+
+eqret1<-estimate_eqreturn(out, runtype = runtype, replace_perturb = 0, prtb = 0.2, simtime = 200, doplot = FALSE)
+eqret2<-estimate_eqreturn(out, runtype = runtype, replace_perturb = 1, prtb = 0.2, simtime = 200, doplot = FALSE)
+
+tmp1<-eqret1$out_lst[[1]]$output
+tmp1[,1]<-tmp1[,1]+max(out$output[,1])
+tmp1<-rbind(out$output, tmp1)
+tmp1<-cbind(tmp1[,1], rowSums(tmp1[,-1]), tmp1[,2:3])
+
+tmp2<-eqret2$out_lst[[1]]$output
+tmp2[,1]<-tmp2[,1]+max(out$output[,1])
+tmp2<-rbind(out$output, tmp2)
+tmp2<-cbind(tmp2[,1], rowSums(tmp2[,-1]), tmp2[,2:3])
+
+
+pdf("figures/SUP_FIGURE_perturb_replace.pdf", width=6, height=3, colormodel = "cmyk")
+par(mar=c(4,4,1,1), oma=c(0,0,0,0), mfrow=c(1,2))
+
+sbs<--c(1:250, 350:500)
+matplot(tmp1[sbs,1]+1-100, tmp1[sbs,-1]/out$plotdata$ngrid, type="l", col=collst3, lwd=1.5, lty=1, xlab="", ylab="", axes=F, xaxs="i")
+axis(1); axis(2, las=2); box()
+abline(v=300-100, lty=2)
+abline(h=out$plotdata$ceq[1], col=collst3[1], lty=3)
+arrows(tmp1[300,1]+1-100, tmp1[300,3]/out$plotdata$ngrid, tmp1[301,1]+1-100, tmp1[301,3]/out$plotdata$ngrid, length = 0.12, lwd=1.5, angle = 20)
+
+mtext(text = expression(paste("simulation time")), side = 1, outer = F, line = 2.5, cex=1.2, adj = 0.42)
+mtext(text = expression(paste("abundance")), side = 2, outer = F, line = 2.5, cex=1.2, adj = 0.42)
+put.fig.letter("a.", "topleft", offset=ofs2, cex=1.2)
+
+
+matplot(tmp2[sbs,1]+1-100, tmp2[sbs,-1]/out$plotdata$ngrid, type="l", col=collst3, lwd=1.5, lty=1, xlab="", ylab="", axes=F, xaxs="i")
+axis(1); axis(2, las=2); box()
+abline(v=300-100, lty=2)
+abline(h=out$plotdata$ceq[1], col=collst3[1], lty=3)
+
+arrows(tmp2[300,1]+1-100, tmp2[300,3]/out$plotdata$ngrid, tmp2[301,1]+1-100, tmp2[301,3]/out$plotdata$ngrid, length = 0.12, lwd=1.5, angle = 20)
+arrows(tmp2[300,1]+1-100, tmp2[300,4]/out$plotdata$ngrid, tmp2[301,1]+1-100, tmp2[301,4]/out$plotdata$ngrid, length = 0.12, lwd=1.5, angle = 20)
+
+mtext(text = expression(paste("simulation time")), side = 1, outer = F, line = 2.5, cex=1.2, adj = 0.42)
+mtext(text = expression(paste("abundance")), side = 2, outer = F, line = 2.5, cex=1.2, adj = 0.42)
+put.fig.letter("b.", "topleft", offset=ofs2, cex=1.2)
+
+dev.off()
+
+
+
+
+
+
+
+
+
