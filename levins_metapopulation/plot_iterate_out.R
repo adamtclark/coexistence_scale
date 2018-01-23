@@ -725,7 +725,7 @@ plot(tmp1[sbs,1]+1-100, tmp1[sbs,2]/out1$plotdata$ngrid, type="l", col=collst3[2
 axis(1); axis(2, las=2); box()
 abline(v=c(300, 500)-100, lty=2); abline(h=0, lty=3)
 arrows(tmp1[300,1]+1-100, tmp1[300,2]/out1$plotdata$ngrid, tmp1[301,1]+1-100, tmp1[301,2]/out1$plotdata$ngrid, length = 0.12, lwd=1.5, angle = 20)
-arrows(tmp1[500,1]+1-100, tmp1[500,2]/out1$plotdata$ngrid+0.1, tmp1[501,1]+1-100, tmp1[501,2]/out1$plotdata$ngrid-0.02, length = 0.12, lwd=1.5, angle = 20)
+arrows(tmp1[500,1]+1-100, tmp1[500,2]/out1$plotdata$ngrid-0.01, tmp1[501,1]+1-100, tmp1[501,2]/out1$plotdata$ngrid+0.02, length = 0.12, lwd=1.5, angle = 20)
 
 put.fig.letter("a.", "topleft", offset=ofs2, cex=1.2)
 
@@ -734,8 +734,9 @@ mtext(text = expression(paste("abundance")), side = 2, outer = F, line = 2.5, ce
 
 plot(tmp2[sbs,1]+1-100, tmp2[sbs,2]/out1$plotdata$ngrid, type="l", col=collst3[2], lwd=1.5, xlab="", ylab="", axes=F, xaxs="i", ylim=c(0, 0.4))
 axis(1); axis(2, las=2); box()
-abline(v=300-100, lty=2); abline(h=0, lty=3)
+abline(v=c(300, 500)-100, lty=2); abline(h=0, lty=3)
 arrows(tmp2[300,1]+1-100, tmp2[300,2]/out1$plotdata$ngrid+0.01, tmp2[301,1]+1-100, tmp2[301,2]/out1$plotdata$ngrid-0.02, length = 0.12, lwd=1.5, angle = 20)
+arrows(tmp2[500,1]+1-100, tmp2[500,2]/out1$plotdata$ngrid-0.01, tmp2[501,1]+1-100, tmp2[501,2]/out1$plotdata$ngrid+0.02, length = 0.12, lwd=1.5, angle = 20)
 
 mtext(text = expression(paste("simulation time")), side = 1, outer = F, line = 2.5, cex=1.2, adj = 0.42)
 mtext(text = expression(paste("abundance")), side = 2, outer = F, line = 2.5, cex=1.2, adj = 0.42)
