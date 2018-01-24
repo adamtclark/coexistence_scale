@@ -512,7 +512,7 @@ mtext(text = "RPS", side = 4, outer = TRUE, line = -5.5, adj = 0.305, cex=1.2)
 mtext(text = "neutral", side = 4, outer = TRUE, line = -5.5, adj = .08, cex=1.2)
 
 mtext(text = expression(paste(italic(CV), ", community")), side = 3, outer = TRUE, line = 0, adj = .055, cex=1.2)
-mtext(text = expression(paste(italic(CV), ", population")), side = 3, outer = TRUE, line = 0, adj = 0.327, cex=1.2)
+mtext(text = expression(paste(italic(CV), ", compositional")), side = 3, outer = TRUE, line = 0, adj = 0.32, cex=1.2)
 
 mtext(text = expression(paste(italic(CV), ", ", italic(lambda))), side = 3, outer = TRUE, line = 0, adj = 0.59, cex=1.2)
 mtext(text = expression(paste(italic(CV), ", ", italic(r[0]))), side = 3, outer = TRUE, line = 0, adj = .828, cex=1.2)

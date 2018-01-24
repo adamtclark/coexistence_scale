@@ -389,7 +389,7 @@ statsplotfun<-function(out, eigout, r0out, collst, burnin=0, burnine=0, dburnin=
   #plot eigenvalue
   eigest<-log(dst[-1]/dst[-length(dst)])
   sbs<-is.finite(eigest)
-  eigest_tot<-cumsum(eigest[sbs])
+  eigest_tot<-cumsum(eigest[sbs])*(1/(1:(sum(sbs))))
   
   suppressWarnings(matplot((pabunds1[-c(1:(mxt+1)),1]+dburnin)[sbs], eigest_tot, type="l", lty=1, col=collst[plotpos+1], lwd=1.5, xlab="", ylab="", xaxs="i", axes=F, xlim=c(floor(mxt), ceiling(max(pabunds1[,1],na.rm=T)))+dburnin, ylim=range(c(eigest_tot, 0), na.rm=T), ...))
   put.fig.letter("c.", "topleft", offset=ofs2, cex=fcx)
@@ -432,9 +432,9 @@ statsplotfun<-function(out, eigout, r0out, collst, burnin=0, burnine=0, dburnin=
   grw<-tmp_r0[,plotpos+2]/out$plotdata$ngrid
   grw<-log(grw[-1]/grw[-length(grw)])
   sbs<-is.finite(grw)
-  grw_tot<-cumsum(grw[sbs])
+  grw_tot<-cumsum(grw[sbs])*(1/(1:sum(sbs)))
   
-  suppressWarnings(matplot(((1:length(grw_tot))+burnine+mxt_eig+mxt_r0_0+dburnin)[sbs], grw_tot, type="l", lty=1, col=collst[plotpos+1], lwd=1.5, xlab="", ylab="", xaxs="i", axes=F, ...))
+  suppressWarnings(matplot(((1:length(grw_tot))+burnine+mxt_eig+mxt_r0_0+dburnin)[sbs], grw_tot, type="l", lty=1, col=collst[plotpos+1], lwd=1.5, xlab="", ylab="", xaxs="i", axes=F, ylim=c(0, max(grw_tot)),...))
   put.fig.letter("e.", "topleft", offset=ofs2, cex=fcx)
   
   axis(1, cex.axis=1.6)
