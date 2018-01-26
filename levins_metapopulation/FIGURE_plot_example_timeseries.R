@@ -564,9 +564,13 @@ dev.off()
 grid_sub<-grid_subset(gridout, size = 0.01)
 grid_sub2<-grid_subset(gridout, size = 0.5)
 
-pdf("figures/SUP_FIGURE_spatialsubset_map.pdf", width=5, height=5, colormodel = "cmyk")
-par(mar=c(2,2,2,2), oma=c(2,2,0,0))
+ofs2<-c(0.3, -0.06)
+ofs4<-c(0.11, -0.045)
+
+pdf("figures/SUP_FIGURE_spatialsubset_map.pdf", width=7, height=7, colormodel = "cmyk")
+par(mar=c(2,2,2,2), oma=c(2,2,0,0), mfcol=c(2,2))
 plot_map(out_meta, gridout = gridout, grid_sub = grid_sub, collst=collst[-1])
+put.fig.letter("a.", "topleft", offset=ofs4, cex=1.6)
 
 segments(grid_sub2$borders[c(1,1,2,2)]+0.5*c(-1,-1,1,1), grid_sub2$borders[c(3,4,4,3)]+0.5*c(-1,1,1,-1), grid_sub2$borders[c(1,2,2,1)]+0.5*c(-1,1,1,-1), grid_sub2$borders[c(4,4,3,3)]+0.5*c(1,1,-1,-1), col="black", lwd=4)
 segments(grid_sub2$borders[c(1,1,2,2)]+0.5*c(-1,-1,1,1), grid_sub2$borders[c(3,4,4,3)]+0.5*c(-1,1,1,-1), grid_sub2$borders[c(1,2,2,1)]+0.5*c(-1,1,1,-1), grid_sub2$borders[c(4,4,3,3)]+0.5*c(1,1,-1,-1), col="white", lwd=1)
@@ -576,5 +580,104 @@ shadowtext(51, 90, "50%", cex=1.3)
 
 mtext("x position", 1, line=2.3, cex=1.1)
 mtext("y position", 2, line=2.3, cex=1.1)
+
+
+#Plot spatial lag
+plot_map(out_meta, gridout = gridout, collst=collst[-1])
+put.fig.letter("b.", "topleft", offset=ofs4, cex=1.6)
+
+gseg<-c(20,40,40,60)
+segments(gseg[c(1,1,3,3)], gseg[c(2,4,4,2)], gseg[c(1,3,3,1)], gseg[c(4,4,2,2)], col="black", lwd=4)
+segments(gseg[c(1,1,3,3)], gseg[c(2,4,4,2)], gseg[c(1,3,3,1)], gseg[c(4,4,2,2)], col="white", lwd=1)
+
+gseg<-c(60,40,80,60)
+segments(gseg[c(1,1,3,3)], gseg[c(2,4,4,2)], gseg[c(1,3,3,1)], gseg[c(4,4,2,2)], col="black", lwd=4)
+segments(gseg[c(1,1,3,3)], gseg[c(2,4,4,2)], gseg[c(1,3,3,1)], gseg[c(4,4,2,2)], col="white", lwd=1)
+
+arrows(50, 40, 40, 40, lwd=4, angle = 30, length = 0.15)
+arrows(50, 40, 60, 40, lwd=4, angle = 30, length = 0.15)
+
+arrows(50, 40, 40, 40, lwd=1.5, angle = 30, length = 0.15, col="white")
+arrows(50, 40, 60, 40, lwd=1.5, angle = 30, length = 0.15, col="white")
+
+shadowtext(50, 32, "20 units", cex=1.3)
+
+mtext("x position", 1, line=2.3, cex=1.1)
+mtext("y position", 2, line=2.3, cex=1.1)
+
+#CV lag
+outlong<-out_meta_long; invarout<-invar_meta; betaout<-beta_meta; collst<-collst; collst2<-collst2; burnin=200; plotpos=1; doceq=2; cleanupbeta<-2
+
+invarlst<-outlong$output[-c(1:burnin),plotpos+1]/outlong$plotdata$ngrid
+matplot(outlong$output[-c(1:burnin),1], invarlst, type="l", lty=1, col=collst[-1], lwd=1.5, xlab="", ylab="", xaxs="i",
+        ylim=range(invarlst)*c(0.98, 1), axes=FALSE)
+put.fig.letter("c.", "topleft", offset=ofs4, cex=1.6)
+axis(1); axis(2, las=2); box()
+if(sum(doceq)==2) {
+  abline(h=c(sum(outlong$plotdata$ceq), outlong$plotdata$ceq), lty=3, col=collst, lwd=1)
+} else if(sum(doceq)==1) {
+  abline(h=sum(outlong$plotdata$ceq), lty=3, col=collst, lwd=1)
+}
+mtext("simulation time", 1, line=2.3, cex=1.1)
+mtext("relative abundance", 2, line=2.8, cex=1.1)
+
+tmp<-outlong$output[,2]/outlong$plotdata$ngrid
+tmptm<-outlong$output[,1]
+
+startlst<-(nrow(outlong$output)-burnin)*c(0.2, 0.3, 0.5, 0.7, 0.8)+burnin
+y11<-min(tmp[tmptm>startlst[1] & tmptm<startlst[2]]); y12<-max(tmp[tmptm>startlst[1] & tmptm<startlst[2]])
+y21<-min(tmp[tmptm>startlst[4] & tmptm<startlst[5]]); y22<-max(tmp[tmptm>startlst[4] & tmptm<startlst[5]])
+
+segments(c(startlst[1], startlst[1], startlst[2], startlst[2]), c(y11, y12, y12, y11), c(startlst[1], startlst[2], startlst[2], startlst[1]), c(y12, y12, y11, y11), lwd=2)
+
+arrows((startlst[2]+startlst[1])/2, y11-0.002, startlst[1], y11-0.002, lwd=2, length = 0.1, lend=2)
+arrows((startlst[2]+startlst[1])/2, y11-0.002, startlst[2], y11-0.002, lwd=2, length = 0.1, lend=2)
+text((startlst[2]+startlst[1])/2, y11-0.002, paste("time span =", (startlst[2]-startlst[1])), pos=1)
+
+startlst<-(nrow(outlong$output)-burnin)*c(0.5, 0.9, 0.5, 0.7, 0.8)+burnin
+y11<-min(tmp[tmptm>startlst[1] & tmptm<startlst[2]]); y12<-max(tmp[tmptm>startlst[1] & tmptm<startlst[2]])
+y21<-min(tmp[tmptm>startlst[4] & tmptm<startlst[5]]); y22<-max(tmp[tmptm>startlst[4] & tmptm<startlst[5]])
+
+segments(c(startlst[1], startlst[1], startlst[2], startlst[2]), c(y11, y12, y12, y11), c(startlst[1], startlst[2], startlst[2], startlst[1]), c(y12, y12, y11, y11), lwd=2)
+arrows((startlst[2]+startlst[1])/2, y11-0.002, startlst[1], y11-0.002, lwd=2, length = 0.1, lend=2)
+arrows((startlst[2]+startlst[1])/2, y11-0.002, startlst[2], y11-0.002, lwd=2, length = 0.1, lend=2)
+text((startlst[2]+startlst[1])/2, y11-0.002, paste("time span =", (startlst[2]-startlst[1])), pos=1)
+
+
+
+
+
+
+startlst<-(nrow(outlong$output)-burnin)*c(0.2, 0.3, 0.5, 0.7, 0.8)+burnin
+y11<-min(tmp[tmptm>startlst[1] & tmptm<startlst[2]]); y12<-max(tmp[tmptm>startlst[1] & tmptm<startlst[2]])
+y21<-min(tmp[tmptm>startlst[4] & tmptm<startlst[5]]); y22<-max(tmp[tmptm>startlst[4] & tmptm<startlst[5]])
+
+invarlst<-outlong$output[-c(1:burnin),plotpos+1]/outlong$plotdata$ngrid
+matplot(outlong$output[-c(1:burnin),1], invarlst, type="l", lty=1, col=collst[-1], lwd=1.5, xlab="", ylab="", xaxs="i",
+        ylim=range(invarlst)*c(0.98, 1), axes=FALSE)
+put.fig.letter("d.", "topleft", offset=ofs4, cex=1.6)
+axis(1); axis(2, las=2); box()
+if(sum(doceq)==2) {
+  abline(h=c(sum(outlong$plotdata$ceq), outlong$plotdata$ceq), lty=3, col=collst, lwd=1)
+} else if(sum(doceq)==1) {
+  abline(h=sum(outlong$plotdata$ceq), lty=3, col=collst, lwd=1)
+}
+mtext("simulation time", 1, line=2.3, cex=1.1)
+mtext("relative abundance", 2, line=2.8, cex=1.1)
+
+tmp<-outlong$output[,2]/outlong$plotdata$ngrid
+tmptm<-outlong$output[,1]
+
+startlst<-(nrow(outlong$output)-burnin)*c(0.2, 0.3, 0.5, 0.7, 0.8)+burnin
+
+segments(c(startlst[1], startlst[1], startlst[2], startlst[2]), c(y11, y12, y12, y11), c(startlst[1], startlst[2], startlst[2], startlst[1]), c(y12, y12, y11, y11), lwd=2)
+segments(c(startlst[4], startlst[4], startlst[5], startlst[5]), c(y22, y21, y21, y22), c(startlst[4], startlst[5], startlst[5], startlst[4]), c(y21, y21, y22, y22), lwd=2)
+
+arrows(startlst[3], (y11+y21)/2, startlst[4], y21, lwd=2, length = 0.1, lend=2)
+arrows(startlst[3], (y11+y21)/2, startlst[2], y11, lwd=2, length = 0.1, lend=2)
+
+text(startlst[3], (y11+y21)/2, pos=1, labels = "time lag")
+
+
 dev.off()
 
