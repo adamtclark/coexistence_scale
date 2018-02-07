@@ -82,7 +82,7 @@ clusterExport(cl, c("invarburn",
 
 #run simulations
 #for(i in 1:length(scalelst)) {
-  i<-$SGE_TASK_ID
+  i<-as.integer(Sys.getenv("SGE_TASK_ID", "1"))
 
   grid_sub<-grid_subset(gridout, size = scalelst[i])
   

@@ -1,14 +1,15 @@
 #!/bin/bash
 #------------------------------------------
-#$ -N levins_script
+#$ -N levins_script_array
 #$ -o iman.out$JOB_ID
 #$ -j y
 #$ -S /bin/bash
-#$ -l h_rt=10:00:00 
+#$ -l h_rt=48:00:00 
 #$ -l h_vmem=6G
-#$ -pe smp 20
-#$ -m ea
+#$ -pe smp 10
+#$ -m bea
 #$ -M adam.tclark@gmail.com
+#$ -t 1-7
 
 date
 module load R
