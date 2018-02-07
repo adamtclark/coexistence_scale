@@ -11,7 +11,7 @@ require(parallel)
 source("run_metapopulation_wrapper.R")
 
 #set up for runs
-niterations<-1000   #CHANGE TO ALTER NUMBER OF ITERATIONS
+niterations<-20000   #CHANGE TO ALTER NUMBER OF ITERATIONS
 scalelst<-c(0.005, 0.01, 0.05, 0.1, 0.5, 0.75, 1)
 radlst<-Inf
 
