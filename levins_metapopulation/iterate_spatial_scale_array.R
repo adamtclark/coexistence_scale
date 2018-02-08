@@ -103,8 +103,8 @@ clusterExport(cl, c("invarburn",
     matout_cv<-matout_cv[!is.na(matout_cv[,"lag"]),]
     
     #save outputs to csv
-    write.csv(matout_dyn, paste("output/matout_dyn_", scalelst[i], ".csv", sep=""), row.names=F)
-    write.csv(matout_cv, paste("output/matout_cv_", scalelst[i], ".csv", sep=""), row.names=F)
+    save(matout_dyn, file = paste("output/matout_dyn_", scalelst[i], ".rda", sep=""), compress=TRUE)
+    save(matout_cv, file = paste("output/matout_cv_", scalelst[i], ".rda", sep=""), compress=TRUE)
   }
   
   print(round(i/length(scalelst),2))
