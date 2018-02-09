@@ -4,7 +4,7 @@
 #$ -o iman.out$JOB_ID
 #$ -j y
 #$ -S /bin/bash
-#$ -l h_rt=48:00:00 
+#$ -l h_rt=02:00:00 
 #$ -l h_vmem=6G
 #$ -pe smp 10
 #$ -m bea

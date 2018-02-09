@@ -11,7 +11,7 @@ require(parallel)
 source("run_metapopulation_wrapper.R")
 
 #set up for runs
-niterations<-20000   #CHANGE TO ALTER NUMBER OF ITERATIONS
+niterations<-1000   #CHANGE TO ALTER NUMBER OF ITERATIONS
 scalelst<-c(0.005, 0.01, 0.05, 0.1, 0.5, 0.75, 1)
 radlst<-Inf
 
@@ -103,8 +103,8 @@ clusterExport(cl, c("invarburn",
     matout_cv<-matout_cv[!is.na(matout_cv[,"lag"]),]
     
     #save outputs to csv
-    save(matout_dyn, file = paste("output/matout_dyn_", scalelst[i], ".rda", sep=""), compress=TRUE)
-    save(matout_cv, file = paste("output/matout_cv_", scalelst[i], ".rda", sep=""), compress=TRUE)
+    save(list=c("matout_dyn"), file = paste("output/matout_dyn_", scalelst[i], ".rda", sep=""))
+    save(list=c("matout_cv"), file = paste("output/matout_cv_", scalelst[i], ".rda", sep=""))
   }
   
   print(round(i/length(scalelst),2))
