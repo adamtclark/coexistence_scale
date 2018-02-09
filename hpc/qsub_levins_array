@@ -7,8 +7,6 @@
 #$ -l h_rt=48:00:00 
 #$ -l h_vmem=6G
 #$ -pe smp 10
-#$ -m 
-#$ -M adam.tclark@gmail.com
 #$ -t 1-7
 
 date
