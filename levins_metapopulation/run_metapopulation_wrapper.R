@@ -1732,132 +1732,139 @@ runpar<-function(...) {
   
   require(rEDM)
   
-  ##### run simulations
-  #run levins
-  sd<-round(runif(1)*1e9)
+  tst<-try({
+    ##### run simulations
+    #run levins
+    sd<-round(runif(1)*1e9)
+    
+    set.seed(sd)
+    out_meta<-run_metapopulation(tmax=tmax, gridout = gridout, population = population_meta, talktime = 0, runtype = "metapopulation", sites_sub = grid_sub$sites)
+    set.seed(sd)
+    out_meta_long<-run_metapopulation(tmax=tmax_long, gridout = gridout, population = population_meta, talktime = 0, runtype = "metapopulation", sites_sub = grid_sub$sites)
+    
+    getEmeta<-getE(out_meta_long, Elst = 2:10, sites_sub = grid_sub$sites)
+    E_meta<-getEmeta$Eout
+    E_meta_tot<-getEmeta$Eout_tot
+    
+    eig_meta1<-estimate_eqreturn(out_meta, simtime=simtime, runtype="metapopulation", replace_perturb = 1, talktime=0, prtb=ptb, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites, doplot=FALSE)
+    eig_meta2<-estimate_eqreturn(out_meta, simtime=simtime, runtype="metapopulation", replace_perturb = 0, talktime=0, prtb=ptb, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites, doplot=FALSE)
+    r0_meta<-estimate_rarereturn(out_meta, simtime=simtime, burnin=burnin, runtype="metapopulation", perturbsites = grid_sub$sites, sites_sub = grid_sub$sites, doplot=FALSE)
+    invar_meta<-estimate_invar(out_meta_long, E=E_meta, burnin=invarburn, doplot=FALSE, Etot=E_meta_tot, sites_sub = grid_sub$sites, laglst = lglst, niter = 1)
+    
+    beta_meta1<-beta_estimate(out=out_meta, outlng = out_meta_long, Emat = E_meta, eigout = eig_meta1, r0out = r0_meta, burnin = burnin, eigonly = TRUE)
+    beta_meta2<-beta_estimate(out=out_meta, outlng = out_meta_long, Emat = E_meta, eigout = eig_meta2, r0out = r0_meta, burnin = burnin)
+    
+    #run disturbance
+    sd<-round(runif(1)*1e9)
+    
+    set.seed(sd)
+    out_dist<-run_metapopulation(tmax=tmax, gridout = gridout, population = population_dist, talktime = 0, runtype = "disturbance", sites_sub = grid_sub$sites, prt = distlst, prtfrq = distfrq)
+    set.seed(sd)
+    out_dist_long<-run_metapopulation(tmax=tmax_long, gridout = gridout, population = population_dist, talktime = 0, runtype = "disturbance", sites_sub = grid_sub$sites, prt = distlst, prtfrq = distfrq)
+    
+    getEdist<-getE(out_dist_long, Elst = 2:10, sites_sub = grid_sub$sites)
+    E_dist<-getEdist$Eout
+    E_dist_tot<-getEdist$Eout_tot
+    
+    eig_dist1<-estimate_eqreturn(out_dist, simtime=simtime, runtype="disturbance", replace_perturb = 1, talktime=0, prtb=ptb, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites, doplot=FALSE, prt = distlst, prtfrq = distfrq)
+    eig_dist2<-estimate_eqreturn(out_dist, simtime=simtime, runtype="disturbance", replace_perturb = 0, talktime=0, prtb=ptb, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites, doplot=FALSE, prt = distlst, prtfrq = distfrq)
+    r0_dist<-estimate_rarereturn(out_dist, simtime=simtime, burnin=burnin, runtype="disturbance", perturbsites = grid_sub$sites, sites_sub = grid_sub$sites, doplot=FALSE, prt = distlst, prtfrq = distfrq)
+    invar_dist<-estimate_invar(out_dist_long, E=E_dist, burnin=invarburn, doplot=FALSE, Etot = E_dist_tot, sites_sub = grid_sub$sites, laglst = lglst, niter = 1)
+    
+    beta_dist1<-beta_estimate(out=out_dist, outlng = out_dist_long, Emat = E_dist, eigout = eig_dist1, r0out = r0_dist, burnin = burnin, eigonly = TRUE)
+    beta_dist2<-beta_estimate(out=out_dist, outlng = out_dist_long, Emat = E_dist, eigout = eig_dist2, r0out = r0_dist, burnin = burnin)
+    
+    #run neutral
+    sd<-round(runif(1)*1e9)
+    
+    set.seed(sd)
+    out_neut<-run_metapopulation(tmax=tmax, gridout = gridout, population = population_neut, talktime = 0, runtype = "neutral", sites_sub = grid_sub$sites)
+    set.seed(sd)
+    out_neut_long<-run_metapopulation(tmax=tmax_long, gridout = gridout, population = population_neut, talktime = 0, runtype = "neutral", sites_sub = grid_sub$sites)
+    
+    getEneut<-getE(out_neut, Elst = 2:10)
+    E_neut<-getEneut$Eout
+    E_neut_tot<-getEneut$Eout_tot
+    
+    eig_neut1<-estimate_eqreturn(out_neut, simtime=simtime, runtype="neutral", replace_perturb = 1, talktime=0, prtb=ptb, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites, doplot=FALSE)
+    eig_neut2<-estimate_eqreturn(out_neut, simtime=simtime, runtype="neutral", replace_perturb = 0, talktime=0, prtb=ptb, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites, doplot=FALSE)
+    r0_neut<-estimate_rarereturn(out_neut, simtime=simtime, burnin=burnin, runtype="neutral", perturbsites = grid_sub$sites, sites_sub = grid_sub$sites, doplot=FALSE)
+    invar_neut<-estimate_invar(out_neut_long, E=E_neut, burnin=invarburn, doplot=FALSE, Etot = E_neut_tot, sites_sub = grid_sub$sites, laglst = lglst, niter = 1)
+    
+    beta_neut1<-beta_estimate(out=out_neut, outlng = out_neut_long, Emat = E_neut, eigout = eig_neut1, r0out = r0_neut, burnin = burnin, eigonly = TRUE)
+    beta_neut2<-beta_estimate(out=out_neut, outlng = out_neut_long, Emat = E_neut, eigout = eig_neut2, r0out = r0_neut, burnin = burnin)
+    
+    #run psf
+    sd<-round(runif(1)*1e9)
+    
+    set.seed(sd)
+    out_psf<-run_metapopulation(tmax=tmax, gridout = gridout, population = population_psf, talktime = 0, runtype = "psf", sites_sub = grid_sub$sites)
+    set.seed(sd)
+    out_psf_long<-run_metapopulation(tmax=tmax_long, gridout = gridout, population = population_psf, talktime = 0, runtype = "psf", sites_sub = grid_sub$sites)
+    
+    getEpsf<-getE(out_psf, Elst = 2:10)
+    E_psf<-getEpsf$Eout
+    E_psf_tot<-getEpsf$Eout_tot
+    
+    eig_psf1<-estimate_eqreturn(out_psf, simtime=simtime, runtype="psf", replace_perturb = 1, talktime=0, prtb=ptb, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites, doplot = FALSE)
+    eig_psf2<-estimate_eqreturn(out_psf, simtime=simtime, runtype="psf", replace_perturb = 0, talktime=0, prtb=ptb, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites, doplot = FALSE)
+    r0_psf<-estimate_rarereturn(out_psf, simtime=simtime, burnin=burnin, runtype="psf", perturbsites = grid_sub$sites, sites_sub = grid_sub$sites, doplot = FALSE)
+    invar_psf<-estimate_invar(out_psf_long, E=E_psf, burnin=invarburn, doplot=FALSE, Etot = E_psf_tot, sites_sub = grid_sub$sites, laglst = lglst, niter = 1)
   
-  set.seed(sd)
-  out_meta<-run_metapopulation(tmax=tmax, gridout = gridout, population = population_meta, talktime = 0, runtype = "metapopulation", sites_sub = grid_sub$sites)
-  set.seed(sd)
-  out_meta_long<-run_metapopulation(tmax=tmax_long, gridout = gridout, population = population_meta, talktime = 0, runtype = "metapopulation", sites_sub = grid_sub$sites)
+    beta_psf1<-beta_estimate(out=out_psf, outlng = out_psf_long, Emat = E_psf, eigout = eig_psf1, r0out = r0_psf, burnin = burnin, eigonly = TRUE)
+    beta_psf2<-beta_estimate(out=out_psf, outlng = out_psf_long, Emat = E_psf, eigout = eig_psf2, r0out = r0_psf, burnin = burnin)
+    
+    #run rps
+    sd<-round(runif(1)*1e9)
+    
+    set.seed(sd)
+    out_rps<-run_metapopulation(tmax=tmax, gridout = gridout, population = population_rps, talktime = 0, runtype = "rps", sites_sub = grid_sub$sites, compmat = intmat_rps)
+    set.seed(sd)
+    out_rps_long<-run_metapopulation(tmax=tmax_long, gridout = gridout, population = population_rps, talktime = 0, runtype = "rps", sites_sub = grid_sub$sites, compmat = intmat_rps)
+    
+    getErps<-getE(out_rps, Elst = 2:10)
+    E_rps<-getErps$Eout
+    E_rps_tot<-getErps$Eout_tot
+    
+    eig_rps1<-estimate_eqreturn(out_rps, simtime=simtime, runtype="rps", replace_perturb = 1, talktime=0, prtb=ptb, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites, doplot = FALSE)
+    eig_rps2<-estimate_eqreturn(out_rps, simtime=simtime, runtype="rps", replace_perturb = 0, talktime=0, prtb=ptb, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites, doplot = FALSE)
+    r0_rps<-estimate_rarereturn(out_rps, simtime=simtime, burnin=burnin, runtype="rps", perturbsites = grid_sub$sites, sites_sub = grid_sub$sites, doplot = FALSE)
+    invar_rps<-estimate_invar(out_rps_long, E=E_rps, burnin=invarburn, doplot=FALSE, Etot = E_rps_tot, sites_sub = grid_sub$sites, laglst = lglst, niter = 1)
+    
+    beta_rps1<-beta_estimate(out=out_rps, outlng = out_rps_long, Emat = E_rps, eigout = eig_rps1, r0out = r0_rps, burnin = burnin, eigonly = TRUE)
+    beta_rps2<-beta_estimate(out=out_rps, outlng = out_rps_long, Emat = E_rps, eigout = eig_rps2, r0out = r0_rps, burnin = burnin)
+    
+    ##### save output
+    #make output matrix
+    nsp<-length(clst_meta)
+    
+    #collect and output data
+    matout<-cbind(makemat(eig1out=eig_meta1, eig2out=eig_meta2, r0out=r0_meta, beta1out=beta_meta1, beta2out=beta_meta2, nsp=nsp),
+                  makemat(eig1out=eig_dist1, eig2out=eig_dist2, r0out=r0_dist, beta1out=beta_dist1, beta2out=beta_dist2, nsp=nsp),
+                  makemat(eig1out=eig_psf1, eig2out=eig_psf2, r0out=r0_psf, beta1out=beta_psf1, beta2out=beta_psf2, nsp=nsp),
+                  makemat(eig1out=eig_rps1, eig2out=eig_rps2, r0out=r0_rps, beta1out=beta_rps1, beta2out=beta_rps2, nsp=nsp+2),
+                  makemat(eig1out=eig_neut1, eig2out=eig_neut2, r0out=r0_neut, beta1out=beta_neut1, beta2out=beta_neut2, nsp=nsp))
+    
+    matout_inv<-cbind(makemat_inv(invar_meta, lglst),
+                      makemat_inv(invar_dist, lglst),
+                      makemat_inv(invar_psf, lglst),
+                      makemat_inv(invar_rps, lglst),
+                      makemat_inv(invar_neut, lglst))
+    
+    if(nrow(matout)>nrow(matout_inv)) {
+      matout_inv<-rbind(matout_inv, matrix(ncol=ncol(matout_inv), nrow=nrow(matout)-nrow(matout_inv)))
+    } else if(nrow(matout)<nrow(matout_inv)) {
+      matout<-rbind(matout, matrix(ncol=ncol(matout), nrow=nrow(matout_inv)-nrow(matout)))
+    }
+    matout<-cbind(matout, matout_inv)
+    
+    matout<-t(matout)
+  })
   
-  getEmeta<-getE(out_meta_long, Elst = 2:10, sites_sub = grid_sub$sites)
-  E_meta<-getEmeta$Eout
-  E_meta_tot<-getEmeta$Eout_tot
-  
-  eig_meta1<-estimate_eqreturn(out_meta, simtime=simtime, runtype="metapopulation", replace_perturb = 1, talktime=0, prtb=ptb, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites, doplot=FALSE)
-  eig_meta2<-estimate_eqreturn(out_meta, simtime=simtime, runtype="metapopulation", replace_perturb = 0, talktime=0, prtb=ptb, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites, doplot=FALSE)
-  r0_meta<-estimate_rarereturn(out_meta, simtime=simtime, burnin=burnin, runtype="metapopulation", perturbsites = grid_sub$sites, sites_sub = grid_sub$sites, doplot=FALSE)
-  invar_meta<-estimate_invar(out_meta_long, E=E_meta, burnin=invarburn, doplot=FALSE, Etot=E_meta_tot, sites_sub = grid_sub$sites, laglst = lglst, niter = 1)
-  
-  beta_meta1<-beta_estimate(out=out_meta, outlng = out_meta_long, Emat = E_meta, eigout = eig_meta1, r0out = r0_meta, burnin = burnin, eigonly = TRUE)
-  beta_meta2<-beta_estimate(out=out_meta, outlng = out_meta_long, Emat = E_meta, eigout = eig_meta2, r0out = r0_meta, burnin = burnin)
-  
-  #run disturbance
-  sd<-round(runif(1)*1e9)
-  
-  set.seed(sd)
-  out_dist<-run_metapopulation(tmax=tmax, gridout = gridout, population = population_dist, talktime = 0, runtype = "disturbance", sites_sub = grid_sub$sites, prt = distlst, prtfrq = distfrq)
-  set.seed(sd)
-  out_dist_long<-run_metapopulation(tmax=tmax_long, gridout = gridout, population = population_dist, talktime = 0, runtype = "disturbance", sites_sub = grid_sub$sites, prt = distlst, prtfrq = distfrq)
-  
-  getEdist<-getE(out_dist_long, Elst = 2:10, sites_sub = grid_sub$sites)
-  E_dist<-getEdist$Eout
-  E_dist_tot<-getEdist$Eout_tot
-  
-  eig_dist1<-estimate_eqreturn(out_dist, simtime=simtime, runtype="disturbance", replace_perturb = 1, talktime=0, prtb=ptb, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites, doplot=FALSE, prt = distlst, prtfrq = distfrq)
-  eig_dist2<-estimate_eqreturn(out_dist, simtime=simtime, runtype="disturbance", replace_perturb = 0, talktime=0, prtb=ptb, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites, doplot=FALSE, prt = distlst, prtfrq = distfrq)
-  r0_dist<-estimate_rarereturn(out_dist, simtime=simtime, burnin=burnin, runtype="disturbance", perturbsites = grid_sub$sites, sites_sub = grid_sub$sites, doplot=FALSE, prt = distlst, prtfrq = distfrq)
-  invar_dist<-estimate_invar(out_dist_long, E=E_dist, burnin=invarburn, doplot=FALSE, Etot = E_dist_tot, sites_sub = grid_sub$sites, laglst = lglst, niter = 1)
-  
-  beta_dist1<-beta_estimate(out=out_dist, outlng = out_dist_long, Emat = E_dist, eigout = eig_dist1, r0out = r0_dist, burnin = burnin, eigonly = TRUE)
-  beta_dist2<-beta_estimate(out=out_dist, outlng = out_dist_long, Emat = E_dist, eigout = eig_dist2, r0out = r0_dist, burnin = burnin)
-  
-  #run neutral
-  sd<-round(runif(1)*1e9)
-  
-  set.seed(sd)
-  out_neut<-run_metapopulation(tmax=tmax, gridout = gridout, population = population_neut, talktime = 0, runtype = "neutral", sites_sub = grid_sub$sites)
-  set.seed(sd)
-  out_neut_long<-run_metapopulation(tmax=tmax_long, gridout = gridout, population = population_neut, talktime = 0, runtype = "neutral", sites_sub = grid_sub$sites)
-  
-  getEneut<-getE(out_neut, Elst = 2:10)
-  E_neut<-getEneut$Eout
-  E_neut_tot<-getEneut$Eout_tot
-  
-  eig_neut1<-estimate_eqreturn(out_neut, simtime=simtime, runtype="neutral", replace_perturb = 1, talktime=0, prtb=ptb, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites, doplot=FALSE)
-  eig_neut2<-estimate_eqreturn(out_neut, simtime=simtime, runtype="neutral", replace_perturb = 0, talktime=0, prtb=ptb, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites, doplot=FALSE)
-  r0_neut<-estimate_rarereturn(out_neut, simtime=simtime, burnin=burnin, runtype="neutral", perturbsites = grid_sub$sites, sites_sub = grid_sub$sites, doplot=FALSE)
-  invar_neut<-estimate_invar(out_neut_long, E=E_neut, burnin=invarburn, doplot=FALSE, Etot = E_neut_tot, sites_sub = grid_sub$sites, laglst = lglst, niter = 1)
-  
-  beta_neut1<-beta_estimate(out=out_neut, outlng = out_neut_long, Emat = E_neut, eigout = eig_neut1, r0out = r0_neut, burnin = burnin, eigonly = TRUE)
-  beta_neut2<-beta_estimate(out=out_neut, outlng = out_neut_long, Emat = E_neut, eigout = eig_neut2, r0out = r0_neut, burnin = burnin)
-  
-  #run psf
-  sd<-round(runif(1)*1e9)
-  
-  set.seed(sd)
-  out_psf<-run_metapopulation(tmax=tmax, gridout = gridout, population = population_psf, talktime = 0, runtype = "psf", sites_sub = grid_sub$sites)
-  set.seed(sd)
-  out_psf_long<-run_metapopulation(tmax=tmax_long, gridout = gridout, population = population_psf, talktime = 0, runtype = "psf", sites_sub = grid_sub$sites)
-  
-  getEpsf<-getE(out_psf, Elst = 2:10)
-  E_psf<-getEpsf$Eout
-  E_psf_tot<-getEpsf$Eout_tot
-  
-  eig_psf1<-estimate_eqreturn(out_psf, simtime=simtime, runtype="psf", replace_perturb = 1, talktime=0, prtb=ptb, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites, doplot = FALSE)
-  eig_psf2<-estimate_eqreturn(out_psf, simtime=simtime, runtype="psf", replace_perturb = 0, talktime=0, prtb=ptb, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites, doplot = FALSE)
-  r0_psf<-estimate_rarereturn(out_psf, simtime=simtime, burnin=burnin, runtype="psf", perturbsites = grid_sub$sites, sites_sub = grid_sub$sites, doplot = FALSE)
-  invar_psf<-estimate_invar(out_psf_long, E=E_psf, burnin=invarburn, doplot=FALSE, Etot = E_psf_tot, sites_sub = grid_sub$sites, laglst = lglst, niter = 1)
-
-  beta_psf1<-beta_estimate(out=out_psf, outlng = out_psf_long, Emat = E_psf, eigout = eig_psf1, r0out = r0_psf, burnin = burnin, eigonly = TRUE)
-  beta_psf2<-beta_estimate(out=out_psf, outlng = out_psf_long, Emat = E_psf, eigout = eig_psf2, r0out = r0_psf, burnin = burnin)
-  
-  #run rps
-  sd<-round(runif(1)*1e9)
-  
-  set.seed(sd)
-  out_rps<-run_metapopulation(tmax=tmax, gridout = gridout, population = population_rps, talktime = 0, runtype = "rps", sites_sub = grid_sub$sites, compmat = intmat_rps)
-  set.seed(sd)
-  out_rps_long<-run_metapopulation(tmax=tmax_long, gridout = gridout, population = population_rps, talktime = 0, runtype = "rps", sites_sub = grid_sub$sites, compmat = intmat_rps)
-  
-  getErps<-getE(out_rps, Elst = 2:10)
-  E_rps<-getErps$Eout
-  E_rps_tot<-getErps$Eout_tot
-  
-  eig_rps1<-estimate_eqreturn(out_rps, simtime=simtime, runtype="rps", replace_perturb = 1, talktime=0, prtb=ptb, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites, doplot = FALSE)
-  eig_rps2<-estimate_eqreturn(out_rps, simtime=simtime, runtype="rps", replace_perturb = 0, talktime=0, prtb=ptb, sites_sub = grid_sub$sites, perturbsites = grid_sub$sites, doplot = FALSE)
-  r0_rps<-estimate_rarereturn(out_rps, simtime=simtime, burnin=burnin, runtype="rps", perturbsites = grid_sub$sites, sites_sub = grid_sub$sites, doplot = FALSE)
-  invar_rps<-estimate_invar(out_rps_long, E=E_rps, burnin=invarburn, doplot=FALSE, Etot = E_rps_tot, sites_sub = grid_sub$sites, laglst = lglst, niter = 1)
-  
-  beta_rps1<-beta_estimate(out=out_rps, outlng = out_rps_long, Emat = E_rps, eigout = eig_rps1, r0out = r0_rps, burnin = burnin, eigonly = TRUE)
-  beta_rps2<-beta_estimate(out=out_rps, outlng = out_rps_long, Emat = E_rps, eigout = eig_rps2, r0out = r0_rps, burnin = burnin)
-  
-  ##### save output
-  #make output matrix
-  nsp<-length(clst_meta)
-  
-  #collect and output data
-  matout<-cbind(makemat(eig1out=eig_meta1, eig2out=eig_meta2, r0out=r0_meta, beta1out=beta_meta1, beta2out=beta_meta2, nsp=nsp),
-                makemat(eig1out=eig_dist1, eig2out=eig_dist2, r0out=r0_dist, beta1out=beta_dist1, beta2out=beta_dist2, nsp=nsp),
-                makemat(eig1out=eig_psf1, eig2out=eig_psf2, r0out=r0_psf, beta1out=beta_psf1, beta2out=beta_psf2, nsp=nsp),
-                makemat(eig1out=eig_rps1, eig2out=eig_rps2, r0out=r0_rps, beta1out=beta_rps1, beta2out=beta_rps2, nsp=nsp+2),
-                makemat(eig1out=eig_neut1, eig2out=eig_neut2, r0out=r0_neut, beta1out=beta_neut1, beta2out=beta_neut2, nsp=nsp))
-  
-  matout_inv<-cbind(makemat_inv(invar_meta, lglst),
-                    makemat_inv(invar_dist, lglst),
-                    makemat_inv(invar_psf, lglst),
-                    makemat_inv(invar_rps, lglst),
-                    makemat_inv(invar_neut, lglst))
-  
-  if(nrow(matout)>nrow(matout_inv)) {
-    matout_inv<-rbind(matout_inv, matrix(ncol=ncol(matout_inv), nrow=nrow(matout)-nrow(matout_inv)))
-  } else if(nrow(matout)<nrow(matout_inv)) {
-    matout<-rbind(matout, matrix(ncol=ncol(matout), nrow=nrow(matout_inv)-nrow(matout)))
+  if(is.character(tst)) {
+    matout<-NULL
   }
-  matout<-cbind(matout, matout_inv)
-  
-  matout<-t(matout)
+    
   return(matout)
 }
 

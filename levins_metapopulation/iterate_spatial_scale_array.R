@@ -12,7 +12,7 @@ source("run_metapopulation_wrapper.R")
 
 #set up for runs
 niterations<-20000   #CHANGE TO ALTER NUMBER OF ITERATIONS
-scalelst<-c(0.005, 0.01, 0.05, 0.1, 0.5, 0.75, 1)
+scalelst<-c(0.1, 0.75)#c(0.005, 0.01, 0.05, 0.1, 0.5, 0.75, 1)
 radlst<-Inf
 
 #set up simulations
@@ -64,7 +64,7 @@ population_rps<-populate(gridout, nlst = round(rep(unique(tmp[tmp>0])/length(cls
 
 #open cluster
 if(!exists("cl") & niterations>1) {
-  cl <- makeCluster(mc <- getOption("cl.cores", min(c(niterations, detectCores())))) #cluters for simulations
+  cl <- makeForkCluster(mc <- getOption("cl.cores", min(c(niterations, detectCores())))) #cluters for simulations
 }
 
 #explor needed variables
@@ -89,7 +89,7 @@ clusterExport(cl, c("invarburn",
   clusterExport(cl, c("grid_sub"))
   
   #run parallel program for predicting community biomass
-  clusterout<-try(parLapply(cl=cl, 1:niterations, fun=runpar))
+  clusterout<-try(parLapplyLB(cl=cl, 1:niterations, fun=runpar))
   
   if(!is.character(clusterout)) {
     tmp<-t(matrix(nrow=nrow(clusterout[[1]]), unlist(clusterout)))
