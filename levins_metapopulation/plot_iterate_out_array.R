@@ -325,7 +325,7 @@ dev.off()
 # Contour
 ###############
 #arrayout=matout_eig_pop; xlst=tscalelst; cifun=function(x,...) is.finite(x); funcol=3; tmlst=TRUE
-plot_cont<-function(arrayout, xscalslst, xlst, splitcol=0, nlevels=10, sqlst=0, logx=FALSE, logy=FALSE, logz=FALSE, coltype=1, logxps=0, nstart=1, ciplot=FALSE, cimat=0, ...) {
+plot_cont<-function(arrayout, xscalslst, xlst, splitcol=0, nlevels=10, sqlst=0, logx=FALSE, logy=FALSE, logz=FALSE, coltype=1, logxps=0, nstart=1, ciplot=FALSE, cimat=0, revcol=FALSE, ...) {
 
   if(sum(abs(sqlst), na.rm=T)==0) {
     rng<-range(arrayout[,,,3], na.rm=T)
@@ -399,9 +399,15 @@ plot_cont<-function(arrayout, xscalslst, xlst, splitcol=0, nlevels=10, sqlst=0, 
     }
     
     tmpps<-colSums(abs(arrayout[,,j,3]), na.rm=T)!=0
+    if(revcol) {
+      cl2<-rev(collst2)
+    } else {
+      cl2<-(collst2)
+    }
+    
     filled.contour3(x = xlst, 
                     y = xscalslst, 
-                    z = tmpz, levels = sqlst, col=collst2,axes=F,
+                    z = tmpz, levels = sqlst, col=cl2,axes=F,
                     xlim=range(xlst[tmpps]))
     put.fig.letter(paste(letters[nstart], ".", sep=""), "topleft", offset=ofs1, cex=1.6)
     nstart<-nstart+1
@@ -463,29 +469,35 @@ logxpos<-c(1,2,5,10,20,50,150,200)
 
 m<-matrix(nrow=5, 1:15)
 m<-cbind(m, 16)
-layout(m, widths=c(1,1,1,0.5))
+layout(m, widths=c(1,1,1,0.7))
 
 par(mar=c(2,3,1,0), oma=c(2.5,2,2,2.5))
 ofs1<-c(0.255, -0.002)
 tmp<-plot_cont(matout_eig_tot, log(scalslst,10), log(tscalelst, 10), nlevels=10, logx=TRUE, logy=TRUE, sqlst = sqtmp, logxps = logxpos, nstart = 1)
 tmp<-plot_cont(matout_eig_pop, log(scalslst,10), log(tscalelst, 10), nlevels=10, logx=TRUE, logy=TRUE, sqlst = sqtmp, logxps = logxpos, nstart = 6)
-tmp<-plot_cont(matout_r0_pop, log(scalslst,10), log(tscalelst, 10), nlevels=10, logx=TRUE, logy=TRUE, sqlst = sqtmp, logxps = logxpos, nstart = 11)
+tmp<-plot_cont(matout_r0_pop, log(scalslst,10), log(tscalelst, 10), nlevels=10, logx=TRUE, logy=TRUE, sqlst = sqtmp, logxps = logxpos, nstart = 11, revcol = TRUE)
 
-par(mar=c(2,3.5,1,1))
-filled.legend(z=matrix(sqtmp), levels=sqtmp, col=adjustcolor(c(rev(rainbow(sum(sqtmp<0), start=0.55, end=.70)), rev(rainbow(sum(sqtmp>0), start=0, end=0.1))), alpha.f = 0.6), key.axes = axis(4, at = sqtmp, las=2))
+par(mar=c(2,5.5,1,1))
+filled.legend(z=matrix(sqtmp), levels=-sqtmp, col=adjustcolor(c(rev(rainbow(sum(sqtmp<0), start=0.55, end=.70)), rev(rainbow(sum(sqtmp>0), start=0, end=0.1))), alpha.f = 0.6), key.axes = axis(4, at = sqtmp, las=2))
+axis(2, at=sqtmp, sprintf("%.2f", -sqtmp), las=2)
 
-mtext(text = "levins", side = 4, outer = TRUE, line = -5.5, adj = .94, cex=1.2)
-mtext(text = "disturbance", side = 4, outer = TRUE, line = -5.5, adj = 0.74, cex=1.2)
-mtext(text = "PSF", side = 4, outer = TRUE, line = -5.5, adj = 0.515, cex=1.2)
-mtext(text = "RPS", side = 4, outer = TRUE, line = -5.5, adj = 0.305, cex=1.2)
-mtext(text = "neutral", side = 4, outer = TRUE, line = -5.5, adj = .08, cex=1.2)
+mtext(text = "levins", side = 4, outer = TRUE, line = -7.5, adj = .94, cex=1.2)
+mtext(text = "disturbance", side = 4, outer = TRUE, line = -7.5, adj = 0.74, cex=1.2)
+mtext(text = "PSF", side = 4, outer = TRUE, line = -7.5, adj = 0.515, cex=1.2)
+mtext(text = "RPS", side = 4, outer = TRUE, line = -7.5, adj = 0.305, cex=1.2)
+mtext(text = "neutral", side = 4, outer = TRUE, line = -7.5, adj = .08, cex=1.2)
 
-mtext(text = expression(paste(lambda, ", community")), side = 3, outer = TRUE, line = 0, adj = .095, cex=1.2)
-mtext(text = expression(paste(lambda, ", population")), side = 3, outer = TRUE, line = 0, adj = .4505, cex=1.2)
-mtext(text = expression(paste(r[0], ", population")), side = 3, outer = TRUE, line = 0, adj = 0.805, cex=1.2)
+mtext(text = expression(paste(lambda, ", community")), side = 3, outer = TRUE, line = 0, adj = .09, cex=1.2)
+mtext(text = expression(paste(lambda, ", population")), side = 3, outer = TRUE, line = 0, adj = .43, cex=1.2)
+mtext(text = expression(paste(r[0], ", population")), side = 3, outer = TRUE, line = 0, adj = 0.76, cex=1.2)
 
 mtext(text = expression(paste("temporal span, time steps")), side = 1, outer = TRUE, line = 1.3, cex=1.2, adj = 0.45)
 mtext(text = expression(paste("spatial span, fraction of maximum")), side = 2, outer = TRUE, line = -0.1, cex=1.2, adj = 0.46)
+
+
+mtext(text = expression(paste(lambda)), side = 3, outer = TRUE, line = 0, adj = .9, cex=1.5)
+mtext(text = expression(paste(r[0])), side = 3, outer = TRUE, line = 0, adj = 1.035, cex=1.5, xpd=NA)
+
 dev.off()
 
 
