@@ -6,8 +6,8 @@ rm(list=ls())
 require(data.table)
 require(RColorBrewer)
 
-source("~/Dropbox/Rfunctions/figure_functions.R")
-source("~/Dropbox/Rfunctions/filled.contour3.R")
+source("util/figure_functions.R")
+source("util/filled.contour3.R")
 
 ###################################
 # Load output data
