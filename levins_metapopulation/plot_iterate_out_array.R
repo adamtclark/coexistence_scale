@@ -12,7 +12,7 @@ source("~/Dropbox/Rfunctions/filled.contour3.R")
 ###################################
 # Load output data
 ###################################
-if(FALSE) {
+if(TRUE) {
   nsp<-2
   
   flst<-dir("output/")
