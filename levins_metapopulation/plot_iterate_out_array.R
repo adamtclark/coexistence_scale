@@ -12,7 +12,7 @@ source("util/filled.contour3.R")
 ###################################
 # Load output data
 ###################################
-if(TRUE) {
+if(FALSE) {
   nsp<-2
   
   flst<-dir("output/")
