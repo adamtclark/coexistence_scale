@@ -1,6 +1,7 @@
-error
+#!/usr/bin/env Rscript
+#error
 rm(list=ls())
-setwd("~/Dropbox/Projects/032_Coexistence_mechanisms/src/levins_metapopulation/")
+#setwd("~/Dropbox/Projects/032_Coexistence_mechanisms/src/levins_metapopulation/")
 
 require(data.table)
 require(RColorBrewer)
