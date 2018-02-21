@@ -325,7 +325,7 @@ dev.off()
 ###############
 # Contour
 ###############
-#arrayout=matout_eig_pop; xlst=tscalelst; cifun=function(x,...) is.finite(x); funcol=3; tmlst=TRUE
+#arrayout=matout_eig_pop; xscalslst=log(scalslst,10); xlst=log(tscalelst, 10); splitcol=0; nlevels=10; sqlst = sqtmp; logx=TRUE; logy=TRUE; logz=FALSE; logxps = logxpos; coltype=1; logxps=0; nstart=1; ciplot=FALSE; cimat=0; revcol=FALSE
 plot_cont<-function(arrayout, xscalslst, xlst, splitcol=0, nlevels=10, sqlst=0, logx=FALSE, logy=FALSE, logz=FALSE, coltype=1, logxps=0, nstart=1, ciplot=FALSE, cimat=0, revcol=FALSE, ...) {
 
   if(sum(abs(sqlst), na.rm=T)==0) {
@@ -406,25 +406,30 @@ plot_cont<-function(arrayout, xscalslst, xlst, splitcol=0, nlevels=10, sqlst=0, 
       cl2<-(collst2)
     }
     
-    filled.contour3(x = xlst, 
+    #reduce number of scales
+    #ps_subset<-sort(unique(round(exp(seq(log(1), log(length(xlst)), length=100)),0)))
+    ps_subset<-sort(unique(c(1:26, seq(28, 50, by=2), seq(55, length(xlst), by=5), length(xlst)-1, length(xlst))))
+    #ps_subset<-1:length(xlst)
+    
+    filled.contour3(x = xlst[ps_subset], 
                     y = xscalslst, 
-                    z = tmpz, levels = sqlst, col=cl2,axes=F,
+                    z = tmpz[ps_subset,], levels = sqlst, col=cl2,axes=F,
                     xlim=range(xlst[tmpps]))
     put.fig.letter(paste(letters[nstart], ".", sep=""), "topleft", offset=ofs1, cex=1.6)
     nstart<-nstart+1
     
     if(logz) {
-      contour(x = xlst, 
+      contour(x = xlst[ps_subset], 
               y = xscalslst, 
-              z = tmpz,
+              z = tmpz[ps_subset,],
               levels = sqlst,
               labels=10^sqlst,
               add=TRUE,axes=F,
               xlim=range(xlst[tmpps]))
     } else {
-      contour(x = xlst, 
+      contour(x = xlst[ps_subset], 
               y = xscalslst, 
-              z = tmpz,
+              z = tmpz[ps_subset,],
               levels = sqlst,
               labels=round(sqlst,2),
               add=TRUE,axes=F,
@@ -464,7 +469,8 @@ plot_cont<-function(arrayout, xscalslst, xlst, splitcol=0, nlevels=10, sqlst=0, 
   return(list(sqlst=sqlst, collst2=collst2))
 }
 
-pdf("figures/FIGURE_sim_continuous_dyn_results.pdf", width=6.5, height=8, colormodel = "cmyk")
+#pdf("figures/FIGURE_sim_continuous_dyn_results.pdf", width=6.5, height=8, colormodel = "cmyk")
+svg("figures/FIGURE_sim_continuous_dyn_results.svg", width=6.5, height=8)
 sqtmp<-c(-1.5, -1, -0.5, -0.25, -0.1, 0, 0.1, 0.25, 0.5, 1, 1.5)
 logxpos<-c(1,2,5,10,20,50,150,200)
 
@@ -503,7 +509,8 @@ dev.off()
 
 
 
-pdf("figures/FIGURE_sim_continuous_cv_results.pdf", width=8.5, height=8, colormodel = "cmyk")
+#pdf("figures/FIGURE_sim_continuous_cv_results.pdf", width=8.5, height=8, colormodel = "cmyk")
+svg("figures/FIGURE_sim_continuous_cv_results.svg", width=8.5, height=8)
 m<-matrix(nrow=5, 1:20)
 m<-cbind(m, 21)
 layout(m, widths=c(1,1,1,1,0.5))
@@ -559,7 +566,8 @@ dev.off()
 
 #CI plots...
 
-pdf("figures/SUP_FIGURE_sim_CI_continuous_dyn_results.pdf", width=6.5, height=8, colormodel = "cmyk")
+#pdf("figures/SUP_FIGURE_sim_CI_continuous_dyn_results.pdf", width=6.5, height=8, colormodel = "cmyk")
+svg("figures/SUP_FIGURE_sim_CI_continuous_dyn_results.svg", width=6.5, height=8)
 sqtmp<-c(-1.5, -1, -0.5, -0.2, -0.1, 0, 0.1, 0.2, 0.5, 1, 1.5)
 logxpos<-c(1,2,5,10,20,50,150,200)
 
@@ -592,7 +600,8 @@ mtext(text = expression(paste("spatial span, fraction of maximum")), side = 2, o
 dev.off()
 
 
-pdf("figures/SUP_FIGURE_sim_CI_continuous_cv_results.pdf", width=5.5, height=8, colormodel = "cmyk")
+#pdf("figures/SUP_FIGURE_sim_CI_continuous_cv_results.pdf", width=5.5, height=8, colormodel = "cmyk")
+svg("figures/SUP_FIGURE_sim_CI_continuous_cv_results.svg", width=5.5, height=8)
 m<-matrix(nrow=5, 1:10)
 m<-cbind(m, 11)
 layout(m, widths=c(1,1,0.5))
