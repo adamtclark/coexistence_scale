@@ -98,10 +98,10 @@ if(TRUE) {
   matout_eig_tot<-array(dim=c(length(scalslst), length(tscalelst), length(modlst), length(iterlst)))
   matout_r0_tot<-array(dim=c(length(scalslst), length(tscalelst), length(modlst), length(iterlst)))
   
-  matout_beta_e<-array(dim=c(length(scalslst), length(tscalelst), length(modlst), length(iterlst)))
-  matout_beta_r<-array(dim=c(length(scalslst), length(tscalelst), length(modlst), length(iterlst)))
-  matout_beta_0<-array(dim=c(length(scalslst), length(tscalelst), length(modlst), length(iterlst)))
-  matout_beta_0_tot<-array(dim=c(length(scalslst), length(tscalelst), length(modlst), length(iterlst)))
+  #matout_beta_e<-array(dim=c(length(scalslst), length(tscalelst), length(modlst), length(iterlst)))
+  #matout_beta_r<-array(dim=c(length(scalslst), length(tscalelst), length(modlst), length(iterlst)))
+  #matout_beta_0<-array(dim=c(length(scalslst), length(tscalelst), length(modlst), length(iterlst)))
+  #matout_beta_0_tot<-array(dim=c(length(scalslst), length(tscalelst), length(modlst), length(iterlst)))
   
   matout_invar_pop<-array(dim=c(length(scalslst), length(laglst), length(modlst), length(iterlst)))
   matout_invar_tot<-array(dim=c(length(scalslst), length(laglst), length(modlst), length(iterlst)))
@@ -150,10 +150,10 @@ if(TRUE) {
         matout_r0_pop[i,j,k,]<-apply(matout_dyn[sbs,intersect(r0pop, subscol)], 1, mnfun)
         matout_r0_tot[i,j,k,]<-apply(matout_dyn[sbs,intersect(r0tot, subscol)], 1, mnfun)
         
-        matout_beta_e[i,j,k,]<-rowMeans(matout_dyn[sbs,intersect(bt2e, subscol)], na.rm=T)
-        matout_beta_r[i,j,k,]<-rowMeans(matout_dyn[sbs,intersect(btr, subscol)], na.rm=T)
-        matout_beta_0[i,j,k,]<-rowMeans(matout_dyn[sbs,intersect(bt0, subscol)], na.rm=T)
-        matout_beta_0_tot[i,j,k,]<-matout_dyn[sbs,intersect(bt0_tot, subscol)]
+        #matout_beta_e[i,j,k,]<-rowMeans(matout_dyn[sbs,intersect(bt2e, subscol)], na.rm=T)
+        #matout_beta_r[i,j,k,]<-rowMeans(matout_dyn[sbs,intersect(btr, subscol)], na.rm=T)
+        #matout_beta_0[i,j,k,]<-rowMeans(matout_dyn[sbs,intersect(bt0, subscol)], na.rm=T)
+        #matout_beta_0_tot[i,j,k,]<-matout_dyn[sbs,intersect(bt0_tot, subscol)]
       }
       
       if(j/20 == floor(j/20)) {
@@ -180,6 +180,9 @@ if(TRUE) {
     print("total progress:")
     print(round(i/length(scalslst), 2))
   }
+  
+  rm(matout_dyn)
+  rm(matout_cv)
   
   save.image("output/save_processed_data_FULL_array.RData")
 } else {
@@ -292,10 +295,10 @@ if(TRUE) {
   rm(matout_r0_pop)
   rm(matout_r0_tot)
   
-  rm(matout_beta_e)
-  rm(matout_beta_r)
-  rm(matout_beta_0)
-  rm(matout_beta_0_tot)
+  #rm(matout_beta_e)
+  #rm(matout_beta_r)
+  #rm(matout_beta_0)
+  #rm(matout_beta_0_tot)
   
   rm(matout_dyn)
   rm(matout_cv)
@@ -326,7 +329,7 @@ logxpos<-c(1,2,5,10,20,50,150)
 ofs1<-c(0.255, -0.002)
 
 
-svg("figures/FIGURE_match_models_full.svg", width=6.5, height=8)
+pdf("figures/FIGURE_match_models_full.pdf", width=6.5, height=8)
 m<-matrix(nrow=5, 1:15)
 m<-cbind(m, 16)
 layout(m, widths=c(1,1,1,0.7))
@@ -352,8 +355,8 @@ mtext(text = expression(paste(lambda, ", community")), side = 3, outer = TRUE, l
 mtext(text = expression(paste(lambda, ", population")), side = 3, outer = TRUE, line = 0, adj = .43, cex=1.2)
 mtext(text = expression(paste(r[0], ", population")), side = 3, outer = TRUE, line = 0, adj = 0.76, cex=1.2)
 
-mtext(text = expression(paste("temporal span, time steps")), side = 1, outer = TRUE, line = 1.3, cex=1.2, adj = 0.45)
-mtext(text = expression(paste("spatial span, fraction of maximum")), side = 2, outer = TRUE, line = -0.1, cex=1.2, adj = 0.46)
+mtext(text = expression(paste("cumulative temporal span, time steps")), side = 1, outer = TRUE, line = 1.3, cex=1.2, adj = 0.4)
+mtext(text = expression(paste("cumulative spatial span, fraction of maximum")), side = 2, outer = TRUE, line = -0.1, cex=1.2, adj = 0.5)
 
 
 mtext(text = expression(paste(log[10],"(", italic(L)[italic(i)], "/", italic(L)[italic(j)], ")")), side = 3, outer = TRUE, line = -0.5, adj = 1.04, cex=1.1)
@@ -361,7 +364,7 @@ mtext(text = expression(paste(log[10],"(", italic(L)[italic(i)], "/", italic(L)[
 dev.off()
 
 
-
+ 
 
 
 
