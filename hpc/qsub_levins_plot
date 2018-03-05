@@ -1,0 +1,17 @@
+#!/bin/bash
+#------------------------------------------
+#$ -N levins_script_plot
+#$ -o iman.out$JOB_ID
+#$ -j y
+#$ -S /bin/bash
+#$ -l h_rt=24:00:00 
+#$ -l h_vmem=6G
+#$ -pe smp 5
+#$ -m ea
+#$ -M adam.tclark@gmail.com
+
+date
+module load R
+cd /home/clarka/coexistence_scale/levins_metapopulation/
+./plot_iterate_out_array.R
+date
