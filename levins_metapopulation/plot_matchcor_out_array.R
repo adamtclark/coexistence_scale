@@ -218,7 +218,6 @@ if(TRUE) {
   
   #use smaller subset of time scales
   tscallst_small<-sort(unique(c(1:26, seq(28, 50, by=2), seq(55, length(tscalelst), by=5), length(tscalelst)-1, length(tscalelst))))
-  niter<-1000
   
   densout<-array(dim=c(length(scalslst), length(tscallst_small), length(modlst), length(iterlst), 4, length(modlst)))
   #last two dimensions:
@@ -255,6 +254,24 @@ if(TRUE) {
   
   
   #get cumulative likelihoods
+  arrayify2<-function(x,i,k,l,modnum) {
+    if(k==1 & l==1) {
+      tmp<-10^(array(dim=dim(x[k,l,i,,modnum,]), 
+                     c(x[k,l,i,,modnum,])))
+      
+    } else if(k==1 | l==1) {
+      tmp<-10^(apply(array(dim=dim(x[1:k,1:l,i,,modnum,]), 
+                           c(x[1:k,1:l,i,,modnum,])), 2:3, function(x) sum(x, na.rm=T)))
+    } else {
+      tmp<-10^apply(array(dim=dim(x[1:k,1:l,i,,modnum,]), 
+                          c(x[1:k,1:l,i,,modnum,])), 3:4, function(x) sum(x, na.rm=T))
+    }
+    tmp[,i]/rowSums(tmp, na.rm=T)
+  }
+  
+  
+  
+  
   arrayify<-function(x,i,k,l,modnum) {
     if(k==1 & l==1) {
       rowMeans(array(dim=dim(x[k,l,i,,modnum,-i]), 
@@ -275,10 +292,10 @@ if(TRUE) {
   for(k in 1:length(scalslst)) {
     for(l in 1:length(tscallst_small)) {
       for(i in 1:length(modlst)) {
-        cumstat_eig_tot<-arrayify(densout,i,k,l,modnum=1)
-        cumstat_eig_pop<-arrayify(densout,i,k,l,modnum=2)
-        cumstat_r0_pop<-arrayify(densout,i,k,l,modnum=3)
-        cumstat_tot<-arrayify(densout,i,k,l,modnum=4)
+        cumstat_eig_tot<-arrayify2(densout,i,k,l,modnum=1)
+        cumstat_eig_pop<-arrayify2(densout,i,k,l,modnum=2)
+        cumstat_r0_pop<-arrayify2(densout,i,k,l,modnum=3)
+        cumstat_tot<-arrayify2(densout,i,k,l,modnum=4)
         
         densout_cum[k,l,i,1,]<-quantile(cumstat_eig_tot, qlvls, na.rm=T)
         densout_cum[k,l,i,2,]<-quantile(cumstat_eig_pop, qlvls, na.rm=T)
@@ -304,7 +321,7 @@ if(TRUE) {
   rm(matout_cv)
   rm(matout_invar_pop)
   rm(matout_invar_tot)
-  rm(x)
+  #rm(x)
   
   rm(densout)
   
@@ -321,7 +338,8 @@ source("util/plot_grid_functions.R")
 
 densout_cum[!is.finite(densout_cum)]<-NA
 
-sqtmp<-c(0.01, 0.1, 0.5, 1, 5, 10, 50, 100, 500, 1000, 2000)
+#sqtmp<-c(0.01, 0.1, 0.5, 1, 5, 10, 50, 100, 500, 1000, 2000)
+sqtmp<-c(0, seq(0.2, 0.8, by=0.1), 0.9, 0.99, 1.01)
 logxpos<-c(1,2,5,10,20,50,150)
 #suppressWarnings(tmp<-log(densout_cum[,,,1,], 10)); tmp[!is.finite(tmp)]<-NA
 #arrayout=tmp; xscalslst=log(scalslst,10); xlst=log(tscallst_small, 10); splitcol=0; nlevels=10; sqlst = sqtmp; logx=TRUE; logy=TRUE; logz=TRUE; logxps = logxpos; coltype=3; logxps=0; nstart=1; ciplot=FALSE; cimat=0; revcol=FALSE; dops_subset=FALSE; override_tmpsq=TRUE
@@ -329,7 +347,7 @@ logxpos<-c(1,2,5,10,20,50,150)
 ofs1<-c(0.255, -0.002)
 
 
-svg("figures/FIGURE_match_models_full.svg", width=6.5, height=8)
+pdf("figures/FIGURE_match_models_full.pdf", width=6.5, height=8)
 m<-matrix(nrow=5, 1:15)
 m<-cbind(m, 16)
 layout(m, widths=c(1,1,1,0.7))
@@ -337,13 +355,16 @@ layout(m, widths=c(1,1,1,0.7))
 par(mar=c(2,3,1,0), oma=c(2.5,2,2,2.5))
 
 for(i in 1:3) {
-  suppressWarnings(tmp<-log(densout_cum[,,,i,], 10)); tmp[!is.finite(tmp)]<-NA
-  #arrayout=tmp; xscalslst=log(scalslst,10); xlst=log(tscallst_small, 10); splitcol=0; nlevels=10; sqlst = sqtmp; logx=TRUE; logy=TRUE; logz=TRUE; logxps = logxpos; coltype=3; nstart=1+6*(i-1); ciplot=FALSE; cimat=0; revcol=FALSE; dops_subset=FALSE; override_tmpsq=TRUE
-  plotout<-plot_cont(arrayout=tmp, xscalslst=log(scalslst,10), xlst=log(tscallst_small, 10), splitcol=0, nlevels=10, sqlst = sqtmp, logx=TRUE, logy=TRUE, logz=TRUE, logxps = logxpos, coltype=3, nstart=1+6*(i-1), ciplot=FALSE, cimat=0, revcol=FALSE, dops_subset=FALSE, override_tmpsq=TRUE)
+  #suppressWarnings(tmp<-log(densout_cum[,,,i,], 10)); tmp[!is.finite(tmp)]<-NA
+  tmp<-densout_cum[,,,i,]
+  #arrayout=tmp; xscalslst=log(scalslst,10); xlst=log(tscallst_small, 10); splitcol=0; nlevels=10; sqlst = sqtmp; logx=TRUE; logy=TRUE; logz=FALSE; logxps = logxpos; coltype=3; nstart=1+6*(i-1); ciplot=FALSE; cimat=0; revcol=FALSE; dops_subset=FALSE; override_tmpsq=TRUE
+  plotout<-plot_cont(arrayout=tmp, xscalslst=log(scalslst,10), xlst=log(tscallst_small, 10), splitcol=0, nlevels=10, sqlst = sqtmp, logx=TRUE, logy=TRUE, logz=FALSE, logxps = logxpos, coltype=3, nstart=1+6*(i-1), ciplot=FALSE, cimat=0, revcol=FALSE, dops_subset=FALSE, override_tmpsq=TRUE)
 }
 
 par(mar=c(2,5.5,1,1))
-filled.legend(z=log10(matrix(1:length(sqtmp))), levels=1:length(sqtmp), col=adjustcolor(c((rainbow(sum(sqtmp<1), start=0, end=0.1)), (rainbow(sum(sqtmp>1), start=0.55, end=.70))), alpha.f = 0.6), key.axes = axis(4, at = 1:length(sqtmp), labels = sqtmp, las=2))
+sqtmp2<-sqtmp
+sqtmp2[sqtmp2==1.01]<-1
+filled.legend(z=(matrix(1:length(sqtmp2))), levels=1:length(sqtmp2), col=adjustcolor(c((rainbow(sum(sqtmp2<0.5), start=0, end=0.1)), (rainbow(sum(sqtmp2>0.5), start=0.55, end=.70))), alpha.f = 0.6), key.axes = axis(4, at = 1:length(sqtmp2), labels = sqtmp2, las=2))
 
 mtext(text = "levins", side = 4, outer = TRUE, line = -7.5, adj = .94, cex=1.2)
 mtext(text = "disturbance", side = 4, outer = TRUE, line = -7.5, adj = 0.74, cex=1.2)
@@ -359,7 +380,7 @@ mtext(text = expression(paste("cumulative temporal span, time steps")), side = 1
 mtext(text = expression(paste("cumulative spatial span, fraction of maximum")), side = 2, outer = TRUE, line = -0.1, cex=1.2, adj = 0.5)
 
 
-mtext(text = expression(paste(log[10],"(", italic(L)[italic(i)], "/", italic(L)[italic(j)], ")")), side = 3, outer = TRUE, line = -0.5, adj = 1.04, cex=1.1)
+#mtext(text = expression(paste(italic(L)[italic(i)]," / ",Sigma,italic(L)[italic(j)])), side = 3, outer = TRUE, line = -0.5, adj = 1.01, cex=1.1)
 
 dev.off()
 
