@@ -321,7 +321,7 @@ source("util/plot_grid_functions.R")
 
 densout_cum[!is.finite(densout_cum)]<-NA
 
-sqtmp<-c(0.01, 0.1, 1, 5, 10, 50, 100, 500, 1000, 2000)
+sqtmp<-c(0.01, 0.1, 0.5, 1, 5, 10, 50, 100, 500, 1000, 2000)
 logxpos<-c(1,2,5,10,20,50,150)
 #suppressWarnings(tmp<-log(densout_cum[,,,1,], 10)); tmp[!is.finite(tmp)]<-NA
 #arrayout=tmp; xscalslst=log(scalslst,10); xlst=log(tscallst_small, 10); splitcol=0; nlevels=10; sqlst = sqtmp; logx=TRUE; logy=TRUE; logz=TRUE; logxps = logxpos; coltype=3; logxps=0; nstart=1; ciplot=FALSE; cimat=0; revcol=FALSE; dops_subset=FALSE; override_tmpsq=TRUE
@@ -329,7 +329,7 @@ logxpos<-c(1,2,5,10,20,50,150)
 ofs1<-c(0.255, -0.002)
 
 
-pdf("figures/FIGURE_match_models_full.pdf", width=6.5, height=8)
+svg("figures/FIGURE_match_models_full.svg", width=6.5, height=8)
 m<-matrix(nrow=5, 1:15)
 m<-cbind(m, 16)
 layout(m, widths=c(1,1,1,0.7))
