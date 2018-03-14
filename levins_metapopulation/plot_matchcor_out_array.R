@@ -347,7 +347,7 @@ logxpos<-c(1,2,5,10,20,50,150)
 ofs1<-c(0.255, -0.002)
 
 
-pdf("figures/FIGURE_match_models_full.pdf", width=6.5, height=8)
+svg("figures/FIGURE_match_models_full.svg", width=6.5, height=8)
 m<-matrix(nrow=5, 1:15)
 m<-cbind(m, 16)
 layout(m, widths=c(1,1,1,0.7))
@@ -380,7 +380,7 @@ mtext(text = expression(paste("cumulative temporal span, time steps")), side = 1
 mtext(text = expression(paste("cumulative spatial span, fraction of maximum")), side = 2, outer = TRUE, line = -0.1, cex=1.2, adj = 0.5)
 
 
-#mtext(text = expression(paste(italic(L)[italic(i)]," / ",Sigma,italic(L)[italic(j)])), side = 3, outer = TRUE, line = -0.5, adj = 1.01, cex=1.1)
+mtext(text = expression(paste(italic(RCL)[italic(m)])), side = 3, outer = TRUE, line = -0.5, adj = 1.01, cex=1.1)
 
 dev.off()
 
