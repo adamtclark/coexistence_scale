@@ -199,3 +199,87 @@ plot_cont<-function(arrayout, xscalslst, xlst, splitcol=0, nlevels=10, sqlst=0, 
 
 
 
+#for empirical data
+#arrayout=array_quant; xscalslst=log10(xscl); xlst=log10(timebands); nlevels=10; logx=TRUE; logy=TRUE; logz=FALSE; nstart=1; ofs1=c(0, 0)
+plot_cont_emp<-function(arrayout, xscalslst, xlst, nlevels=10, logx=FALSE, logy=FALSE, logz=FALSE, coltype=1, nstart=1, ofs1=c(0, 0), ...) {
+  rng<-range(arrayout[,,], na.rm=T)
+  rng_rnd<-c(floor(rng[1]*10)/10,
+               ceiling(rng[2]*10)/10)
+    
+  sqlst<-pretty(rng_rnd, nlevels)
+  
+  if(sum(sqlst==0)==0) {
+    sqlst<-c(sqlst[sqlst<0], 0, sqlst[sqlst>0])
+  }
+  
+  if(logz) {
+    tmpsq<-c(floor(10^sqlst[1]*1000)/1000,
+             round(10^sqlst[-c(1, length(sqlst))],3),
+             ceiling(10^sqlst[length(sqlst)]*1000)/1000)
+    if(sum(tmpsq<=0)>0) {
+      tmpsq<-c(1e-6, 0.0001, tmpsq[tmpsq>0])
+    }
+    tmpsq<-sort(unique(tmpsq))
+    
+    sqlst<-log(tmpsq[tmpsq>0],10)
+  }
+  
+  for(j in 1:dim(arrayout)[3]) {
+    dm<-0
+    collst2<-adjustcolor(c((rainbow(sum(sqlst<0), start=0, end=0.1)), (rainbow(sum(sqlst>=0), start=0.55, end=.70))), alpha.f = 0.6)
+    
+    tmpps<-colSums(abs(arrayout[,,j]), na.rm=T)!=0
+
+    filled.contour3(x = xlst, 
+                    y = xscalslst, 
+                    z = arrayout[,,j], levels = sqlst, col=collst2,axes=F,
+                    xlim=range(xlst[tmpps], na.rm=T))
+    put.fig.letter(paste(letters[nstart], ".", sep=""), "topleft", offset=ofs1, cex=1.6)
+    nstart<-nstart+1
+    
+    if(logz) {
+      contour(x = xlst, 
+              y = xscalslst, 
+              z = arrayout[,,j],
+              levels = sqlst,
+              labels=10^sqlst,
+              add=TRUE,axes=F,
+              xlim=range(xlst[tmpps],na.rm=T))
+    } else {
+      contour(x = xlst, 
+              y = xscalslst, 
+              z = arrayout[,,j],
+              levels = sqlst,
+              labels=round(sqlst,2),
+              add=TRUE,axes=F,
+              xlim=range(xlst[tmpps],na.rm=T))
+    }
+    
+    
+    if(logx) {
+      tmp<-c(1,2,5,10,20,50,80)
+      
+      axis(1, at=log(tmp,10), labels = tmp, las=2)
+    } else {
+      axis(1, las=2)
+    }
+    
+    if(logy) {
+      tmp<-c(1, 5, 10, 25, 50, 100, 200, 400)
+      
+      tmp<-tmp[tmp>0]
+      tmp<-sort(unique(c(0.01, tmp)))
+      
+      axis(2, at=log(tmp,10), labels = tmp, las=2)
+    } else {
+      axis(2, las=2)
+    }
+    
+    box()
+    
+  }
+  
+  return(list(sqlst=sqlst, collst2=collst2))
+}
+
+
