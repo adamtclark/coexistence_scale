@@ -8,10 +8,10 @@ source("~/Dropbox/Rfunctions/figure_functions.R")
 
 
 if(FALSE) {
-d001<-read.table("data/e001_Plant aboveground biomass data.txt", header=T, sep="\t")
-d002<-read.table("data/e002_Plant aboveground biomass data.txt", header=T, sep="\t")
-d014<-data.frame(fread("data/e014_long_covars_161017.csv"))
-d120<-read.table("data/e120_Plant aboveground biomass data.txt", header=T, sep="\t", fill = TRUE)
+d001<-read.table("data/extents/e001_Plant aboveground biomass data.txt", header=T, sep="\t")
+d002<-read.table("data/extents/e002_Plant aboveground biomass data.txt", header=T, sep="\t")
+d014<-data.frame(fread("data/extents/e014_long_covars_161017.csv"))
+d120<-read.table("data/extents/e120_Plant aboveground biomass data.txt", header=T, sep="\t", fill = TRUE)
 dnut<-data.frame(fread("../../../035_Yann_Species loss/src/data/comb-by-plot-clim-soil-diversity-04-Dec-2017.csv"))
 
 
@@ -75,7 +75,7 @@ cumsum(rev(table(tapply(inut$year, inut$index, function(x) diff(range(x))))))
 
 
 #Make plots:
-plotdat<-read.table("data/realworld_extents.csv", header=T, sep=";")
+plotdat<-read.table("data/extents/realworld_extents.csv", header=T, sep=";")
 collst<-(c("lightblue", "darkblue", "blue", "red", "darkgreen"))
 #collst<-c((brewer.pal(4, "Blues"))[-1], "red", "darkgreen")
 anglst<-seq(0, 360, by=30)
