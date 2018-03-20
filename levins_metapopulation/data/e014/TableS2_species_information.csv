@@ -1,0 +1,256 @@
+Species,LCD_Species,Justification_1,Justification_2,FunctionalGroup,Duration,Origin
+Agropyron repens,Agropyron repens,,,C3,Perennial,Introduced
+Agrostis alba,Agrostis scabra,Rare species, common database entry error,C3,Perennial,Native
+Agrostis scabra,Agrostis scabra,,,C3,Perennial,Native
+Agrostis sp.,Agrostis scabra,Rare species, common database entry error,C3,Perennial,Native
+Bromus inermis,Bromus inermis,,,C3,Perennial,Introduced
+Danthonia spicata,Danthonia spicata,,,C3,Perennial,Native
+hairy brome,Bromus inermis,No other congeners,,C3,Perennial,Introduced
+Koeleria cristata,Koeleria cristata,,,C3,Perennial,Native
+Panicum oligosanthes,Panicum oligosanthes,,,C3,Perennial,Native
+Panicum perlongum,Panicum perlongum,,,C3,Perennial,Native
+Panicum praecocious,Panicum praecocious,,,C3,Perennial,Native
+Panicum sp.,Panicum sp.,,,C3,Perennial,Native
+Phalaris arundinacea,Phalaris arundinacea,,,C3,Perennial,Introduced
+Phleum pratense,Phleum pratense,,,C3,Perennial,Introduced
+Poa compressa,Poa pratensis,Rare species, common database entry error,C3,Perennial,Introduced
+Poa palustris,Poa pratensis,Rare species, common database entry error,C3,Perennial,Introduced
+Poa pratensis,Poa pratensis,Rare species, common database entry error,C3,Perennial,Introduced
+Poa sp.,Poa pratensis,No other congeners,,C3,Perennial,Introduced
+Secale cereale,Secale cereale,,,C3,Annual,Introduced
+Stipa comata,Stipa spartea,Inconsistent IDs across years,,C3,Perennial,Native
+stipa sp.,Stipa spartea,No other congeners,,C3,Perennial,Native
+Stipa sp.,Stipa spartea,No other congeners,,C3,Perennial,Native
+Stipa spartea,Stipa spartea,,,C3,Perennial,Native
+Stipa spicata,Stipa spartea,Inconsistent IDs across years,,C3,Perennial,Native
+Zea mays,Zea mays,,,C3,Annual,Introduced
+Andropogon gerardi,Andropogon gerardi,,,C4,Perennial,Native
+Aristida basiramea,Aristida basiramea,,,C4,Annual,Native
+Aristida sp.,Aristida sp.,,,C4,Annual,Native
+Aristida tuberculosa,Aristida tuberculosa,,,C4,Annual,Native
+Bouteloua curtipendula,Bouteloua curtipendula,,,C4,Perennial,Native
+Bouteloua hirsuta,Bouteloua hirsuta,,,C4,Perennial,Native
+Buchloe dactyloides,Buchloe dactyloides,,,C4,Perennial,Native
+Calamovilfa longifolia,Calamovilfa longifolia,,,C4,Perennial,Native
+Calamovilfa sp.,Calamovilfa longifolia,No other congeners,,C4,Perennial,Native
+Cenchrus longispinus,Cenchrus longispinus,,,C4,Annual,Native
+Digitaria ischaemum,Digitaria sp.,Inconsistent IDs across years,,C4,Annual,Introduced
+Digitaria sanguinalis,Digitaria sp.,Inconsistent IDs across years,,C4,Annual,Introduced
+Digitaria sp.,Digitaria sp.,Inconsistent IDs across years,,C4,Annual,Introduced
+Eragrostis spectabilis,Eragrostis spectabilis,,,C4,Perennial,Native
+Leptoloma cognatum,Leptoloma cognatum,,,C4,Perennial,Native
+Muhlenbergia racemosa,Muhlenbergia racemosa,,,C4,Perennial,Native
+Panicum capillare,Panicum capillare,,,C4,Annual,Native
+Panicum miliaceum,Panicum capillare,Inconsistent IDs across years,,C4,Annual,Native
+Panicum virgatum,Panicum virgatum,,,C4,Perennial,Native
+Paspalum ciliatifolium,Paspalum ciliatifolium,,,C4,Perennial,Native
+Schizachne purpurascens,Schizachyrium scoparium,Rare species, common database entry error,C4,Perennial,Native
+Schizachyrium scoparium,Schizachyrium scoparium,,,C4,Perennial,Native
+Setaria italica,Setaria lutescens,Inconsistent IDs across years,,C4,Annual,Introduced
+Setaria lutescens (glauca),Setaria lutescens,,,C4,Annual,Introduced
+Setaria lutescens glauca,Setaria lutescens,,,C4,Annual,Introduced
+Setaria sp.,Setaria lutescens,No other congeners,,C4,Annual,Introduced
+Setaria viridis,Setaria lutescens,Inconsistent IDs across years,,C4,Annual,Introduced
+Sorghastrum nutans,Sorghastrum nutans,,,C4,Perennial,Native
+Sporobolus cryptandrus,Sporobolus cryptandrus,,,C4,Perennial,Native
+Sporobolus sp.,Sporobolus cryptandrus,No other congeners,,C4,Perennial,Native
+Achillea millefolium lanulosa,Achillea millefolium,,,F,Perennial,Native
+Achillea millefolium(lanulosa),Achillea millefolium,,,F,Perennial,Native
+Achillea sp.,Achillea millefolium,No other congeners,,F,Perennial,Native
+Agastache foeniculum,Agastache foeniculum,,,F,Perennial,Native
+Allium stellatum,Allium stellatum,,,F,Perennial,Native
+ambrosia artemisifolia,Ambrosia sp.,Inconsistent IDs across years,,F,Annual,Native
+Ambrosia artemisiifolia elatior,Ambrosia sp.,Inconsistent IDs across years,,F,Annual,Native
+Ambrosia coronopifolia,Ambrosia sp.,Inconsistent IDs across years,,F,Annual,Native
+Anemone cylindrica,Anemone cylindrica,,,F,Perennial,Native
+Anemone patens,Anemone patens,,,F,Perennial,Native
+Anemone quinquefolia,Anemone quinquefolia,,,F,Perennial,Native
+Antennaria neglecta,Antennaria neglecta,,,F,Perennial,Native
+Antennaria plantaginifolia,Antennaria neglecta,Rare species,,F,Perennial,Native
+Antennaria sp.,Antennaria neglecta,No other congeners,,F,Perennial,Native
+Apocynum androsaemifolium,Apocynum androsaemifolium,,,F,Perennial,Native
+Apocynum sibiricum,Apocynum sibiricum,,,F,Perennial,Native
+Apocynum sp.,Apocynum sp.,,,F,Perennial,Native
+Aquilegia canadensis,Aquilegia canadensis,,,F,Perennial,Native
+Arabis divaricarpa,Arabis sp.,Inconsistent IDs across years,,F,Biennial,Native
+Arabis glabra,Arabis sp.,Inconsistent IDs across years,,F,Biennial,Native
+Arabis hirsuta,Arabis sp.,Inconsistent IDs across years,,F,Biennial,Native
+Arabis sp.,Arabis sp.,Inconsistent IDs across years,,F,Biennial,Native
+Arenaria lateriflora,Arenaria lateriflora,,,F,Perennial,Native
+Artemisia (caudata) campestris,Artemisia campestris,,,F,Biennial,Native
+Artemisia caudata campestris,Artemisia campestris,,,F,Biennial,Native
+Artemisia ludoviciana,Artemisia ludoviciana,,,F,Perennial,Native
+Asclepias ovalifolia,Asclepias ovalifolia,,,F,Perennial,Native
+Asclepias sp.,Asclepias sp.,,,F,Perennial,Native
+Asclepias syriaca,Asclepias syriaca,,,F,Perennial,Native
+Asclepias tuberosa,Asclepias tuberosa,,,F,Perennial,Native
+Asclepias verticillata,Asclepias verticillata,,,F,Perennial,Native
+Asclepias viridiflora,Asclepias viridiflora,,,F,Perennial,Native
+Aster azureus,Aster azureus,,,F,Perennial,Native
+Aster ericoides,Aster ericoides,,,F,Perennial,Native
+Aster simplex,Aster simplex,,,F,Perennial,Native
+Aster sp.,Aster sp.,,,F,Perennial,Native
+Aster umbellatus,Aster umbellatus,,,F,Perennial,Native
+Berteroa incana,Berteroa incana,,,F,Biennial,Introduced
+Campanula rotundifolia,Campanula rotundifolia,,,F,Perennial,Native
+Chenopodium album,Chenopodium album,,,F,Annual,Introduced
+Chenopodium leptophyllum,Chenopodium leptophyllum,,,F,Annual,Native
+Chrysopsis villosa,Chrysopsis villosa,,,F,Perennial,Native
+Cirsium altissimum,Cirsium sp.,Inconsistent IDs across years,,F,Perennial,Introduced
+Cirsium arvense,Cirsium sp.,Inconsistent IDs across years,,F,Perennial,Introduced
+Cirsium discolor,Cirsium sp.,Inconsistent IDs across years,,F,Perennial,Introduced
+Cirsium sp.,Cirsium sp.,Inconsistent IDs across years,,F,Perennial,Introduced
+Coreopsis palmata,Coreopsis palmata,,,F,Perennial,Native
+Crepis tectorum,Crepis tectorum,,,F,Annual,Introduced
+Delphinium virescens,Delphinium virescens,,,F,Perennial,Native
+Erechtites hieracifolia,Erechtites hieracifolia,,,F,Annual,Native
+Erigeron anuus,Erigeron strigosus,Rare species, common database entry error,F,Annual,Native
+Erigeron canadensis,Erigeron canadensis,,,F,Annual,Native
+Erigeron sp.,Erigeron sp.,, common database entry error,F,Annual,Native
+Erigeron strigosus,Erigeron strigosus,,,F,Annual,Native
+Euphorbia (supina) maculata,Euphorbia glyptosperma,Inconsistent IDs across years,,F,Annual,Native
+Euphorbia corollata,Euphorbia corollata,,,F,Perennial,Native
+Euphorbia geyeri,Euphorbia glyptosperma,Inconsistent IDs across years,,F,Annual,Native
+Euphorbia glyptosperma,Euphorbia glyptosperma,Inconsistent IDs across years,,F,Annual,Native
+Euphorbia sp.,Euphorbia sp.,,,F,Annual,Native
+Euthamia graminifolia,Euthamia graminifolia,,,F,Perennial,Native
+Fragaria sp.,Fragaria virginiana,No other congeners,,F,Perennial,Native
+Fragaria vesca (americana),Fragaria virginiana,Inconsistent IDs across years,,F,Perennial,Native
+Fragaria virginiana,Fragaria virginiana,Inconsistent IDs across years,,F,Perennial,Native
+Galium aparine,Galium boreale,Inconsistent IDs across years,,F,Perennial,Native
+Galium boreale,Galium boreale,Inconsistent IDs across years,,F,Perennial,Native
+Geranium maculatum,Anemone quinquefolia,Inconsistent IDs across years,,F,Perennial,Native
+Gnaphalium obtusifolium,Gnaphalium obtusifolium,,,F,Biennial,Native
+Gnaphalium sp.,Gnaphalium obtusifolium,No other congeners,,F,Biennial,Native
+Hedeoma hispida,Hedeoma hispida,,,F,Annual,Native
+Helianthemum bicknellii,Helianthemum bicknellii,,,F,Perennial,Native
+Helianthus laetiflorus,Helianthus laetiflorus,,,F,Perennial,Native
+Helianthus sp.,Helianthus laetiflorus,No other congeners,,F,Perennial,Native
+Heuchera richardsonii,Heuchera richardsonii,,,F,Perennial,Native
+Hieracium aurantiacum,Hieracium sp.,Inconsistent IDs across years,,F,Biennial,Native
+Hieracium kalmii,Hieracium sp.,Inconsistent IDs across years,,F,Biennial,Native
+Hieracium longipilum,Hieracium sp.,Inconsistent IDs across years,,F,Biennial,Native
+Hieracium sp.,Hieracium sp.,,,F,Biennial,Native
+Krigia biflora,Cirsium sp.,Inconsistent IDs across years,,F,Perennial,Introduced
+Lactuca biennis,Lactuca biennis,Inconsistent IDs across years,,F,Biennial,Native
+Lactuca canadensis,Lactuca biennis,Inconsistent IDs across years,,F,Biennial,Native
+Lactuca serriola (scariola),Lactuca biennis,Inconsistent IDs across years,,F,Biennial,Native
+Lactuca sp.,Lactuca biennis,Inconsistent IDs across years,,F,Biennial,Native
+Lechea stricta,Lechea stricta,,,F,Perennial,Native
+Lepidium densiflorum,Lepidium densiflorum,,,F,Annual,Native
+Lepidium sp.,Lepidium densiflorum,No other congeners,,F,Annual,Native
+Lepidium virginicum,Lepidium densiflorum,Rare species, Inconsistent IDs across years,F,Annual,Native
+Liatris aspera,Liatris aspera,,,F,Perennial,Native
+Linaria vulgaris,Linaria vulgaris,,,F,Perennial,Introduced
+Lithospermum canescens,Lithospermum caroliniense,"Commonly mis-IDed, very rare in old fields",,F,Perennial,Native
+Lithospermum caroliniense,Lithospermum caroliniense,,,F,Perennial,Native
+Lithospermum sp.,Lithospermum caroliniense,No other congeners,,F,Perennial,Native
+Lobelia spicata,Lobelia spicata,,,F,Perennial,Native
+Lychnis alba,Lychnis alba,,,F,Perennial,Introduced
+Maianthemum canadense,Maianthemum canadense,,,F,Perennial,Native
+Mollugo verticillata,Mollugo verticillata,,,F,Annual,Native
+Monarda fistulosa,Monarda fistulosa,,,F,Perennial,Native
+Monarda punctata,Monarda punctata,,,F,Perennial,Native
+Oenothera biennis,Oenothera biennis,,,F,Biennial,Native
+Oenothera parviflora,Oenothera biennis,Rare species, Inconsistent IDs across years,F,Biennial,Native
+Oenothera rhombipetala,Oenothera biennis,Rare species, Inconsistent IDs across years,F,Biennial,Native
+Oenothera sp.,Oenothera biennis,Rare species, Inconsistent IDs across years,F,Biennial,Native
+Oxalis sp.,Oxalis stricta,No other congeners,,F,Perennial,Native
+Oxalis stricta,Oxalis stricta,,,F,Perennial,Native
+Oxybaphus hirsutus,Oxybaphus hirsutus,,,F,Perennial,Native
+Parietaria pensylvanica,Parietaria pensylvanica,,,F,Annual,Native
+Penstemon gracilis,Penstemon gracilis,,,F,Perennial,Native
+Penstemon grandiflorus,Penstemon grandiflorus,,,F,Perennial,Native
+Phlox pilosa,Phlox pilosa,,,F,Perennial,Native
+Phryma leptostachya,Phryma leptostachya,,,F,Perennial,Native
+Physalis heterophylla,Physalis heterophylla,,,F,Perennial,Native
+Physalis sp.,Physalis sp.,,,F,Perennial,Native
+Physalis virginiana,Physalis virginiana,,,F,Perennial,Native
+Plantago (purshii) patagonica,Plantago patagonica,,,F,Annual,Native
+Plantago purshii patagonica,Plantago patagonica,,,F,Annual,Native
+Polygala polygama,Polygala polygama,,,F,Biennial,Native
+Polygonatum canaliculatum,Polygonatum canaliculatum,,,F,Perennial,Native
+Polygonella articulata,Polygonella articulata,,,F,Annual,Native
+Polygonum convolvulus,Polygonum convolvulus,,,F,Annual,Introduced
+Polygonum pensylvanicum,Polygonum pensylvanicum,,,F,Annual,Native
+Polygonum tenue,Polygonum tenue,,,F,Annual,Native
+Potentilla argentea,Potentilla argentea,,,F,Perennial,Introduced
+Potentilla arguta,Potentilla arguta,,,F,Perennial,Native
+Potentilla norvegica,Potentilla norvegica,,,F,Biennial,Native
+Potentilla recta,Potentilla recta,,,F,Perennial,Introduced
+Potentilla simplex,Potentilla simplex,,,F,Perennial,Native
+Potentilla sp.,Potentilla sp.,,,F,Perennial,Native
+Pyrola rotundifolia,Pyrola rotundifolia,,,F,Perennial,Native
+Ranunculus rhomboideus,Ranunculus rhomboideus,,,F,Perennial,Native
+Rudbeckia hirta,Rudbeckia hirta,,,F,Perennial,Native
+Rudbeckia serotina,Rudbeckia hirta,Synonym,,F,Perennial,Native
+rudbekia hirta,Rudbeckia hirta,,,F,Perennial,Native
+Rumex acetosella,Rumex acetosella,,,F,Perennial,Introduced
+Rumex sp.,Rumex acetosella,No other congeners,,F,Perennial,Introduced
+Salsola kali,Salsola kali,,,F,Annual,Introduced
+Scutellaria galericulata,Scutellaria parvula,Inconsistent IDs across years,,F,Perennial,Native
+Scutellaria lateriflora,Scutellaria parvula,Inconsistent IDs across years,,F,Perennial,Native
+Scutellaria parvula,Scutellaria parvula,Inconsistent IDs across years,,F,Perennial,Native
+Silene antirrhina,Silene antirrhina,,,F,Annual,Native
+Silene antirrhina,Silene antirrhina,,,F,Annual,Native
+Silene sp.,Silene antirrhina,No other congeners,,F,Annual,Native
+Sisyrinchium campestre,Sisyrinchium campestre,,,F,Perennial,Native
+Smilacina racemosa,Smilacina racemosa,,,F,Perennial,Native
+Smilacina stellata,Smilacina racemosa,Inconsistent IDs across years,,F,Perennial,Native
+Solidago altissima,Solidago gigantea,Inconsistent IDs across years,,F,Perennial,Native
+Solidago gigantea,Solidago gigantea,,,F,Perennial,Native
+Solidago graminifolia,Euthamia graminifolia,Synonym,,F,Perennial,Native
+Solidago missouriensis,Solidago gigantea,Inconsistent IDs across years,,F,Perennial,Native
+Solidago nemoralis,Solidago nemoralis,,,F,Perennial,Native
+Solidago rigida,Solidago rigida,,,F,Perennial,Native
+solidago sp.,Solidago sp.,,,F,Perennial,Native
+Solidago sp.,Solidago sp.,,,F,Perennial,Native
+Solidago speciosa,Solidago speciosa,,,F,Perennial,Native
+Stachys palustris,Stachys palustris,,,F,Perennial,Native
+Stachys sp.,Stachys palustris,No other congeners,,F,Perennial,Native
+Taraxacum sp.,Taraxicum officinalis,No other congeners,,F,Perennial,Introduced
+Taraxicum officinalis,Taraxicum officinalis,,,F,Perennial,Introduced
+Tradescantia bracteata,Tradescantia occidentalis,Rare species,,F,Perennial,Native
+Tradescantia occidentalis,Tradescantia occidentalis,,,F,Perennial,Native
+Tradescantia sp.,Tradescantia occidentalis,No other congeners,,F,Perennial,Native
+Tragopogon dubius (major),Tragopogon dubius,,,F,Biennial,Introduced
+Tragopogon dubius major,Tragopogon dubius,,,F,Biennial,Introduced
+Urtica dioica,Urtica dioica,,,F,Perennial,Native
+Verbascum thapsus,Verbascum thapsus,,,F,Biennial,Introduced
+Verbena bracteata,Verbena bracteata,,,F,Perennial,Native
+Veronicastrum virginicum,Veronicastrum virginicum,,,F,Perennial,Native
+Viola pedatifida,Viola pedatifida,,,F,Perennial,Native
+Viola sagittata,Viola sagittata,,,F,Perennial,Native
+Viola sp.,Viola sp.,,,F,Perennial,Native
+Amorpha canescens,Amorpha canescens,,,L,Perennial,Native
+Amphicarpa bracteata,Amphicarpa bracteata,,,L,Annual,Native
+Astragalus canadensis,Astragalus canadensis,,,L,Perennial,Native
+Desmodium canadense,Desmodium canadense,,,L,Perennial,Native
+Desmodium glutinosum,Desmodium canadense,Single record,,L,Perennial,Native
+Lathyrus venosus,Lathyrus venosus,,,L,Perennial,Native
+Lespedeza capitata,Lespedeza capitata,,,L,Perennial,Native
+Melilotus alba,Melilotus sp.,Inconsistent IDs across years,,L,Biennial,Introduced
+Melilotus officinalis,Melilotus sp.,Inconsistent IDs across years,,L,Biennial,Introduced
+Melilotus sp.,Melilotus sp.,Inconsistent IDs across years,,L,Biennial,Introduced
+Petalostemum candidum,Petalostemum candidum,,,L,Perennial,Native
+Petalostemum purpureum,Petalostemum candidum,Single record,,L,Perennial,Native
+Petalostemum villosum,Petalostemum candidum,Single record,,L,Perennial,Native
+Strophostyles leiosperma,Strophostyles leiosperma,,,L,Annual,Native
+Trifolium arvense,Trifolium arvense,,,L,Annual,Introduced
+Trifolium hybridum,Trifolium sp.,Inconsistent IDs across years,,L,Perennial,Introduced
+Trifolium pratense,Trifolium sp.,Inconsistent IDs across years,,L,Perennial,Introduced
+Trifolium repens,Trifolium sp.,Inconsistent IDs across years,,L,Perennial,Introduced
+Trifolium sp.,Trifolium sp.,Inconsistent IDs across years,,L,Perennial,Introduced
+Vicia angustifolia,Vicia villosa,Inconsistent IDs across years,,L,Annual,Introduced
+Vicia villosa,Vicia villosa,Inconsistent IDs across years,,L,Annual,Introduced
+Carex  sp.,Miscellaneous sedges,Inconsistent IDs across years,,S,Perennial,Native
+Carex bebbii,Miscellaneous sedges,Inconsistent IDs across years,,S,Perennial,Native
+Carex muhlenbergii,Miscellaneous sedges,Inconsistent IDs across years,,S,Perennial,Native
+Carex scoparia,Miscellaneous sedges,Inconsistent IDs across years,,S,Perennial,Native
+carex sp.,Miscellaneous sedges,Inconsistent IDs across years,,S,Perennial,Native
+Carex sp.,Miscellaneous sedges,Inconsistent IDs across years,,S,Perennial,Native
+Carex stricta,Miscellaneous sedges,Inconsistent IDs across years,,S,Perennial,Native
+Cyperus filiculmis,Miscellaneous sedges,Inconsistent IDs across years,,S,Perennial,Native
+Cyperus schweinitzii,Miscellaneous sedges,Inconsistent IDs across years,,S,Perennial,Native
+Cyperus sp.,Miscellaneous sedges,Inconsistent IDs across years,,S,Perennial,Native
+Cyperus strigosus,Miscellaneous sedges,Inconsistent IDs across years,,S,Perennial,Native
