@@ -1,0 +1,14 @@
+#!/bin/bash
+#------------------------------------------
+#$ -N levins_make_e014
+#$ -o iman.out$JOB_ID
+#$ -j y
+#$ -S /bin/bash
+#$ -l h_rt=24:00:00 
+#$ -l h_vmem=6G
+#$ -pe smp 20
+#$ -t 1-100
+
+module load R
+cd /home/clarka/coexistence_scale/levins_metapopulation/
+./HPC_calcualte_empirical_staility_e014.R $SGE_TASK_ID
