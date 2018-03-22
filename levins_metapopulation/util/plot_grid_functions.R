@@ -200,13 +200,15 @@ plot_cont<-function(arrayout, xscalslst, xlst, splitcol=0, nlevels=10, sqlst=0, 
 
 
 #for empirical data
-#arrayout=array_quant; xscalslst=log10(xscl); xlst=log10(timebands); nlevels=10; logx=TRUE; logy=TRUE; logz=FALSE; nstart=1; ofs1=c(0, 0)
-plot_cont_emp<-function(arrayout, xscalslst, xlst, nlevels=10, logx=FALSE, logy=FALSE, logz=FALSE, coltype=1, nstart=1, ofs1=c(0, 0), ...) {
+#arrayout=array_quant; xscalslst=log10(xscl); xlst=log10(timebands); nlevels=10; logx=TRUE; logy=TRUE; logz=FALSE; nstart=1; ofs1=c(0, 0); sqlst=squse
+plot_cont_emp<-function(arrayout, xscalslst, xlst, nlevels=10, logx=FALSE, logy=FALSE, logz=FALSE, coltype=1, nstart=1, sqlst=0, ofs1=c(0, 0), ...) {
   rng<-range(arrayout[,,], na.rm=T)
   rng_rnd<-c(floor(rng[1]*10)/10,
                ceiling(rng[2]*10)/10)
     
-  sqlst<-pretty(rng_rnd, nlevels)
+  if(sum(abs(sqlst))==0) {
+    sqlst<-pretty(rng_rnd, nlevels)
+  }
   
   if(sum(sqlst==0)==0) {
     sqlst<-c(sqlst[sqlst<0], 0, sqlst[sqlst>0])
