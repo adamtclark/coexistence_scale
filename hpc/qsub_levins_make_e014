@@ -6,7 +6,7 @@
 #$ -S /bin/bash
 #$ -l h_rt=24:00:00 
 #$ -l h_vmem=6G
-#$ -pe smp 20
+#$ -pe smp 1
 #$ -t 1-200
 
 module load R
