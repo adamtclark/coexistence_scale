@@ -177,7 +177,7 @@ getrunname<-function(runtype) {
   return(runname)
 }
 
-run_metapopulation<-function(tmax, nsteps=tmax, gridout, population, talktime=1, runtype="metapopulation", sites_sub=0, prt=0, prtfrq=0, compmat=0) {
+run_metapopulation<-function(tmax, nsteps=tmax, gridout, population, talktime=1, runtype="metapopulation", sites_sub=0, prt=0, prtfrq=0, compmat=0, destroyed=0, spdestroy=0) {
   #tmax is maximum time for simulation
   #nsteps is number of time steps for which to save output
   #gridout is a grid object, population is a population object
@@ -204,9 +204,18 @@ run_metapopulation<-function(tmax, nsteps=tmax, gridout, population, talktime=1,
     nsteps<-tmax
   }
   
-  #extract information from grid and population
-  gridsize<-prod(gridout$lng); nsp<-length(population$clst); xylim<-gridout$lng; destroyed<-rep(0, gridsize)
+  gridsize<-prod(gridout$lng); nsp<-length(population$clst); xylim<-gridout$lng;
   c_sptraits<-population$clst; m_sptraits<-population$mlst; abundances<-population$nlst
+  
+  
+  #extract information from grid and population
+  if(length(destroyed)!=gridsize) {
+    destroyed<-rep(0, gridsize)
+  }
+  
+  if(length(spdestroy)!=nsp) {
+    spdestroy<-rep(0, nsp)
+  }
   
   #vector for output
   output<-numeric((nsteps+1)*(nsp+1))
@@ -280,7 +289,7 @@ run_metapopulation<-function(tmax, nsteps=tmax, gridout, population, talktime=1,
     
     if(sum(sites_sub)>0) {
       c_sites_sub<-sites_sub-1
-      abundances_sub<-unname(table(speciesid[sites_sub])[1:nsp])
+      abundances_sub<-unname(table(as.factor(speciesid)[sites_sub])[1:nsp])
     } else {
       c_sites_sub<-0
       abundances_sub<-rep(0, nsp)
@@ -297,7 +306,7 @@ run_metapopulation<-function(tmax, nsteps=tmax, gridout, population, talktime=1,
       #complete first run before first disturbance event
       #(see c script for description of variables)
       cout<-.C(runname,
-               ptmax= as.double(tmax_sub), pgridsize=as.integer(gridsize), pnsp=as.integer(nsp), xylim=as.integer(xylim), destroyed=as.integer(destroyed), spdestroy=as.integer(rep(0, nsp)), #grid
+               ptmax= as.double(tmax_sub), pgridsize=as.integer(gridsize), pnsp=as.integer(nsp), xylim=as.integer(xylim), destroyed=as.integer(destroyed), spdestroy=as.integer(spdestroy), #grid
                c_sptraits=as.double(c_sptraits), m_sptraits=as.double(m_sptraits), abundances=as.integer(abundances), colsites=as.integer(colsites), pncolsites=as.integer(ncolsites), #traits
                eventtimes_c=as.double(eventtimes_c), eventtimes_m=as.double(eventtimes_m), #events
                speciesid=as.integer(speciesid), #species
@@ -374,7 +383,7 @@ run_metapopulation<-function(tmax, nsteps=tmax, gridout, population, talktime=1,
       
       if(runtype!="rps") {
         cout<-.C(runname,
-                 ptmax= as.double(tmax), pgridsize=as.integer(gridsize), pnsp=as.integer(nsp), xylim=as.integer(xylim), destroyed=as.integer(destroyed), spdestroy=as.integer(rep(0, nsp)), #grid
+                 ptmax= as.double(tmax), pgridsize=as.integer(gridsize), pnsp=as.integer(nsp), xylim=as.integer(xylim), destroyed=as.integer(destroyed), spdestroy=as.integer(spdestroy), #grid
                  c_sptraits=as.double(c_sptraits), m_sptraits=as.double(m_sptraits), abundances=as.integer(abundances), colsites=as.integer(colsites), pncolsites=as.integer(ncolsites), #traits
                  eventtimes_c=as.double(eventtimes_c), eventtimes_m=as.double(eventtimes_m), #events
                  speciesid=as.integer(speciesid), #species
@@ -383,7 +392,7 @@ run_metapopulation<-function(tmax, nsteps=tmax, gridout, population, talktime=1,
                  abundances_sub=as.integer(abundances_sub), sites_sub=as.integer(c_sites_sub), pnsites_sub=as.integer(pnsites_sub), output_sub=as.double(output_sub))
       } else {
         cout<-.C(runname,
-                 ptmax= as.double(tmax), pgridsize=as.integer(gridsize), pnsp=as.integer(nsp), xylim=as.integer(xylim), destroyed=as.integer(destroyed), spdestroy=as.integer(rep(0, nsp)), #grid
+                 ptmax= as.double(tmax), pgridsize=as.integer(gridsize), pnsp=as.integer(nsp), xylim=as.integer(xylim), destroyed=as.integer(destroyed), spdestroy=as.integer(spdestroy), #grid
                  c_sptraits=as.double(c_sptraits), m_sptraits=as.double(m_sptraits), abundances=as.integer(abundances), colsites=as.integer(colsites), pncolsites=as.integer(ncolsites), #traits
                  eventtimes_c=as.double(eventtimes_c), eventtimes_m=as.double(eventtimes_m), #events
                  speciesid=as.integer(speciesid), #species
