@@ -208,7 +208,8 @@ save(list=c("arrayout"), file = fname)
 ##############################
 #set up for runs
 niterations<-niter
-scalelst<-c(1,2,3,5,7,10,20,30,50,70,100,200,300,400)/c(100^2)
+scalelst<-c(1,2,4,6,9,12,20,30,49,72,100,196,306,400,812)/c(100^2)
+#c(1,2,3,5,7,10,20,30,50,70,100,200,300,400)
 radlst<-Inf
 
 #set up simulations
@@ -239,7 +240,7 @@ for(i in 1:niter) {
   population<-populate(gridout, nlst = s0_ind,
                        clst = clst_meta, radlst = Inf, mlst = mlst_meta)
   for(j in 1:length(scalelst)) {
-    grid_sub<-grid_subset(gridout, size = scalelst[j])
+    grid_sub<-grid_subset_BLOCKSIZE(gridout, size = scalelst[j])
     
     out<-run_metapopulation(tmax=simtime, nsteps = simtime, gridout, population, talktime = 0, sites_sub = grid_sub$sites)
     ngrid<-length(grid_sub$sites)

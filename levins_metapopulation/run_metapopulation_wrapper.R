@@ -55,6 +55,68 @@ grid_subset<-function(gridout, size=0.1) {
   return(list(sites=sites, frac_tot=(sz_tmp^2)/prod(lng), borders=c(x1=x1, x2=x2, y1=y1, y2=y2)))
 }
 
+grid_subset_BLOCKSIZE<-function(gridout, size=0.1) {
+  #creates a subset of an existing grid
+  #gridout is a grid object
+  #where "size" is the fraction area of the box requested
+  #Unlike other algorithm, this one will deform the box
+  #to better match the desired size
+  #note, subset is always in the center of the original grid,
+  #and achieved size may not exactly match requested size.
+  lng<-gridout$lng
+  size<-round(size*prod(lng))
+  
+  if(size>prod(lng)) {
+    return("Error: Too large a grid requested")
+  }
+  
+  #produce a square with integer side lengths
+  #that is near requested area
+  #note, sz_tmp is the length of a side of that square
+  sz_tmp<-round(sqrt(size))
+  
+  #if size is zero, but requested size was greather than zero,
+  #then make size equal to 1
+  if(sz_tmp==0 & size!=0) {sz_tmp<-1}
+  #if size is greater than that of smallest side of the original grid,
+  #reduce request to maximum possible size
+  if(sz_tmp>min(lng)) {sz_tmp<-min(lng)}
+  
+  #find boundaries of region
+  x1<-ceiling(lng[1]/2)-ceiling(sz_tmp/2)+1
+  if(size==1) {
+    x2<-x1
+  } else {
+    x2<-ceiling(lng[1]/2)-ceiling(sz_tmp/2)+sz_tmp
+  }
+  
+  y1<-ceiling(lng[2]/2)-ceiling(sz_tmp/2)+1
+  if(size==1) {
+    y2<-y1
+  } else {
+    y2<-ceiling(lng[2]/2)-ceiling(sz_tmp/2)+sz_tmp
+  }
+  
+  #find sites within region
+  sites<-c(gridout$posmat)[gridout$xpos%in%c(x1:x2) & gridout$ypos%in%c(y1:y2)]
+  
+  if(length(sites)>size) {
+    while(length(sites)>size) {
+      y2<-y2-1
+      sites<-c(gridout$posmat)[gridout$xpos%in%c(x1:x2) & gridout$ypos%in%c(y1:y2)]
+    }
+  } else if(length(sites)<size) {
+    while(length(sites)<size) {
+      y2<-y2+1
+      sites<-c(gridout$posmat)[gridout$xpos%in%c(x1:x2) & gridout$ypos%in%c(y1:y2)]
+    }
+  }
+  
+  
+  #frac_tot is achieved size, as fraction of total grid
+  return(list(sites=sites, frac_tot=(sz_tmp^2)/prod(lng), borders=c(x1=x1, x2=x2, y1=y1, y2=y2)))
+}
+
 populate<-function(gridout, nlst=0.1, clst=c(3,20), mlst=rep(0.1, length(clst)), radlst=3, nsp=length(clst)) {
   #populate a grid with a community
   #gridout is a grid object

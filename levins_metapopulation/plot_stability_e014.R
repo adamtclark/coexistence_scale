@@ -61,7 +61,8 @@ load("output/tmp/array_quant_small2.rda")
 
 load("output/tmp/xscl_small.rda")
 load("output/tmp/timebands_small.rda")
-scalelst<-c(1,2,3,5,7,10,20,30,50,70,100,200,300,400)/c(100^2)
+
+scalelst<-c(1,2,4,6,9,12,20,30,49,72,100,196,306,400,812)/c(100^2)
 
 svg("figures/FIGURE_e014_comparison.svg", width=5, height=6)
 ofs<-c(0.24, -0.002)
@@ -72,7 +73,7 @@ layout(m, widths=c(1,1,0.35))
 par(mar=c(2,3,1,0), oma=c(2.5,2,2,3))
 squse<-c(-8,-4,-2,-1,0,1,2,4,8)#c(-100, seq(-4,0, by=1), seq(1,4,by=1), 100)
 plotout<-plot_cont_emp(arrayout=array_quant_small2, xscalslst=log10(xscl_small), xlst=log10(timebands_small), nlevels=10, logx=TRUE, logy=TRUE, logz=FALSE, nstart=1, sqlst=squse, ofs1=ofs)
-plotout<-plot_cont_emp(arrayout=array_sim_quant_small2, xscalslst=log10(scalelst*100^2), xlst=log10(timebands_small), nlevels=10, logx=TRUE, logy=TRUE, logz=FALSE, nstart=4, sqlst=squse, ofs1=ofs)
+plotout<-plot_cont_emp(arrayout=array_sim_quant_small2, xscalslst=log10(scalelst*100^2), xlst=log10(timebands_small), nlevels=10, logx=TRUE, logy=TRUE, logz=FALSE, nstart=4, sqlst=squse, ofs1=ofs, ylim=range(log10(xscl_small)))
 
 par(mar=c(2,3,1,0))
 sqplot<-c(-8,-4,-2,-1,0,1,2,4,8)#c(-5, seq(-4,0, by=1), seq(1,4,by=1), 5)

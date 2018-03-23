@@ -235,7 +235,7 @@ plot_cont_emp<-function(arrayout, xscalslst, xlst, nlevels=10, logx=FALSE, logy=
     filled.contour3(x = xlst, 
                     y = xscalslst, 
                     z = arrayout[,,j], levels = sqlst, col=collst2,axes=F,
-                    xlim=range(xlst[tmpps], na.rm=T))
+                    xlim=range(xlst[tmpps], na.rm=T), ...)
     put.fig.letter(paste(letters[nstart], ".", sep=""), "topleft", offset=ofs1, cex=1.6)
     nstart<-nstart+1
     
