@@ -94,6 +94,15 @@ mtext(text = expression(paste(r[0])), side = 3, outer = TRUE, line = 0, adj = 0.
 
 dev.off()
 
+
+#Check correlation
+if(FALSE) {
+  mps<-apply(t(t(scalelst*100^2)), 1, function(x) which.min(abs(x-xscl_small)))
+  cor.test(c(array_quant_small2[,mps,1]), c(array_sim_quant_small2[,,1]), use = "complete")
+  cor.test(c(array_quant_small2[,mps,2]), c(array_sim_quant_small2[,,2]), use = "complete")
+  cor.test(c(array_quant_small2[,mps,3]), c(array_sim_quant_small2[,,3]), use = "complete")
+}
+
 ##############################
 #Plot temporal trend
 ##############################
