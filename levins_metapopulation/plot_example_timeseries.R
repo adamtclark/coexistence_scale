@@ -545,18 +545,19 @@ CVplotfun<-function(outlong, invarout, betaout, collst, collst2, burnin=0, plotp
   return(invarlst)
 }
 
-pdf("figures/FIGURE_CV_examples.pdf", width=6, height=4, colormodel = "cmyk")
-tmp<-CVplotfun(outlong=out_meta_long, invarout=invar_meta, betaout=beta_meta, collst=collst, collst2=collst2, burnin=200, plotpos=1, doceq=2, cleanupbeta=20)
-dev.off()
-
-pdf("figures/SUP_FIGURE_CV_examples_allmodels.pdf", width=6, height=4, colormodel = "cmyk")
-tmp<-CVplotfun(outlong=out_meta_long, invarout=invar_meta, betaout=beta_meta, collst=collst, collst2=collst2, burnin=200, plotpos=1, doceq=2, cleanupbeta=20)
-tmp<-CVplotfun(outlong=out_neut_long, invarout=invar_neut, betaout=beta_neut, collst=collst, collst2=collst2, burnin=200, plotpos=1, doceq=0, cleanupbeta=20)
-tmp<-CVplotfun(outlong=out_dist_long, invarout=invar_dist, betaout=beta_dist, collst=collst, collst2=collst2, burnin=200, plotpos=1, doceq=1, cleanupbeta=20)
-tmp<-CVplotfun(outlong=out_psf_long, invarout=invar_psf, betaout=beta_psf, collst=collst, collst2=collst2, burnin=200, plotpos=1, doceq=0, cleanupbeta=20)
-tmp<-CVplotfun(outlong=out_rps_long, invarout=invar_rps, betaout=beta_rps, collst=collst, collst2=collst2, burnin=200, plotpos=1, doceq=0, cleanupbeta=20)
-dev.off()
-
+if(FALSE) {
+  pdf("figures/FIGURE_CV_examples.pdf", width=6, height=4, colormodel = "cmyk")
+  tmp<-CVplotfun(outlong=out_meta_long, invarout=invar_meta, betaout=beta_meta, collst=collst, collst2=collst2, burnin=200, plotpos=1, doceq=2, cleanupbeta=20)
+  dev.off()
+  
+  pdf("figures/SUP_FIGURE_CV_examples_allmodels.pdf", width=6, height=4, colormodel = "cmyk")
+  tmp<-CVplotfun(outlong=out_meta_long, invarout=invar_meta, betaout=beta_meta, collst=collst, collst2=collst2, burnin=200, plotpos=1, doceq=2, cleanupbeta=20)
+  tmp<-CVplotfun(outlong=out_neut_long, invarout=invar_neut, betaout=beta_neut, collst=collst, collst2=collst2, burnin=200, plotpos=1, doceq=0, cleanupbeta=20)
+  tmp<-CVplotfun(outlong=out_dist_long, invarout=invar_dist, betaout=beta_dist, collst=collst, collst2=collst2, burnin=200, plotpos=1, doceq=1, cleanupbeta=20)
+  tmp<-CVplotfun(outlong=out_psf_long, invarout=invar_psf, betaout=beta_psf, collst=collst, collst2=collst2, burnin=200, plotpos=1, doceq=0, cleanupbeta=20)
+  tmp<-CVplotfun(outlong=out_rps_long, invarout=invar_rps, betaout=beta_rps, collst=collst, collst2=collst2, burnin=200, plotpos=1, doceq=0, cleanupbeta=20)
+  dev.off()
+}
 
 ############################################################
 # Plot example of map

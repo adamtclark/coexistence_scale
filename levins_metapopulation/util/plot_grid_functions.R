@@ -244,7 +244,7 @@ plot_cont_emp<-function(arrayout, xscalslst, xlst, nlevels=10, logx=FALSE, logy=
               y = xscalslst, 
               z = arrayout[,,j],
               levels = sqlst,
-              labels=10^sqlst,
+              labels="", method="edge",#10^sqlst,
               add=TRUE,axes=F,
               xlim=range(xlst[tmpps],na.rm=T))
     } else {
@@ -252,7 +252,7 @@ plot_cont_emp<-function(arrayout, xscalslst, xlst, nlevels=10, logx=FALSE, logy=
               y = xscalslst, 
               z = arrayout[,,j],
               levels = sqlst,
-              labels=round(sqlst,2),
+              labels="", method="edge",#round(sqlst,2),
               add=TRUE,axes=F,
               xlim=range(xlst[tmpps],na.rm=T))
     }

@@ -127,6 +127,12 @@ r0fun<-function(vec, s0) {
   tmp
 }
 
+if(FALSE) {
+  save(list = "xscl_small", file = "output/tmp/xscl_small.rda")
+  save(list = "timebands_small", file = "output/tmp/timebands_small.rda")
+  save(list = "state0", file = "output/tmp/state0.rda")
+}
+
 
 for(iter in 1:niter) {
   tmparray[]<-NA

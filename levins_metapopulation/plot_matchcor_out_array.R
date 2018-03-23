@@ -347,7 +347,7 @@ logxpos<-c(1,2,5,10,20,50,150)
 ofs1<-c(0.255, -0.002)
 
 
-svg("figures/FIGURE_match_models_full.svg", width=6.5, height=8)
+svg("figures/SUP_FIGURE_match_models_full.svg", width=6.5, height=8)
 m<-matrix(nrow=5, 1:15)
 m<-cbind(m, 16)
 layout(m, widths=c(1,1,1,0.7))
