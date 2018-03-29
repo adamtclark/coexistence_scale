@@ -90,7 +90,7 @@ plotdat$summed_plot_size<-plotdat$spatial_plots*plotdat$plot_size
 sbs1<-(plotdat$type==typelst[1])
 sbs2<-(plotdat$type==typelst[2])
 
-pdf("figures/FIGURE_realworld_scales.pdf", width=8, height=4, colormodel = "cmyk")
+pdf("figures/SUP_FIGURE_realworld_scales.pdf", width=8, height=4, colormodel = "cmyk")
 par(mfrow=c(1,2), mar=c(2,2,1,2), oma=c(2,3,0.5,0))
 fcx<-1.4
 ofs1<-c(0.12, -0.005)

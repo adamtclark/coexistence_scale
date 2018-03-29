@@ -12,7 +12,7 @@ source("util/filled.contour3.R")
 ###################################
 # Load output data
 ###################################
-if(TRUE) {
+if(FALSE) {
   nsp<-2
   
   flst<-dir("output/")
@@ -199,7 +199,7 @@ if(TRUE) {
 #matout_eig_pop
 #matout_r0_pop
 
-if(TRUE) {
+if(FALSE) {
   #density estimation function
   compdens<-function(stat, dnsout) {
     if(is.finite(stat) & !is.character(dnsout)) {
@@ -347,43 +347,71 @@ logxpos<-c(1,2,5,10,20,50,150)
 ofs1<-c(0.255, -0.002)
 
 
-svg("figures/SUP_FIGURE_match_models_full.svg", width=6.5, height=8)
-m<-matrix(nrow=5, 1:15)
-m<-cbind(m, 16)
-layout(m, widths=c(1,1,1,0.7))
+svg("figures/FIGURE_match_models_full.svg", width=5, height=8)
+m<-matrix(nrow=5, 1:10)
+m<-cbind(m, 11)
+layout(m, widths=c(1,1,0.5))
 
-par(mar=c(2,3,1,0), oma=c(2.5,2,2,2.5))
+par(mar=c(2,3,1,0), oma=c(2.5,2,2,3))
 
-for(i in 1:3) {
-  #suppressWarnings(tmp<-log(densout_cum[,,,i,], 10)); tmp[!is.finite(tmp)]<-NA
+for(i in 2:3) {
   tmp<-densout_cum[,,,i,]
-  #arrayout=tmp; xscalslst=log(scalslst,10); xlst=log(tscallst_small, 10); splitcol=0; nlevels=10; sqlst = sqtmp; logx=TRUE; logy=TRUE; logz=FALSE; logxps = logxpos; coltype=3; nstart=1+6*(i-1); ciplot=FALSE; cimat=0; revcol=FALSE; dops_subset=FALSE; override_tmpsq=TRUE
-  plotout<-plot_cont(arrayout=tmp, xscalslst=log(scalslst,10), xlst=log(tscallst_small, 10), splitcol=0, nlevels=10, sqlst = sqtmp, logx=TRUE, logy=TRUE, logz=FALSE, logxps = logxpos, coltype=3, nstart=1+6*(i-1), ciplot=FALSE, cimat=0, revcol=FALSE, dops_subset=FALSE, override_tmpsq=TRUE)
+  plotout<-plot_cont(arrayout=tmp, xscalslst=log(scalslst,10), xlst=log(tscallst_small, 10), splitcol=0, nlevels=10, sqlst = sqtmp, logx=TRUE, logy=TRUE, logz=FALSE, logxps = logxpos, coltype=4, nstart=1+5*(i-2), ciplot=FALSE, cimat=0, revcol=FALSE, dops_subset=FALSE, override_tmpsq=TRUE)
 }
 
-par(mar=c(2,5.5,1,1))
+par(mar=c(2,3.5,1,1))
 sqtmp2<-sqtmp
 sqtmp2[sqtmp2==1.01]<-1
-filled.legend(z=(matrix(1:length(sqtmp2))), levels=1:length(sqtmp2), col=adjustcolor(c((rainbow(sum(sqtmp2<0.5), start=0, end=0.1)), (rainbow(sum(sqtmp2>0.5), start=0.55, end=.70))), alpha.f = 0.6), key.axes = axis(4, at = 1:length(sqtmp2), labels = sqtmp2, las=2))
+filled.legend(z=(matrix(1:length(sqtmp2))), levels=1:length(sqtmp2), col=adjustcolor(grey.colors(length(sqtmp2)-1), alpha.f = 0.8), key.axes = axis(4, at = 1:length(sqtmp2), labels = sqtmp2, las=2))
 
-mtext(text = "levins", side = 4, outer = TRUE, line = -7.5, adj = .94, cex=1.2)
-mtext(text = "disturbance", side = 4, outer = TRUE, line = -7.5, adj = 0.74, cex=1.2)
-mtext(text = "PSF", side = 4, outer = TRUE, line = -7.5, adj = 0.515, cex=1.2)
-mtext(text = "RPS", side = 4, outer = TRUE, line = -7.5, adj = 0.305, cex=1.2)
-mtext(text = "neutral", side = 4, outer = TRUE, line = -7.5, adj = .08, cex=1.2)
+mtext(text = "levins", side = 4, outer = TRUE, line = -7.5+1.8, adj = .94, cex=1.2)
+mtext(text = "disturbance", side = 4, outer = TRUE, line = -7.5+1.8, adj = 0.74, cex=1.2)
+mtext(text = "PSF", side = 4, outer = TRUE, line = -7.5+1.8, adj = 0.515, cex=1.2)
+mtext(text = "RPS", side = 4, outer = TRUE, line = -7.5+1.8, adj = 0.305, cex=1.2)
+mtext(text = "neutral", side = 4, outer = TRUE, line = -7.5+1.8, adj = .08, cex=1.2)
 
-mtext(text = expression(paste(lambda, ", community")), side = 3, outer = TRUE, line = 0, adj = .09, cex=1.2)
-mtext(text = expression(paste(lambda, ", population")), side = 3, outer = TRUE, line = 0, adj = .43, cex=1.2)
-mtext(text = expression(paste(r[0], ", population")), side = 3, outer = TRUE, line = 0, adj = 0.76, cex=1.2)
+mtext(text = expression(paste(lambda, ", population")), side = 3, outer = TRUE, line = 0, adj = .14+0.025, cex=1.2)
+mtext(text = expression(paste(r[0], ", population")), side = 3, outer = TRUE, line = 0, adj = 0.64+0.065, cex=1.2)
 
-mtext(text = expression(paste("cumulative temporal span, time steps")), side = 1, outer = TRUE, line = 1.3, cex=1.2, adj = 0.4)
-mtext(text = expression(paste("cumulative spatial span, fraction of maximum")), side = 2, outer = TRUE, line = -0.1, cex=1.2, adj = 0.5)
-
+mtext(text = expression(paste("temporal span, time steps")), side = 1, outer = TRUE, line = 1.3, cex=1.2, adj = 0.3+0.06)
+mtext(text = expression(paste("spatial span, fraction of maximum")), side = 2, outer = TRUE, line = -0.1, cex=1.2, adj = 0.46)
 
 mtext(text = expression(paste(italic(RCL)[italic(m)])), side = 3, outer = TRUE, line = -0.5, adj = 1.01, cex=1.1)
 
 dev.off()
 
+
+
+
+svg("figures/SUP_FIGURE_match_models_population.svg", width=3.2, height=8)
+m<-matrix(nrow=5, 1:5)
+m<-cbind(m, 6)
+layout(m, widths=c(1,0.35))
+
+par(mar=c(2,3,1,0), oma=c(2.5,2,2,4))
+ofs1<-c(0.255, -0.002)
+for(i in 1:1) {
+  tmp<-densout_cum[,,,i,]
+  plotout<-plot_cont(arrayout=tmp, xscalslst=log(scalslst,10), xlst=log(tscallst_small, 10), splitcol=0, nlevels=10, sqlst = sqtmp, logx=TRUE, logy=TRUE, logz=FALSE, logxps = logxpos, coltype=4, nstart=1+6*(i-1), ciplot=FALSE, cimat=0, revcol=FALSE, dops_subset=FALSE, override_tmpsq=TRUE)
+}
+par(mar=c(2,3,1,0))
+filled.legend(z=(matrix(1:length(sqtmp2))), levels=1:length(sqtmp2), col=adjustcolor(grey.colors(length(sqtmp2)-1), alpha.f = 0.8), key.axes = axis(4, at = 1:length(sqtmp2), labels = sqtmp2, las=2))
+
+mtext(text = "levins", side = 4, outer = TRUE, line = -4.2, adj = .94, cex=1.2)
+mtext(text = "disturbance", side = 4, outer = TRUE, line = -4.2, adj = 0.74, cex=1.2)
+mtext(text = "PSF", side = 4, outer = TRUE, line = -4.2, adj = 0.515, cex=1.2)
+mtext(text = "RPS", side = 4, outer = TRUE, line = -4.2, adj = 0.305, cex=1.2)
+mtext(text = "neutral", side = 4, outer = TRUE, line = -4.2, adj = .08, cex=1.2)
+
+mtext(text = expression(paste(lambda, ", community")), side = 3, outer = TRUE, line = 0, adj = .42, cex=1.2)
+
+mtext(text = expression(paste("temporal span, time steps")), side = 1, outer = TRUE, line = 1.3, cex=1.2, adj = 0.1)
+mtext(text = expression(paste("spatial span, fraction of maximum")), side = 2, outer = TRUE, line = -0.1, cex=1.2, adj = 0.46)
+
+
+mtext(text = expression(paste(italic(RCL)[italic(m)])), side = 3, outer = TRUE, line = 0, adj = 1.11, cex=1.1)
+
+dev.off()
 
  
 

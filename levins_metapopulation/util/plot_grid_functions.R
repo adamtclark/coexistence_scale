@@ -92,6 +92,8 @@ plot_cont<-function(arrayout, xscalslst, xlst, splitcol=0, nlevels=10, sqlst=0, 
     } else if(coltype==3) {
       #collst2<-adjustcolor(c(rainbow(sum(sqlst<0.5), start=0.15, end=.4), rev(rainbow(sum(sqlst>0.5), start=0.75, end=0.85))), alpha.f = 0.6)
       collst2<-adjustcolor(c((rainbow(sum(sqlst<0.5), start=0, end=0.1)), (rainbow(sum(sqlst>0.5), start=0.55, end=.70))), alpha.f = 0.6)
+    } else if(coltype==4) {
+      collst2<-adjustcolor(grey.colors(length(sqlst)-1), alpha.f = 0.8)
     }
     
     if(ciplot) {
