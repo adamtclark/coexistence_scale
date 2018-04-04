@@ -12,5 +12,5 @@
 date
 module load R
 cd /home/clarka/coexistence_scale/levins_metapopulation/
-./iterate_spatial_scale_array.R
+./HPC_iterate_spatial_scale_array.R
 date
