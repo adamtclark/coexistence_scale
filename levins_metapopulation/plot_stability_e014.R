@@ -90,7 +90,7 @@ mtext(text = expression(paste("temporal span, time steps")), side = 1, outer = T
 mtext(text = expression(paste("spatial span, number of patches")), side = 2, outer = TRUE, line = -0.1, cex=1.2, adj = 0.5)
 
 
-mtext(text = expression(paste(r[0], t["span"])), side = 3, outer = TRUE, line = -0.5, adj = 1.065, cex=1.5, xpd=NA)
+mtext(text = expression(paste(r[0], t)), side = 3, outer = TRUE, line = -0.5, adj = 1.065, cex=1.5, xpd=NA)
 
 dev.off()
 
