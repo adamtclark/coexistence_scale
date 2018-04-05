@@ -167,14 +167,18 @@ beta_rps<-beta_estimate(out=out_rps, outlng = out_rps_long, Emat = E_rps, eigout
 ############################################################
 #out<-out_meta; eigout<-eig_meta2; r0out<-r0_meta; collst<-collst; burnin=100; doceq=TRUE; plotpos=1
 
-modplotfun<-function(out, eigout, r0out, collst, burnin=0, doceq=0, plotpos=1, atsq=0, ...) {
+modplotfun<-function(out, eigout, r0out, collst, burnin=0, doceq=0, plotpos=1, atsq=0, totabund=F, doaxis1=T, ...) {
   #original fxn
   abunds<-out$output
   if(burnin>0) {
     abunds<-abunds[-c(1:burnin),]
     abunds[,1]<-abunds[,1]-burnin
   }
-  abunds<-cbind(abunds[,1], rowSums(abunds[,-1]), abunds[,-1])
+  if(totabund) {
+    abunds<-cbind(abunds[,1], rowSums(abunds[,-1]), abunds[,-1])
+  } else {
+    abunds<-cbind(abunds[,1], abunds[,-1])
+  }
   
   mxt<-ceiling(max(abunds[,1]))
   mxt_eig<-ceiling(max(eigout$out_lst[[plotpos]]$output[,1]))
@@ -184,19 +188,35 @@ modplotfun<-function(out, eigout, r0out, collst, burnin=0, doceq=0, plotpos=1, a
   #eig & r0
   tmp_eig<-eigout$out_lst[[plotpos]]$output
   tmp_eig[,1]<-tmp_eig[,1]+mxt
-  tmp_eig<-cbind(tmp_eig[,1], rowSums(tmp_eig[,-1]), tmp_eig[,-1])
+  if(totabund) {
+    tmp_eig<-cbind(tmp_eig[,1], rowSums(tmp_eig[,-1]), tmp_eig[,-1])
+  } else {
+    tmp_eig<-cbind(tmp_eig[,1], tmp_eig[,-1])
+  }
   
   tmp_eig_0<-eigout$out_lst0$output
   tmp_eig_0[,1]<-tmp_eig_0[,1]+mxt
-  tmp_eig_0<-cbind(tmp_eig_0[,1], rowSums(tmp_eig_0[,-1]), tmp_eig_0[,-1])
+  if(totabund) {
+    tmp_eig_0<-cbind(tmp_eig_0[,1], rowSums(tmp_eig_0[,-1]), tmp_eig_0[,-1])
+  } else {
+    tmp_eig_0<-cbind(tmp_eig_0[,1], tmp_eig_0[,-1])
+  }
   
   tmp_r0_0<-r0out$out0_lst[[plotpos]]$output
   tmp_r0_0[,1]<-tmp_r0_0[,1]+mxt+mxt_eig
-  tmp_r0_0<-cbind(tmp_r0_0[,1], rowSums(tmp_r0_0[,-1]), tmp_r0_0[,-1])
+  if(totabund) {
+    tmp_r0_0<-cbind(tmp_r0_0[,1], rowSums(tmp_r0_0[,-1]), tmp_r0_0[,-1])
+  } else {
+    tmp_r0_0<-cbind(tmp_r0_0[,1], tmp_r0_0[,-1])
+  }
   
   tmp_r0<-r0out$out_lst[[plotpos]]$output
   tmp_r0[,1]<-tmp_r0[,1]+mxt+mxt_eig+mxt_r0_0
-  tmp_r0<-cbind(tmp_r0[,1], rowSums(tmp_r0[,-1]), tmp_r0[,-1])
+  if(totabund) {
+    tmp_r0<-cbind(tmp_r0[,1], rowSums(tmp_r0[,-1]), tmp_r0[,-1])
+  } else {
+    tmp_r0<-cbind(tmp_r0[,1], tmp_r0[,-1])
+  }
   
   #combine
   abunds<-rbind(abunds, tmp_eig, rep(NA, ncol(abunds)), tmp_eig[nrow(tmp_eig),], tmp_r0_0, tmp_r0)
@@ -211,14 +231,22 @@ modplotfun<-function(out, eigout, r0out, collst, burnin=0, doceq=0, plotpos=1, a
   suppressWarnings(matplot(pabunds[,1], pabunds[,-1], type="l", lty=1, col=collst, lwd=c(1.5, rep(1.5, ncol(pabunds)-2)), xlab="", ylab="", xaxs="i", axes=F, ...))
   abline(v=c(mxt, mxt+mxt_eig, mxt+mxt_eig+mxt_r0_0), lty=2); abline(h=c(0,1), lty=3, lwd=1)
   if(sum(doceq)==2) {
-    abline(h=c(sum(out$plotdata$ceq), out$plotdata$ceq), lty=3, col=collst, lwd=1)
+    if(totabund) {
+      abline(h=c(sum(out$plotdata$ceq), out$plotdata$ceq), lty=3, col=collst, lwd=1)
+    } else {
+      abline(h=c(out$plotdata$ceq), lty=3, col=collst, lwd=1)
+    }
   } else if(sum(doceq)==1) {
-    abline(h=sum(out$plotdata$ceq), lty=3, col=collst, lwd=1)
+    if(totabund) {
+      abline(h=sum(out$plotdata$ceq), lty=3, col=collst, lwd=1)
+    }
   }
-  if(sum(atsq)==0) {
-    axis(1, cex.axis=1.6)
-  } else {
-    axis(1, at=c(min(pabunds[,1], na.rm=T), atsq[-c(1, length(atsq))], max(pabunds[,1], na.rm=T)), labels=atsq, xpd=NA, cex.axis=1.6)
+  if(doaxis1) {
+    if(sum(atsq)==0) {
+      axis(1, cex.axis=1.6)
+    } else {
+      axis(1, at=c(min(pabunds[,1], na.rm=T), atsq[-c(1, length(atsq))], max(pabunds[,1], na.rm=T)), labels=atsq, xpd=NA, cex.axis=1.6)
+    }
   }
   axis(2, las=2, cex.axis=1.6); box()
   
@@ -248,42 +276,42 @@ modplotfun<-function(out, eigout, r0out, collst, burnin=0, doceq=0, plotpos=1, a
 pdf("figures/FIGURE_model_examples.pdf", width=7, height=10, colormodel = "cmyk")
 m<-as.matrix(1:5)
 layout(m)
-par(mar=c(1,1,2.5,1), oma=c(3.5,4.5,4.5,2.5))
+par(mar=c(0.2,1,0,1), oma=c(4,4.5,7.8,2.5))
 atsq<-seq(0, 800, by=200)
 fcx<-2
 
-ofs1<-c(0.02, -0.1)
+ofs1<-c(0.028, -0.05)
 
-tmp<-modplotfun(out=out_meta, eigout=eig_meta2, r0out=r0_meta, collst=collst, burnin=100, doceq=2, atsq=atsq)
+tmp<-modplotfun(out=out_meta, eigout=eig_meta2, r0out=r0_meta, collst=collst[-1], burnin=100, doceq=2, atsq=atsq, doaxis1 = F)
 put.fig.letter("a.", "topleft", offset=ofs1, cex=fcx)
 
 #label perturbations
 mxt<-max(tmp[,-1], na.rm=T)+diff(range(tmp[,-1], na.rm=T))*0.08
-text(200, mxt, "1. peturbation", xpd=NA, srt=40, adj = c(0,0), cex=1.8)
-text(400, mxt, "2. removal", xpd=NA, srt=40, adj = c(0,0), cex=1.8)
-text(600, mxt, "3. invasion", xpd=NA, srt=40, adj = c(0,0), cex=1.8)
+text(200, mxt, "1. peturbation", xpd=NA, srt=40, adj = c(0,0), cex=2)
+text(400, mxt, "2. removal", xpd=NA, srt=40, adj = c(0,0), cex=2)
+text(600, mxt, "3. invasion", xpd=NA, srt=40, adj = c(0,0), cex=2)
 
-tmp<-modplotfun(out=out_dist, eigout=eig_dist2, r0out=r0_dist, collst=collst[c(1,3,2)], burnin=100, doceq=1, plotpos = 2, atsq=atsq)
+tmp<-modplotfun(out=out_dist, eigout=eig_dist2, r0out=r0_dist, collst=collst[c(3,2)], burnin=100, doceq=1, plotpos = 2, atsq=atsq, doaxis1 = F)
 put.fig.letter("b.", "topleft", offset=ofs1, cex=fcx)
 
-tmp<-modplotfun(out=out_psf, eigout=eig_psf2, r0out=r0_psf, collst=collst, burnin=100, doceq=0, atsq=atsq)
+tmp<-modplotfun(out=out_psf, eigout=eig_psf2, r0out=r0_psf, collst=collst[-1], burnin=100, doceq=0, atsq=atsq, doaxis1 = F)
 put.fig.letter("c.", "topleft", offset=ofs1, cex=fcx)
 
-tmp<-modplotfun(out=out_rps, eigout=eig_rps2, r0out=r0_rps, collst=collst, burnin=100, doceq=1, atsq=atsq)
+tmp<-modplotfun(out=out_rps, eigout=eig_rps2, r0out=r0_rps, collst=collst[-1], burnin=100, doceq=1, atsq=atsq, doaxis1 = F)
 abline(h=rep(out_rps$plotdata$ceq[1]/4,4), lty=3, col=collst[-1])
 put.fig.letter("d.", "topleft", offset=ofs1, cex=fcx)
 
-tmp<-modplotfun(out=out_neut, eigout=eig_neut2, r0out=r0_neut, collst=collst, burnin=100, doceq=1, atsq=atsq)
+tmp<-modplotfun(out=out_neut, eigout=eig_neut2, r0out=r0_neut, collst=collst[-1], burnin=100, doceq=1, atsq=atsq)
 put.fig.letter("e.", "topleft", offset=ofs1, cex=fcx)
 
-mtext("simulation time", 1, line=2, cex=1.5, outer = T)
+mtext("simulation time", 1, line=2.7, cex=1.5, outer = T)
 mtext("species or community abundance", 2, line=2.5, cex=1.5, outer = T)
 
-mtext(text = "levins", side = 4, outer = TRUE, line = 0.5, adj = .91, cex=1.2)
-mtext(text = "disturbance", side = 4, outer = TRUE, line = 0.5, adj = 0.715, cex=1.2)
-mtext(text = "PSF", side = 4, outer = TRUE, line = 0.5, adj = 0.49, cex=1.2)
-mtext(text = "RPS", side = 4, outer = TRUE, line = 0.5, adj = 0.278, cex=1.2)
-mtext(text = "neutral", side = 4, outer = TRUE, line = 0.5, adj = .06, cex=1.2)
+mtext(text = "levins", side = 4, outer = TRUE, line = 0.5, adj = .91+0.025, cex=1.4)
+mtext(text = "disturbance", side = 4, outer = TRUE, line = 0.5, adj = 0.715+0.02, cex=1.4)
+mtext(text = "PSF", side = 4, outer = TRUE, line = 0.5, adj = 0.49+0.015, cex=1.4)
+mtext(text = "RPS", side = 4, outer = TRUE, line = 0.5, adj = 0.278+0.02, cex=1.4)
+mtext(text = "neutral", side = 4, outer = TRUE, line = 0.5, adj = .06+0.005, cex=1.4)
 dev.off()
 
 
