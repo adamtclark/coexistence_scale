@@ -254,17 +254,17 @@ modplotfun<-function(out, eigout, r0out, collst, burnin=0, doceq=0, plotpos=1, a
   matlines(ptmp_eig_0[,1], ptmp_eig_0[,-1], lty=2, col=collst, lwd=c(1, rep(1, ncol(pabunds)-2)))
   
   #Add in disturbance lines
-  ap1<-tmp_eig_0[1,plotpos+2]/out$plotdata$ngrid
-  ap2<-tmp_eig[1,plotpos+2]/out$plotdata$ngrid
+  ap1<-tmp_eig_0[1,plotpos+1+totabund]/out$plotdata$ngrid
+  ap2<-tmp_eig[1,plotpos+1+totabund]/out$plotdata$ngrid
   ap1<-max(c(ap1, ap2+diff(range(pabunds[,-1],na.rm=T))*0.1))
   arrows(mxt, ap1, mxt, ap2, lend=2, length = 0.06, col=1, lwd=1.5)
   
-  ap1<-tmp_eig[nrow(tmp_eig),plotpos+2]/out$plotdata$ngrid
+  ap1<-tmp_eig[nrow(tmp_eig),plotpos+1+totabund]/out$plotdata$ngrid
   ap2<-0
   ap1<-max(c(ap1, ap2+diff(range(pabunds[,-1],na.rm=T))*0.1))
   arrows(mxt+mxt_eig, ap1, mxt+mxt_eig, ap2, lend=2, length = 0.06, col=1, lwd=1.5)
   
-  ap1<-tmp_r0[1,plotpos+2]/out$plotdata$ngrid
+  ap1<-tmp_r0[1,plotpos+1+totabund]/out$plotdata$ngrid
   ap2<-0
   ap1<-max(c(ap1, ap2+diff(range(pabunds[,-1],na.rm=T))*0.1))
   arrows(mxt+mxt_eig+mxt_r0_0, ap2, mxt+mxt_eig+mxt_r0_0, ap1, lend=2, length = 0.06, col=1, lwd=1.5)
@@ -280,7 +280,7 @@ par(mar=c(0.2,1,0,1), oma=c(4,4.5,7.8,2.5))
 atsq<-seq(0, 800, by=200)
 fcx<-2
 
-ofs1<-c(0.028, -0.05)
+ofs1<-c(0.028, -0.04)
 
 tmp<-modplotfun(out=out_meta, eigout=eig_meta2, r0out=r0_meta, collst=collst[-1], burnin=100, doceq=2, atsq=atsq, doaxis1 = F)
 put.fig.letter("a.", "topleft", offset=ofs1, cex=fcx)
@@ -298,7 +298,7 @@ tmp<-modplotfun(out=out_psf, eigout=eig_psf2, r0out=r0_psf, collst=collst[-1], b
 put.fig.letter("c.", "topleft", offset=ofs1, cex=fcx)
 
 tmp<-modplotfun(out=out_rps, eigout=eig_rps2, r0out=r0_rps, collst=collst[-1], burnin=100, doceq=1, atsq=atsq, doaxis1 = F)
-abline(h=rep(out_rps$plotdata$ceq[1]/4,4), lty=3, col=collst[-1])
+#abline(h=rep(out_rps$plotdata$ceq[1]/4,4), lty=3, col=collst[-1])
 put.fig.letter("d.", "topleft", offset=ofs1, cex=fcx)
 
 tmp<-modplotfun(out=out_neut, eigout=eig_neut2, r0out=r0_neut, collst=collst[-1], burnin=100, doceq=1, atsq=atsq)
