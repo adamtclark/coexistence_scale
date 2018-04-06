@@ -101,6 +101,12 @@ if(FALSE) {
   cor.test(c(array_quant_small2[,mps,1]), c(array_sim_quant_small2[,,1]), use = "complete")
   cor.test(c(array_quant_small2[,mps,2]), c(array_sim_quant_small2[,,2]), use = "complete")
   cor.test(c(array_quant_small2[,mps,3]), c(array_sim_quant_small2[,,3]), use = "complete")
+  
+  
+  summary(lm(c(array_quant_small2[,mps,1])~c(array_sim_quant_small2[,,1])))
+  summary(lm(c(array_quant_small2[,mps,2])~c(array_sim_quant_small2[,,2])))
+  summary(lm(c(array_quant_small2[,mps,3])~c(array_sim_quant_small2[,,3])))
+  
 }
 
 ##############################

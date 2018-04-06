@@ -291,7 +291,8 @@ text(200, mxt, "1. peturbation", xpd=NA, srt=40, adj = c(0,0), cex=2)
 text(400, mxt, "2. removal", xpd=NA, srt=40, adj = c(0,0), cex=2)
 text(600, mxt, "3. invasion", xpd=NA, srt=40, adj = c(0,0), cex=2)
 
-tmp<-modplotfun(out=out_dist, eigout=eig_dist2, r0out=r0_dist, collst=collst[c(3,2)], burnin=100, doceq=1, plotpos = 2, atsq=atsq, doaxis1 = F)
+tmp<-modplotfun(out=out_dist, eigout=eig_dist2, r0out=r0_dist, collst=collst[c(3,2)], burnin=100, doceq=1, plotpos = 2, atsq=atsq, doaxis1 = F, ylim=c(0, 0.42))
+abline(v=c(50, 100, 150, 250, 300, 350, 450, 500, 550, 650, 700, 750), lty=3, col="black")
 put.fig.letter("b.", "topleft", offset=ofs1, cex=fcx)
 
 tmp<-modplotfun(out=out_psf, eigout=eig_psf2, r0out=r0_psf, collst=collst[-1], burnin=100, doceq=0, atsq=atsq, doaxis1 = F)
