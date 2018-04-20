@@ -221,7 +221,10 @@ clst_meta = c(0.1,0.3,0.4)
 mlst_meta = c(0.02, 0.02, 0.02)
 
 array_sim<-array(dim=c(length(timebands_small), length(scalelst), 3, niter))
+array_sim_neut<-array(dim=c(length(timebands_small), length(scalelst), 3, niter))
+
 array_sim_tmp<-array(dim=c(simtime-1, length(scalelst), 3))
+array_sim_tmp_neut<-array(dim=c(simtime-1, length(scalelst), 3))
 
 s0<-unname(state0[3:1])
 s0_ind<-round(s0*prod(gridout$lng))
@@ -239,6 +242,8 @@ fuzzmat_time2<-fuzzmat_time2[,tmp]
 for(i in 1:niter) {
   population<-populate(gridout, nlst = s0_ind,
                        clst = clst_meta, radlst = Inf, mlst = mlst_meta)
+  population_neutral<-populate(gridout, nlst = s0_ind,
+                       clst = rep(mean(clst_meta),3), radlst = Inf, mlst = mlst_meta)
   for(j in 1:length(scalelst)) {
     grid_sub<-grid_subset_BLOCKSIZE(gridout, size = scalelst[j])
     
@@ -247,6 +252,11 @@ for(i in 1:niter) {
     r0<-t(log(t(out$output_spatial[-1,-1]/ngrid+dmin)/(s0_ind_back)))[,c(3:1)]
     
     array_sim_tmp[,j,]<-r0
+    
+    out_neut<-run_metapopulation(tmax=simtime, nsteps = simtime, gridout, population=population_neutral, talktime = 0, sites_sub = grid_sub$sites, runtype = "neutral")
+    r0<-t(log(t(out_neut$output_spatial[-1,-1]/ngrid+dmin)/(s0_ind_back)))[,c(3:1)]
+    
+    array_sim_tmp_neut[,j,]<-r0
   }
   #if(i/10==floor(i/10)) {
   #  print(round(i/niter,2))
@@ -257,11 +267,16 @@ for(i in 1:niter) {
     tmp[is.na(tmp)]<-0
     array_sim[,,j,i]<-t(t(tmp)%*%fuzzmat_time2)
     array_sim[,,j,i][array_sim[,,j,i]==0]<-NA
+    
+    tmp<-array_sim_tmp_neut[,,j]
+    tmp[is.na(tmp)]<-0
+    array_sim_neut[,,j,i]<-t(t(tmp)%*%fuzzmat_time2)
+    array_sim_neut[,,j,i][array_sim_neut[,,j,i]==0]<-NA
   }
 }
 
 #save output
 fname<-paste("/work/clarka/e014_sim_r0out_", tstarg[1], ".rda", sep="")
-save(list=c("array_sim"), file = fname)
+save(list=c("array_sim", "array_sim_neut"), file = fname)
 
 
