@@ -69,7 +69,7 @@ load("output/tmp/timebands_small.rda")
 
 scalelst<-c(1,2,4,6,9,12,20,30,49,72,100,196,306,400,812)/c(100^2)
 
-pdf("figures/FIGURE_e014_comparison.pdf", width=7, height=6)
+svg("figures/FIGURE_e014_comparison.svg", width=7, height=6)
 ofs<-c(0.24, -0.002)
 
 m<-(matrix(nrow=3, 1:9))

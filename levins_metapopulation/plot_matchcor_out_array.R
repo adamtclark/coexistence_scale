@@ -344,15 +344,15 @@ logxpos<-c(1,2,5,10,20,50,150)
 #suppressWarnings(tmp<-log(densout_cum[,,,1,], 10)); tmp[!is.finite(tmp)]<-NA
 #arrayout=tmp; xscalslst=log(scalslst,10); xlst=log(tscallst_small, 10); splitcol=0; nlevels=10; sqlst = sqtmp; logx=TRUE; logy=TRUE; logz=TRUE; logxps = logxpos; coltype=3; logxps=0; nstart=1; ciplot=FALSE; cimat=0; revcol=FALSE; dops_subset=FALSE; override_tmpsq=TRUE
 
-ofs1<-c(0.255, -0.002)
+ofs1<-c(0.24, -0.002)
 
 
-svg("figures/FIGURE_match_models_full.svg", width=5, height=8)
+svg("figures/FIGURE_match_models_full.svg", width=5.5, height=8)
 m<-matrix(nrow=5, 1:10)
 m<-cbind(m, 11)
 layout(m, widths=c(1,1,0.5))
 
-par(mar=c(2,3,1,0), oma=c(2.5,2,2,3))
+par(mar=c(2,3,1,0), oma=c(2.5,2,2,4))
 
 for(i in 2:3) {
   tmp<-densout_cum[,,,i,]
@@ -364,11 +364,11 @@ sqtmp2<-sqtmp
 sqtmp2[sqtmp2==1.01]<-1
 filled.legend(z=(matrix(1:length(sqtmp2))), levels=1:length(sqtmp2), col=adjustcolor(grey.colors(length(sqtmp2)-1), alpha.f = 0.8), key.axes = axis(4, at = 1:length(sqtmp2), labels = sqtmp2, las=2))
 
-mtext(text = "levins", side = 4, outer = TRUE, line = -7.5+1.8, adj = .94, cex=1.2)
-mtext(text = "disturbance", side = 4, outer = TRUE, line = -7.5+1.8, adj = 0.74, cex=1.2)
-mtext(text = "PSF", side = 4, outer = TRUE, line = -7.5+1.8, adj = 0.515, cex=1.2)
-mtext(text = "RPS", side = 4, outer = TRUE, line = -7.5+1.8, adj = 0.305, cex=1.2)
-mtext(text = "neutral", side = 4, outer = TRUE, line = -7.5+1.8, adj = .08, cex=1.2)
+mtext(text = "levins", side = 4, outer = TRUE, line = -7.5+1.2, adj = .94, cex=1.2)
+mtext(text = "disturbance", side = 4, outer = TRUE, line = -7.5+1.2, adj = 0.74, cex=1.2)
+mtext(text = "PSF", side = 4, outer = TRUE, line = -7.5+1.2, adj = 0.515, cex=1.2)
+mtext(text = "RPS", side = 4, outer = TRUE, line = -7.5+1.2, adj = 0.305, cex=1.2)
+mtext(text = "neutral", side = 4, outer = TRUE, line = -7.5+1.2, adj = .08, cex=1.2)
 
 mtext(text = expression(paste(lambda, ", population")), side = 3, outer = TRUE, line = 0, adj = .14+0.025, cex=1.2)
 mtext(text = expression(paste(r[0], ", population")), side = 3, outer = TRUE, line = 0, adj = 0.64+0.065, cex=1.2)
@@ -376,7 +376,7 @@ mtext(text = expression(paste(r[0], ", population")), side = 3, outer = TRUE, li
 mtext(text = expression(paste("temporal span, time steps")), side = 1, outer = TRUE, line = 1.3, cex=1.2, adj = 0.3+0.06)
 mtext(text = expression(paste("spatial span, fraction of maximum")), side = 2, outer = TRUE, line = -0.1, cex=1.2, adj = 0.46)
 
-mtext(text = expression(paste(italic(RCL)[italic(m)])), side = 3, outer = TRUE, line = -0.5, adj = 1.01, cex=1.1)
+mtext(text = expression(paste("Model Back-Fitting Success, ", italic(RCL)[italic(m)])), side = 4, outer = TRUE, line = 2.5, cex=1.2)
 
 dev.off()
 
@@ -388,7 +388,7 @@ m<-matrix(nrow=5, 1:5)
 m<-cbind(m, 6)
 layout(m, widths=c(1,0.35))
 
-par(mar=c(2,3,1,0), oma=c(2.5,2,2,4))
+par(mar=c(2,3,1,0), oma=c(2.5,2,2,5))
 ofs1<-c(0.255, -0.002)
 for(i in 1:1) {
   tmp<-densout_cum[,,,i,]
@@ -397,11 +397,11 @@ for(i in 1:1) {
 par(mar=c(2,3,1,0))
 filled.legend(z=(matrix(1:length(sqtmp2))), levels=1:length(sqtmp2), col=adjustcolor(grey.colors(length(sqtmp2)-1), alpha.f = 0.8), key.axes = axis(4, at = 1:length(sqtmp2), labels = sqtmp2, las=2))
 
-mtext(text = "levins", side = 4, outer = TRUE, line = -4.2, adj = .94, cex=1.2)
-mtext(text = "disturbance", side = 4, outer = TRUE, line = -4.2, adj = 0.74, cex=1.2)
-mtext(text = "PSF", side = 4, outer = TRUE, line = -4.2, adj = 0.515, cex=1.2)
-mtext(text = "RPS", side = 4, outer = TRUE, line = -4.2, adj = 0.305, cex=1.2)
-mtext(text = "neutral", side = 4, outer = TRUE, line = -4.2, adj = .08, cex=1.2)
+mtext(text = "levins", side = 4, outer = TRUE, line = -3.8, adj = .94, cex=1.2)
+mtext(text = "disturbance", side = 4, outer = TRUE, line = -3.8, adj = 0.74, cex=1.2)
+mtext(text = "PSF", side = 4, outer = TRUE, line = -3.8, adj = 0.515, cex=1.2)
+mtext(text = "RPS", side = 4, outer = TRUE, line = -3.8, adj = 0.305, cex=1.2)
+mtext(text = "neutral", side = 4, outer = TRUE, line = -3.8, adj = .08, cex=1.2)
 
 mtext(text = expression(paste(lambda, ", community")), side = 3, outer = TRUE, line = 0, adj = .42, cex=1.2)
 
@@ -409,7 +409,7 @@ mtext(text = expression(paste("temporal span, time steps")), side = 1, outer = T
 mtext(text = expression(paste("spatial span, fraction of maximum")), side = 2, outer = TRUE, line = -0.1, cex=1.2, adj = 0.46)
 
 
-mtext(text = expression(paste(italic(RCL)[italic(m)])), side = 3, outer = TRUE, line = 0, adj = 1.11, cex=1.1)
+mtext(text = expression(paste("Model Back-Fitting Success, ", italic(RCL)[italic(m)])), side = 4, outer = TRUE, line = 3.5, cex=1.2)
 
 dev.off()
 

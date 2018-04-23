@@ -135,6 +135,8 @@ if(FALSE) {
     print(round(k/length(scalelst_short),2))
   }
   
+  #mask na's:
+  mask<-which(apply(arrayout_full[,scl_match,,], 1:2, function(x) sum(!is.na(x)))==0)
   
   #clean up
   rm(arrayout_full)
@@ -143,9 +145,9 @@ if(FALSE) {
   
   rm(densout)
  
-  save.image("output/save_processed_data_FULL_array_2.RData")
+  save.image("output/save_processed_data_FULL_array_2_emp.RData")
 } else {
-  load("output/save_processed_data_FULL_array_2.RData")
+  load("output/save_processed_data_FULL_array_2_emp.RData")
 }
 
 
@@ -154,8 +156,6 @@ if(FALSE) {
 ######################
 source("util/plot_grid_functions.R")
 
-#mask na's:
-mask<-which(apply(arrayout_full[,scl_match,,], 1:2, function(x) sum(!is.na(x)))==0)
 
 plot_dens_cum<-densout_cum
 
@@ -167,14 +167,13 @@ for(i in 1:3) {
 }
 
 
-
-sqtmp<-c(0, seq(0.2, 0.4, 0.5, 0.6, 0.7, 0.8), 0.9, 0.99, 1.01)
+sqtmp<-c(0, 0.2, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.99, 1.01)
 logxpos<-c(1,2,5,10,20,50,150)
 
 ofs1<-c(0.19, -0.002)
 
 
-pdf("figures/FIGURE_match_models_emp.pdf", width=4, height=6)
+svg("figures/SUP_FIGURE_match_models_emp.svg", width=4, height=6)
 m<-matrix(nrow=3, 1:3)
 m<-cbind(m, 4)
 layout(m, widths=c(1,0.35))
@@ -183,7 +182,7 @@ par(mar=c(2,3,1,0), oma=c(2.5,2,.5,4))
 
 modlst<-c("Annual", "C3", "C4")
 scalelst_short_round<-c(1,2,4,5,10,15,20,30,50,75,100,200,300,400,800)
-
+densout_cum_plot<-array(dim=c(dim(plot_dens_cum),3), plot_dens_cum)
 plotout<-plot_cont(arrayout=densout_cum_plot, xscalslst=log(scalelst_short,10), xlst=log(tscallst_small, 10), splitcol=0, nlevels=10, sqlst = sqtmp, logx=TRUE, logy=TRUE, logz=FALSE, logxps = logxpos, coltype=4, nstart=1, ciplot=FALSE, cimat=0, revcol=FALSE, dops_subset=FALSE, override_tmpsq=TRUE, ypos = c(1,5,10,25,50,100,200,400,800))
 
 
@@ -199,7 +198,7 @@ mtext(text = "C4 Grasses", side = 4, outer = TRUE, line = -5.5, adj = 0.1, cex=1
 mtext(text = expression(paste("temporal span, time steps")), side = 1, outer = TRUE, line = 1.3, cex=1.2, adj = 0.24)
 mtext(text = expression(paste("spatial span, number of patches")), side = 2, outer = TRUE, line = -0.1, cex=1.2, adj = 0.5)
 
-mtext(text = expression(paste("Levins Back-Fitting Probability, ", italic(RCL)[italic(m)])), side = 4, outer = TRUE, line = 2.5, cex=1.2)
+mtext(text = expression(paste("Levins Back-Fitting Success, ", italic(RCL)[italic(m)])), side = 4, outer = TRUE, line = 2.5, cex=1.2)
 
 dev.off()
 
