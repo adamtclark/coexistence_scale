@@ -91,8 +91,8 @@ mtext(text = "C3 Grasses", side = 4, outer = TRUE, line = -4.2, adj = 0.515, cex
 mtext(text = "C4 Grasses", side = 4, outer = TRUE, line = -4.2, adj = 0.1, cex=1.2)
 
 mtext(text = expression(paste("empirical")), side = 3, outer = TRUE, line = 0, adj = 0.14, cex=1.2)
-mtext(text = expression(paste("Levins")), side = 3, outer = TRUE, line = 0, adj = 0.48, cex=1.2)
-mtext(text = expression(paste("neutral")), side = 3, outer = TRUE, line = 0, adj = 0.81, cex=1.2)
+mtext(text = expression(paste("Levins-OF")), side = 3, outer = TRUE, line = 0, adj = 0.48, cex=1.2)
+mtext(text = expression(paste("neutral-OF")), side = 3, outer = TRUE, line = 0, adj = 0.81, cex=1.2)
 
 mtext(text = expression(paste("temporal span, time steps")), side = 1, outer = TRUE, line = 1.3, cex=1.2, adj = 0.48)
 mtext(text = expression(paste("spatial span, number of patches")), side = 2, outer = TRUE, line = -0.1, cex=1.2, adj = 0.5)
