@@ -376,7 +376,7 @@ mtext(text = expression(paste(r[0], ", population")), side = 3, outer = TRUE, li
 mtext(text = expression(paste("temporal span, time steps")), side = 1, outer = TRUE, line = 1.3, cex=1.2, adj = 0.3+0.06)
 mtext(text = expression(paste("spatial span, fraction of maximum")), side = 2, outer = TRUE, line = -0.1, cex=1.2, adj = 0.46)
 
-mtext(text = expression(paste("Model Back-Fitting Success, ", italic(RCL)[italic(m)])), side = 4, outer = TRUE, line = 2.5, cex=1.2)
+mtext(text = expression(paste("Model Identification Success, ", italic(RCL)[italic(m)])), side = 4, outer = TRUE, line = 2.5, cex=1.2)
 
 dev.off()
 
@@ -409,7 +409,7 @@ mtext(text = expression(paste("temporal span, time steps")), side = 1, outer = T
 mtext(text = expression(paste("spatial span, fraction of maximum")), side = 2, outer = TRUE, line = -0.1, cex=1.2, adj = 0.46)
 
 
-mtext(text = expression(paste("Model Back-Fitting Success, ", italic(RCL)[italic(m)])), side = 4, outer = TRUE, line = 3.5, cex=1.2)
+mtext(text = expression(paste("Model Identification Success, ", italic(RCL)[italic(m)])), side = 4, outer = TRUE, line = 3.5, cex=1.2)
 
 dev.off()
 
