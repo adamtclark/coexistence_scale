@@ -233,13 +233,13 @@ mtext(text = "PSF", side = 4, outer = TRUE, line = -7.5, adj = 0.515, cex=1.2)
 mtext(text = "RPS", side = 4, outer = TRUE, line = -7.5, adj = 0.305, cex=1.2)
 mtext(text = "neutral", side = 4, outer = TRUE, line = -7.5, adj = .08, cex=1.2)
 
-mtext(text = expression(paste(lambda, ", population")), side = 3, outer = TRUE, line = 0, adj = .14, cex=1.2)
+mtext(text = expression(paste(r[e], ", population")), side = 3, outer = TRUE, line = 0, adj = .14, cex=1.2)
 mtext(text = expression(paste(r[0], ", population")), side = 3, outer = TRUE, line = 0, adj = 0.64, cex=1.2)
 
 mtext(text = expression(paste("temporal span, time steps")), side = 1, outer = TRUE, line = 1.3, cex=1.2, adj = 0.3)
 mtext(text = expression(paste("spatial span, fraction of maximum")), side = 2, outer = TRUE, line = -0.1, cex=1.2, adj = 0.46)
 
-mtext(text = expression(paste(lambda)), side = 3, outer = TRUE, line = 0, adj = .9, cex=1.5)
+mtext(text = expression(paste(r[e])), side = 3, outer = TRUE, line = 0, adj = .9, cex=1.5)
 mtext(text = expression(paste(r[0])), side = 3, outer = TRUE, line = 0, adj = 1.035, cex=1.5, xpd=NA)
 
 dev.off()
@@ -264,13 +264,13 @@ mtext(text = "PSF", side = 4, outer = TRUE, line = -4.2, adj = 0.515, cex=1.2)
 mtext(text = "RPS", side = 4, outer = TRUE, line = -4.2, adj = 0.305, cex=1.2)
 mtext(text = "neutral", side = 4, outer = TRUE, line = -4.2, adj = .08, cex=1.2)
 
-mtext(text = expression(paste(lambda, ", community")), side = 3, outer = TRUE, line = 0, adj = .42, cex=1.2)
+mtext(text = expression(paste(r[e], ", community")), side = 3, outer = TRUE, line = 0, adj = .42, cex=1.2)
 
 mtext(text = expression(paste("temporal span, time steps")), side = 1, outer = TRUE, line = 1.3, cex=1.2, adj = 0.1)
 mtext(text = expression(paste("spatial span, fraction of maximum")), side = 2, outer = TRUE, line = -0.1, cex=1.2, adj = 0.46)
 
 
-mtext(text = expression(paste(lambda)), side = 3, outer = TRUE, line = 0, adj = .98, cex=1.5)
+mtext(text = expression(paste(r[e])), side = 3, outer = TRUE, line = 0, adj = .98, cex=1.5)
 
 dev.off()
 
@@ -302,8 +302,8 @@ mtext(text = "PSF", side = 4, outer = TRUE, line = -5.5, adj = 0.515, cex=1.2)
 mtext(text = "RPS", side = 4, outer = TRUE, line = -5.5, adj = 0.305, cex=1.2)
 mtext(text = "neutral", side = 4, outer = TRUE, line = -5.5, adj = .08, cex=1.2)
 
-mtext(text = expression(paste(lambda, ", community")), side = 3, outer = TRUE, line = 0, adj = .095, cex=1.2)
-mtext(text = expression(paste(lambda, ", population")), side = 3, outer = TRUE, line = 0, adj = .4505, cex=1.2)
+mtext(text = expression(paste(r[e], ", community")), side = 3, outer = TRUE, line = 0, adj = .095, cex=1.2)
+mtext(text = expression(paste(r[e], ", population")), side = 3, outer = TRUE, line = 0, adj = .4505, cex=1.2)
 mtext(text = expression(paste(r[0], ", population")), side = 3, outer = TRUE, line = 0, adj = 0.805, cex=1.2)
 
 mtext(text = expression(paste("temporal span, time steps")), side = 1, outer = TRUE, line = 1.3, cex=1.2, adj = 0.45)
@@ -372,7 +372,7 @@ abline(v=c(0, 50, 100, 150, 200), lty=2)
 axis(1); axis(2, las=2); box()
 
 mtext("time since event", 1, line=2.5, cex=1.2)
-mtext(expression(paste(italic(lambda))), 2.5, line=2.5, cex=1.2)
+mtext(expression(paste(italic(r[e]))), 2.5, line=2.5, cex=1.2)
 put.fig.letter("a.", "topleft", offset=ofs2, cex=1.2)
 
 #r0
