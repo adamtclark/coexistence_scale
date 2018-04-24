@@ -173,7 +173,7 @@ logxpos<-c(1,2,5,10,20,50,150)
 ofs1<-c(0.19, -0.002)
 
 
-svg("figures/SUP_FIGURE_match_models_emp.svg", width=4, height=6)
+svg("figures/FIGURE_match_models_emp.svg", width=4, height=6)
 m<-matrix(nrow=3, 1:3)
 m<-cbind(m, 4)
 layout(m, widths=c(1,0.35))
@@ -198,7 +198,7 @@ mtext(text = "C4 Grasses", side = 4, outer = TRUE, line = -5.5, adj = 0.1, cex=1
 mtext(text = expression(paste("temporal span, time steps")), side = 1, outer = TRUE, line = 1.3, cex=1.2, adj = 0.24)
 mtext(text = expression(paste("spatial span, number of patches")), side = 2, outer = TRUE, line = -0.1, cex=1.2, adj = 0.5)
 
-mtext(text = expression(paste("Levins-OF Model Identification Success, ", italic(RCL)[italic(m)])), side = 4, outer = TRUE, line = 2.5, cex=1.2)
+mtext(text = expression(paste("Levins-OF Model Identification Success, ", italic(RCL)[italic("m|OF")])), side = 4, outer = TRUE, line = 2.5, cex=1.2)
 
 dev.off()
 
