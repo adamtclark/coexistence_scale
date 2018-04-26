@@ -220,8 +220,8 @@ layout(m, widths=c(1,1,0.7))
 
 par(mar=c(2,3,1,0), oma=c(2.5,2,2,3))
 ofs1<-c(0.255, -0.002)
-tmp<-plot_cont(matout_eig_pop, log(scalslst,10), log(tscalelst, 10), nlevels=10, logx=TRUE, logy=TRUE, sqlst = sqtmp, logxps = logxpos, nstart = 1)
-tmp<-plot_cont(matout_r0_pop, log(scalslst,10), log(tscalelst, 10), nlevels=10, logx=TRUE, logy=TRUE, sqlst = sqtmp, logxps = logxpos, nstart = 6, revcol = TRUE)
+tmp<-plot_cont(matout_eig_pop, log(scalslst,10), log(tscalelst, 10), nlevels=10, logx=TRUE, logy=TRUE, sqlst = sqtmp, logxps = logxpos, nstart = 1, dolines=FALSE)
+tmp<-plot_cont(matout_r0_pop, log(scalslst,10), log(tscalelst, 10), nlevels=10, logx=TRUE, logy=TRUE, sqlst = sqtmp, logxps = logxpos, nstart = 6, revcol = TRUE, dolines=FALSE)
 
 par(mar=c(2,5.5,1,1))
 filled.legend(z=matrix(sqtmp), levels=-sqtmp, col=adjustcolor(c(rev(rainbow(sum(sqtmp<0), start=0.55, end=.70)), rev(rainbow(sum(sqtmp>0), start=0, end=0.1))), alpha.f = 0.6), key.axes = axis(4, at = sqtmp, las=2))

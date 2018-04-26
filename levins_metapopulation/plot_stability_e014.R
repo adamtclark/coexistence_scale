@@ -58,6 +58,22 @@ if(FALSE) {
 }
 
 
+####################################
+# Try to load likelihooods
+####################################
+tmp<-dir("output/tmp")
+havelike<-length(grep("emp_densplot.rda", tmp))>0
+
+if(havelike) {
+  load("output/tmp/emp_densplot.rda")
+} else {
+  print("Note: run 'plot_matchcor_out_array_emp.R' first to generate and plot likelihoods.")
+}
+
+
+
+
+
 ##############################
 #Plot output
 ##############################
@@ -77,10 +93,16 @@ m<-cbind(m, 10)
 layout(m, widths=c(1,1,1,0.35))
 par(mar=c(2,3,1,0), oma=c(2.5,2,2,3))
 squse<-c(-8,-4,-2,-1,0,1,2,4,8)#c(-100, seq(-4,0, by=1), seq(1,4,by=1), 100)
-plotout<-plot_cont_emp(arrayout=array_quant_small2, xscalslst=log10(xscl_small), xlst=log10(timebands_small), nlevels=10, logx=TRUE, logy=TRUE, logz=FALSE, nstart=1, sqlst=squse, ofs1=ofs, dolines = FALSE)
-plotout<-plot_cont_emp(arrayout=array_sim_quant_small2, xscalslst=log10(scalelst*100^2), xlst=log10(timebands_small), nlevels=10, logx=TRUE, logy=TRUE, logz=FALSE, nstart=4, sqlst=squse, ofs1=ofs, ylim=range(log10(xscl_small)), dolines = FALSE)
-plotout<-plot_cont_emp(arrayout=array_sim_quant_small2_neutral, xscalslst=log10(scalelst*100^2), xlst=log10(timebands_small), nlevels=10, logx=TRUE, logy=TRUE, logz=FALSE, nstart=7, sqlst=squse, ofs1=ofs, ylim=range(log10(xscl_small)), dolines = FALSE)
 
+if(!havelike) {
+  plotout<-plot_cont_emp(arrayout=array_quant_small2, xscalslst=log10(xscl_small), xlst=log10(timebands_small), nlevels=10, logx=TRUE, logy=TRUE, logz=FALSE, nstart=1, sqlst=squse, ofs1=ofs, dolines = FALSE)
+  plotout<-plot_cont_emp(arrayout=array_sim_quant_small2, xscalslst=log10(scalelst*100^2), xlst=log10(timebands_small), nlevels=10, logx=TRUE, logy=TRUE, logz=FALSE, nstart=4, sqlst=squse, ofs1=ofs, ylim=range(log10(xscl_small)), dolines = FALSE)
+  plotout<-plot_cont_emp(arrayout=array_sim_quant_small2_neutral, xscalslst=log10(scalelst*100^2), xlst=log10(timebands_small), nlevels=10, logx=TRUE, logy=TRUE, logz=FALSE, nstart=7, sqlst=squse, ofs1=ofs, ylim=range(log10(xscl_small)), dolines = FALSE)
+} else {
+  plotout<-plot_cont_emp(arrayout=array_quant_small2, xscalslst=log10(xscl_small), xlst=log10(timebands_small), nlevels=10, logx=TRUE, logy=TRUE, logz=FALSE, nstart=1, sqlst=squse, ofs1=ofs, dolines = FALSE)
+  plotout<-plot_cont_emp(arrayout=array_sim_quant_small2, xscalslst=log10(scalelst*100^2), xlst=log10(timebands_small), nlevels=10, logx=TRUE, logy=TRUE, logz=FALSE, nstart=4, sqlst=squse, ofs1=ofs, ylim=range(log10(xscl_small)), dolines = FALSE, plot_dens_cum=plot_dens_cum)
+  plotout<-plot_cont_emp(arrayout=array_sim_quant_small2_neutral, xscalslst=log10(scalelst*100^2), xlst=log10(timebands_small), nlevels=10, logx=TRUE, logy=TRUE, logz=FALSE, nstart=7, sqlst=squse, ofs1=ofs, ylim=range(log10(xscl_small)), dolines = FALSE, plot_dens_cum=plot_dens_cum, revdenscum=TRUE)
+}
 
 par(mar=c(2,3,1,0))
 sqplot<-c(-8,-4,-2,-1,0,1,2,4,8)#c(-5, seq(-4,0, by=1), seq(1,4,by=1), 5)

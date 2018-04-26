@@ -43,7 +43,7 @@ plot_disc<-function(arrayout, xlst, scalesuse=c(1,2,4,6), cifun=function(x,...) 
 
 
 #arrayout=tmp; xscalslst=log(scalslst,10); xlst=log(tscalelst, 10); splitcol=0; nlevels=10; sqlst = sqtmp; logx=TRUE; logy=TRUE; logz=FALSE; logxps = logxpos; coltype=1; logxps=0; nstart=1; ciplot=FALSE; cimat=0; revcol=FALSE; dops_subset=FALSE; override_tmpsq=TRUE
-plot_cont<-function(arrayout, xscalslst, xlst, splitcol=0, nlevels=10, sqlst=0, logx=FALSE, logy=FALSE, logz=FALSE, coltype=1, logxps=0, nstart=1, ciplot=FALSE, cimat=0, revcol=FALSE, dops_subset=TRUE, override_tmpsq=FALSE, ypos=NA, ...) {
+plot_cont<-function(arrayout, xscalslst, xlst, splitcol=0, nlevels=10, sqlst=0, logx=FALSE, logy=FALSE, logz=FALSE, coltype=1, logxps=0, nstart=1, ciplot=FALSE, cimat=0, revcol=FALSE, dops_subset=TRUE, override_tmpsq=FALSE, ypos=NA, dolines=TRUE, ...) {
   
   if(sum(abs(sqlst), na.rm=T)==0) {
     rng<-range(arrayout[,,,3], na.rm=T)
@@ -147,24 +147,26 @@ plot_cont<-function(arrayout, xscalslst, xlst, splitcol=0, nlevels=10, sqlst=0, 
     put.fig.letter(paste(letters[nstart], ".", sep=""), "topleft", offset=ofs1, cex=1.6)
     nstart<-nstart+1
     
-    if(logz) {
-      contour(x = xlst[ps_subset], 
-              y = xscalslst, 
-              z = tmpz[ps_subset,],
-              levels = sqlst,
-              labels=10^sqlst,
-              add=TRUE,axes=F,
-              xlim=range(xlst[tmpps]))
-    } else {
-      contour(x = xlst[ps_subset], 
-              y = xscalslst, 
-              z = tmpz[ps_subset,],
-              levels = sqlst,
-              labels=round(sqlst,2),
-              add=TRUE,axes=F,
-              xlim=range(xlst[tmpps]))
-    }
     
+    if(dolines) {
+      if(logz) {
+        contour(x = xlst[ps_subset], 
+                y = xscalslst, 
+                z = tmpz[ps_subset,],
+                levels = sqlst,
+                labels=10^sqlst,
+                add=TRUE,axes=F,
+                xlim=range(xlst[tmpps]))
+      } else {
+        contour(x = xlst[ps_subset], 
+                y = xscalslst, 
+                z = tmpz[ps_subset,],
+                levels = sqlst,
+                labels=round(sqlst,2),
+                add=TRUE,axes=F,
+                xlim=range(xlst[tmpps]))
+      }
+    }
     
     if(logx) {
       if(sum(abs(logxps))==0) {
@@ -207,7 +209,7 @@ plot_cont<-function(arrayout, xscalslst, xlst, splitcol=0, nlevels=10, sqlst=0, 
 
 #for empirical data
 #arrayout=array_quant; xscalslst=log10(xscl); xlst=log10(timebands); nlevels=10; logx=TRUE; logy=TRUE; logz=FALSE; nstart=1; ofs1=c(0, 0); sqlst=squse
-plot_cont_emp<-function(arrayout, xscalslst, xlst, nlevels=10, logx=FALSE, logy=FALSE, logz=FALSE, coltype=1, nstart=1, sqlst=0, ofs1=c(0, 0), dolines=TRUE,...) {
+plot_cont_emp<-function(arrayout, xscalslst, xlst, nlevels=10, logx=FALSE, logy=FALSE, logz=FALSE, coltype=1, nstart=1, sqlst=0, ofs1=c(0, 0), dolines=TRUE, plot_dens_cum=NULL,revdenscum=FALSE,...) {
   rng<-range(arrayout[,,], na.rm=T)
   rng_rnd<-c(floor(rng[1]*10)/10,
                ceiling(rng[2]*10)/10)
@@ -263,6 +265,35 @@ plot_cont_emp<-function(arrayout, xscalslst, xlst, nlevels=10, logx=FALSE, logy=
                 add=TRUE,axes=F,
                 xlim=range(xlst[tmpps],na.rm=T))
       }
+    }
+    
+    if(!is.null(plot_dens_cum)) {
+      limlst<-c(0.5, 2/3, 0.99)
+      
+      for(m in 1:length(limlst)) {
+        plik<-apply(plot_dens_cum[,,j], 1, function(x) min(which(x>(limlst[m]))))
+        x_los<-xscalslst[1:12]
+        y_los<-xlst[plik][1:12]
+        
+        afx<-loess(y_los~x_los, enp.target = 7)
+        xsq<-seq(min(xscalslst), max(xscalslst), length=100)
+        
+        pd<-predict(afx, newdata=data.frame(x_los=xsq))
+        
+        xsq_sub<-xsq
+        xsq_sub[42:57]<-NA
+        lines(pd, xsq_sub)
+        
+        drv<-(xsq[51]-xsq[50])/(pd[51]-pd[50])
+        
+        pplot<-round(limlst[m],2)
+        if(revdenscum) {
+          pplot<-1-pplot
+        }
+        text(pd[50], xsq[50], pplot, srt=atan(drv)*180/pi)
+      }
+      
+
     }
     
     

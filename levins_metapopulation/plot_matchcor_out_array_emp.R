@@ -205,5 +205,5 @@ dev.off()
 
 
 
-
+save(list=c("plot_dens_cum", "scalelst_short", "tscallst_small"), file = "output/tmp/emp_densplot.rda")
 
