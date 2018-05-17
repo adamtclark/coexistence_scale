@@ -13,7 +13,7 @@ source("util/plot_grid_functions.R")
 #main input variables
 niter<-100
 
-if(FALSE) {
+if(length(grep("sd.pc.rd", dir("output")))==0) {
   require(data.table)
   
   ##############################
@@ -127,7 +127,7 @@ r0fun<-function(vec, s0) {
   tmp
 }
 
-if(FALSE) {
+if(length(grep("xscl_small", dir("output/tmp")))==0) {
   save(list = "xscl_small", file = "output/tmp/xscl_small.rda")
   save(list = "timebands_small", file = "output/tmp/timebands_small.rda")
   save(list = "state0", file = "output/tmp/state0.rda")

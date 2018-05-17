@@ -12,7 +12,7 @@ source("util/filled.contour3.R")
 ###################################
 # Load output data
 ###################################
-if(FALSE) {
+if(length(grep("save_processed_data_FULL_array_2_emp.RData", dir("output")))==0) {
   #Collate data from HPC simulation
   flst<-dir("/work/clarka/")
   

@@ -12,7 +12,7 @@ source("util/filled.contour3.R")
 ###################################
 # Load output data
 ###################################
-if(FALSE) {
+if(length(grep("save_processed_data_FULL_array.RData", dir("output")))==0) {
   nsp<-2
   
   flst<-dir("output/")
@@ -199,7 +199,7 @@ if(FALSE) {
 #matout_eig_pop
 #matout_r0_pop
 
-if(FALSE) {
+if(length(grep("save_processed_data_FULL_array_2.RData", dir("output")))==0) {
   #density estimation function
   compdens<-function(stat, dnsout) {
     if(is.finite(stat) & !is.character(dnsout)) {

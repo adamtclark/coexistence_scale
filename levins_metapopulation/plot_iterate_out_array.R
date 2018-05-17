@@ -12,7 +12,7 @@ source("util/filled.contour3.R")
 ###################################
 # Load output data
 ###################################
-if(FALSE) {
+if(length(grep("save_processed_data_array.RData", dir("output")))==0) {
   nsp<-2
   
   flst<-dir("output/")

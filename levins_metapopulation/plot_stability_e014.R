@@ -15,7 +15,7 @@ require(RColorBrewer)
 ##############################
 #Load
 ##############################
-if(FALSE) {
+if(length(grep("array_sim_quant_small2.rda", dir("output/tmp")))==0) {
   #Collate data from HPC simulation
   
   flst<-dir("/work/clarka/")
