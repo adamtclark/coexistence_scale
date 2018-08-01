@@ -348,7 +348,7 @@ ofs1<-c(0.112, -0.055)
 tmp<-modplotfun(out=out_neut, eigout=eig_neut2, r0out=r0_neut, collst=collst[-1], burnin=100, doceq=1, atsq=atsq, figlet=9, ofs1=ofs1, fcx=fcx)
 
 mtext("simulation time", 1, line=2.7, cex=1.5, outer = T)
-mtext("species or community abundance", 2, line=1.5, cex=1.5, outer = T)
+mtext("species abundance", 2, line=1.5, cex=1.5, outer = T)
 
 mtext(text = "levins", side = 4, outer = TRUE, line = 0.8, adj = .91+0.025, cex=1.4)
 mtext(text = "disturbance", side = 4, outer = TRUE, line = 0.8, adj = 0.715+0.02, cex=1.4)
