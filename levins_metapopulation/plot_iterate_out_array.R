@@ -277,37 +277,67 @@ dev.off()
 
 
 #CI plots...
-#pdf("figures/SUP_FIGURE_sim_CI_continuous_dyn_results.pdf", width=6.5, height=8, colormodel = "cmyk")
+#First, get n's needed for significant result
+matout_eig_tot_SD<-(abs(matout_eig_tot[,,,3]-matout_eig_tot[,,,4])+abs(matout_eig_tot[,,,3]-matout_eig_tot[,,,2]))/2
+matout_eig_pop_SD<-(abs(matout_eig_pop[,,,3]-matout_eig_pop[,,,4])+abs(matout_eig_pop[,,,3]-matout_eig_pop[,,,2]))/2
+matout_r0_pop_SD<-(abs(matout_r0_pop[,,,3]-matout_r0_pop[,,,4])+abs(matout_r0_pop[,,,3]-matout_r0_pop[,,,2]))/2
+
+matout_eig_tot_CIplot<-matout_eig_tot
+matout_eig_tot_CIplot[,,,3]<-matout_eig_tot_CIplot[,,,3]/matout_eig_tot_SD
+matout_eig_pop_CIplot<-matout_eig_pop
+matout_eig_pop_CIplot[,,,3]<-matout_eig_pop_CIplot[,,,3]/matout_eig_pop_SD
+matout_r0_pop_CIplot<-matout_r0_pop
+matout_r0_pop_CIplot[,,,3]<-matout_r0_pop_CIplot[,,,3]/matout_r0_pop_SD
+
+#pdf("figures/SUP_FIGURE_sim_CI_continuous_dyn_results.pdf", width=7, height=8, colormodel = "cmyk")
 svg("figures/SUP_FIGURE_sim_CI_continuous_dyn_results.svg", width=6.5, height=8)
-sqtmp<-c(-1.5, -1, -0.5, -0.2, -0.1, 0, 0.1, 0.2, 0.5, 1, 1.5)
+zcrit<-abs(qnorm(0.05, 0, 1))
+#sqtmp<-c(-5, -2, -1.5, -1, -0.5, -0.2, -0.1, 0, 0.1, 0.2, 0.5, 1, 1.5, 2, 5)
+sqtmp<-sort(c(zcrit/sqrt(c(1,2,5,10,30,50)), 0, -zcrit/sqrt(c(1,2,5,10,30,50))))
+n_eq<-round((1/(sqtmp/zcrit))^2*sign(sqtmp))
+sqtmp<-c(-1000, sqtmp, 1000)
+sqtmp<-round(sqtmp, 1)
+
 logxpos<-c(1,2,5,10,20,50,150,200)
 
 m<-matrix(nrow=5, 1:15)
 m<-cbind(m, 16)
 layout(m, widths=c(1,1,1,0.5))
 
-par(mar=c(2,3,1,0), oma=c(2.5,2,2,4.5))
+par(mar=c(2,3,1,2.5), oma=c(2.5,2,2.5,3))
 ofs1<-c(0.255, -0.002)
-tmp<-plot_cont(matout_eig_tot, log(scalslst,10), log(tscalelst, 10), nlevels=10, logx=TRUE, logy=TRUE, sqlst = sqtmp, logxps = logxpos, nstart = 1, ciplot = TRUE)
-tmp<-plot_cont(matout_eig_pop, log(scalslst,10), log(tscalelst, 10), nlevels=10, logx=TRUE, logy=TRUE, sqlst = sqtmp, logxps = logxpos, nstart = 6, ciplot = TRUE)
-tmp<-plot_cont(matout_r0_pop, log(scalslst,10), log(tscalelst, 10), nlevels=10, logx=TRUE, logy=TRUE, sqlst = sqtmp, logxps = logxpos, nstart = 11, ciplot = TRUE)
+tmp<-plot_cont(matout_eig_tot_CIplot, log(scalslst,10), log(tscalelst, 10), nlevels=length(sqtmp)-1, logx=TRUE, logy=TRUE, sqlst = sqtmp, logxps = logxpos, nstart = 1, dolines = FALSE, coltype = 5)
+tmp<-plot_cont(matout_eig_pop_CIplot, log(scalslst,10), log(tscalelst, 10), nlevels=length(sqtmp)-1, logx=TRUE, logy=TRUE, sqlst = sqtmp, logxps = logxpos, nstart = 6, dolines = FALSE, coltype = 5)
+tmp<-plot_cont(matout_r0_pop_CIplot, log(scalslst,10), log(tscalelst, 10), nlevels=length(sqtmp)-1, logx=TRUE, logy=TRUE, sqlst = sqtmp, logxps = logxpos, nstart = 11, dolines = FALSE, coltype = 5)
 
 par(mar=c(2,3.5,1,1))
-sqtmp<-seq(-2, 2)
-filled.legend(z=matrix(sqtmp), levels=sqtmp, col=c("blue", "lightblue", "pink", "red"), key.axes = axis(4, at = seq(-1.5, 1.5), labels = c("97.5% < 0", "+1SD < 0", "-1SD > 0", "2.5% > 0"), las=2))
+sqtmp_label<-sqtmp
+sqtmp_label[1]<-(-2); sqtmp_label[length(sqtmp_label)]<-2
+sqtmp_label_text<-sqtmp
+sqtmp_label_text[1]<-"< -2"; sqtmp_label_text[length(sqtmp_label_text)]<-"> 2"
+n_eq_text<-abs(n_eq)
+n_eq_text[is.nan(n_eq_text)]<-"> 50"
+n_eq_text<-c("< 1", n_eq_text, "< 1")
+filled.legend(z=matrix(sqtmp_label), levels=sqtmp_label, col=adjustcolor(c(rev(rainbow(sum(sqtmp<0)-1, start=0.55, end=.70)), 1, 1, rev(rainbow(sum(sqtmp>0)-1, start=0, end=0.1))), alpha.f = 0.6), key.axes = axis(4, at = sqtmp_label, sqtmp_label_text, las=2))
+axis(2, at = sqtmp_label, n_eq_text, las=2)
+text(-0.55, 2.1, expression(paste(italic(n))), xpd=NA, cex=1.5)
+text(1.5, 2.1, expression(paste(italic(Z),"-score")), xpd=NA, cex=1.5)
 
-mtext(text = "levins", side = 4, outer = TRUE, line = -5.5, adj = .94, cex=1.2)
-mtext(text = "disturbance", side = 4, outer = TRUE, line = -5.5, adj = 0.74, cex=1.2)
-mtext(text = "PSF", side = 4, outer = TRUE, line = -5.5, adj = 0.515, cex=1.2)
-mtext(text = "RPS", side = 4, outer = TRUE, line = -5.5, adj = 0.305, cex=1.2)
-mtext(text = "neutral", side = 4, outer = TRUE, line = -5.5, adj = .08, cex=1.2)
+#sqtmp<-seq(-2, 2)
+#filled.legend(z=matrix(sqtmp), levels=sqtmp, col=c("blue", "lightblue", "pink", "red"), key.axes = axis(4, at = seq(-1.5, 1.5), labels = c("97.5% < 0", "+1SD < 0", "-1SD > 0", "2.5% > 0"), las=2))
 
-mtext(text = expression(paste(r[e], ", community")), side = 3, outer = TRUE, line = 0, adj = .095, cex=1.2)
-mtext(text = expression(paste(r[e], ", population")), side = 3, outer = TRUE, line = 0, adj = .4505, cex=1.2)
-mtext(text = expression(paste(r[0], ", population")), side = 3, outer = TRUE, line = 0, adj = 0.805, cex=1.2)
+mtext(text = "levins", side = 4, outer = TRUE, line = -8, adj = .94, cex=1.2)
+mtext(text = "disturbance", side = 4, outer = TRUE, line = -8, adj = 0.74, cex=1.2)
+mtext(text = "PSF", side = 4, outer = TRUE, line = -8, adj = 0.515, cex=1.2)
+mtext(text = "RPS", side = 4, outer = TRUE, line = -8, adj = 0.305, cex=1.2)
+mtext(text = "neutral", side = 4, outer = TRUE, line = -8, adj = .08, cex=1.2)
 
-mtext(text = expression(paste("temporal span, time steps")), side = 1, outer = TRUE, line = 1.3, cex=1.2, adj = 0.45)
-mtext(text = expression(paste("spatial span, fraction of maximum")), side = 2, outer = TRUE, line = -0.1, cex=1.2, adj = 0.46)
+mtext(text = expression(paste(r[e], ", community")), side = 3, outer = TRUE, line = 0.2, adj = .065, cex=1.2)
+mtext(text = expression(paste(r[e], ", population")), side = 3, outer = TRUE, line = 0.2, adj = .4205, cex=1.2)
+mtext(text = expression(paste(r[0], ", population")), side = 3, outer = TRUE, line = 0.2, adj = 0.775, cex=1.2)
+
+mtext(text = expression(paste("temporal extent, time steps")), side = 1, outer = TRUE, line = 1.3, cex=1.2, adj = 0.45)
+mtext(text = expression(paste("spatial extent, fraction of maximum")), side = 2, outer = TRUE, line = -0.1, cex=1.2, adj = 0.46)
 dev.off()
 
 
