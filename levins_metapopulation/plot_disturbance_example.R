@@ -48,10 +48,29 @@ totdat<-totdat[totdat[,1]>500,]
 totdat[,1]<-totdat[,1]-500
 totdat<-totdat[is.finite(rowSums(totdat)),]
 
+#calculate mean rates:
+mlst_dist_MU<-mlst_dist+(-log(1-distlst))*(1/prtfrq)
+
+ceq_MU<-getceq(clst_dist, mlst_dist_MU)
+ceq<-getceq(clst_dist, mlst_dist)
+
+
 pdf("figures/SUP_FIGURE_disturbance_example.pdf", width=9, height=4, colormodel = "cmyk")
   matplot(totdat[,1], totdat[,-1]/prod(gridout$lng), col=collst[-1], type="l", lty=1, lwd=2, xlab="simulation time", ylab="species abundance",
           xlim=c(0, max(totdat[,1])), xaxs="i")
   abline(v=seq(0, 1500, by=50), lty=2)
   abline(h=0, lty=3)
+  
+  lines(c(0, 1500), rep(ceq_MU[1],2), col=collst[2], lty=3, lwd=1.5)
+  lines(c(0, 1500), rep(ceq_MU[2],2), col=collst[3], lty=3, lwd=1.5)
+  
+  lines(c(1500,2000), rep(ceq[1],2), col=collst[2], lty=3, lwd=1.5)
+  lines(c(1500,2000), rep(ceq[2],2), col=collst[3], lty=3, lwd=1.5)
 dev.off()
+
+
+#equivalence of models:
+colMeans((out_dist$output[,-1]))/prod(gridout$lng)
+ceq_MU
+
 

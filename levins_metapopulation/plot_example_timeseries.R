@@ -172,7 +172,7 @@ beta_rps<-beta_estimate(out=out_rps, outlng = out_rps_long, Emat = E_rps, eigout
 ############################################################
 #out<-out_meta; eigout<-eig_meta2; r0out<-r0_meta; collst<-collst; burnin=100; doceq=TRUE; plotpos=1
 
-modplotfun<-function(out, eigout, r0out, collst, burnin=0, doceq=0, plotpos=1, atsq=0, totabund=F, doaxis1=T, figlet=1, ofs1=c(0,0), fcx=0, inbetweenfun=NULL, ...) {
+modplotfun<-function(out, eigout, r0out, collst, burnin=0, doceq=0, plotpos=1, atsq=0, totabund=F, doaxis1=T, figlet=1, ofs1=c(0,0), fcx=0, inbetweenfun=NULL, ceq_CUSTOM=NULL, ...) {
   #original fxn
   abunds<-out$output
   if(burnin>0) {
@@ -249,6 +249,8 @@ modplotfun<-function(out, eigout, r0out, collst, burnin=0, doceq=0, plotpos=1, a
     if(totabund) {
       abline(h=sum(out$plotdata$ceq), lty=3, col=collst, lwd=1)
     }
+  } else if(sum(doceq)==3) {
+    abline(h=c(ceq_CUSTOM), lty=3, col=collst, lwd=1)
   }
   if(doaxis1) {
     if(sum(atsq)==0) {
@@ -303,6 +305,8 @@ modplotfun<-function(out, eigout, r0out, collst, burnin=0, doceq=0, plotpos=1, a
     if(totabund) {
       abline(h=sum(out$plotdata$ceq), lty=3, col=collst, lwd=1)
     }
+  } else if(sum(doceq)==3) {
+    abline(h=c(ceq_CUSTOM), lty=3, col=collst, lwd=1)
   }
   if(doaxis1) {
     if(sum(atsq)==0) {
@@ -337,7 +341,9 @@ text(-370, mxt, "peturbation", xpd=NA, srt=40, adj = c(0,0), cex=2)
 text(200, mxt, "removal", xpd=NA, srt=40, adj = c(0,0), cex=2)
 text(400, mxt, "invasion", xpd=NA, srt=40, adj = c(0,0), cex=2)
 
-tmp<-modplotfun(out=out_dist, eigout=eig_dist2, r0out=r0_dist, collst=collst[c(3,2)], burnin=100, doceq=1, plotpos = 2, atsq=atsq, doaxis1 = F, figlet=3, ofs1=ofs1, fcx=fcx, inbetweenfun='abline(v=c(50, 100, 150, 250, 300, 350, 450, 500, 550), lty=3, col="black")')
+mu_MU<-mlst_dist+(-log(1-distlst))*(1/prtfrq)
+ceq_MU<-getceq(clst_dist, mu_MU)
+tmp<-modplotfun(out=out_dist, eigout=eig_dist2, r0out=r0_dist, collst=collst[c(3,2)], burnin=100, doceq=3, plotpos = 2, atsq=atsq, doaxis1 = F, figlet=3, ofs1=ofs1, fcx=fcx, inbetweenfun='abline(v=c(50, 100, 150, 250, 300, 350, 450, 500, 550), lty=3, col="black")', ceq_CUSTOM = ceq_MU)
 abline(v=c(50, 100, 150, 250, 300, 350, 450, 500, 550), lty=3, col="black")
 
 tmp<-modplotfun(out=out_psf, eigout=eig_psf2, r0out=r0_psf, collst=collst[-1], burnin=100, doceq=0, atsq=atsq, doaxis1 = F, figlet=5, ofs1=ofs1, fcx=fcx)
@@ -364,7 +370,7 @@ dev.off()
 ############################################################
 #out<-out_meta; eigout<-eig_meta2; r0out<-r0_meta; collst<-collst; burnin=200; burnine=100; dburnin=100; plotpos=1; doceq=0
 
-statsplotfun<-function(out, eigout, r0out, collst, burnin=0, burnine=0, dburnin=0, plotpos=1, doceq=0, ...) {
+statsplotfun<-function(out, eigout, r0out, collst, burnin=0, burnine=0, dburnin=0, plotpos=1, doceq=0, ceq_CUSTOM=NULL, ...) {
   ofs2<-c(0.3, -0.06)
   ofs3<-c(0.3, -0.015)
   fcx<-2
@@ -426,13 +432,15 @@ statsplotfun<-function(out, eigout, r0out, collst, burnin=0, burnine=0, dburnin=
   put.fig.letter("a.", "topleft", offset=ofs2, cex=fcx)
   
   abline(v=c(mxt)+dburnin, lty=2); abline(h=c(0,1), lty=3, lwd=1)
-  abline(h=c(out$plotdata$ceq[plotpos]), lty=3, col=collst[plotpos+1], lwd=1)
+  #abline(h=c(out$plotdata$ceq[plotpos]), lty=3, col=collst[plotpos+1], lwd=1)
   axis(1, cex.axis=1.6)
   axis(2, las=2, cex.axis=1.6); box()
   if(sum(doceq)==2) {
     abline(h=c(sum(out$plotdata$ceq), out$plotdata$ceq[plotpos]), lty=3, col=collst[plotpos+1], lwd=1)
   } else if(sum(doceq)==1) {
     abline(h=sum(out$plotdata$ceq), lty=3, col=collst, lwd=1)
+  } else if(sum(doceq)==3) {
+    abline(h=c(ceq_CUSTOM), lty=3, col=collst[-1], lwd=1)
   }
   
   matlines(ptmp_eig_0[,1]+dburnin, ptmp_eig_0[,plotpos+2], lty=2, col=collst[plotpos+1], lwd=1.5)
@@ -483,6 +491,8 @@ statsplotfun<-function(out, eigout, r0out, collst, burnin=0, burnine=0, dburnin=
     abline(h=c(sum(out$plotdata$ceq), out$plotdata$ceq), lty=3, col=collst, lwd=1)
   } else if(sum(doceq)==1) {
     abline(h=sum(out$plotdata$ceq), lty=3, col=collst, lwd=1)
+  } else if(sum(doceq)==3) {
+    abline(h=c(ceq_CUSTOM), lty=3, col=collst[-1], lwd=1)
   }
   axis(1, cex.axis=1.6, at=seq(0, 800, by=50), seq(0, 800, by=50)-mxt_eig)
   axis(2, las=2, cex.axis=1.6); box()
@@ -505,7 +515,7 @@ statsplotfun<-function(out, eigout, r0out, collst, burnin=0, burnine=0, dburnin=
   sbs<-is.finite(grw)
   grw_tot<-cumsum(grw[sbs])*(1/(1:sum(sbs)))
   
-  suppressWarnings(matplot(((1:length(grw_tot))+burnine+mxt_eig+mxt_r0_0+dburnin)[sbs], grw_tot, type="l", lty=1, col=collst[plotpos+1], lwd=1.5, xlab="", ylab="", xaxs="i", axes=F, ylim=c(0, max(grw_tot)),...))
+  suppressWarnings(matplot(((1:length(grw_tot))+burnine+mxt_eig+mxt_r0_0+dburnin)[sbs], grw_tot, type="l", lty=1, col=collst[plotpos+1], lwd=1.5, xlab="", ylab="", xaxs="i", axes=F, ylim=range(c(0, grw_tot), na.rm=T),...))
   put.fig.letter("e.", "topleft", offset=ofs2, cex=fcx)
   
   axis(1, cex.axis=1.6, at=seq(0, 800, by=50), seq(0, 800, by=50)-mxt_eig)
@@ -526,7 +536,7 @@ dev.off()
 
 pdf("figures/SUP_FIGURE_eig_r0_examples_allmodels.pdf", width=5, height=6, colormodel = "cmyk")
 tmp<-statsplotfun(out=out_meta, eigout=eig_meta2, r0out=r0_meta, collst=collst, burnin=200, burnine=100, dburnin=100, plotpos=1, doceq = 2)
-tmp<-statsplotfun(out=out_dist, eigout=eig_dist2, r0out=r0_dist, collst=collst, burnin=200, burnine=100, dburnin=100, plotpos=1, doceq = 1)  
+tmp<-statsplotfun(out=out_dist, eigout=eig_dist2, r0out=r0_dist, collst=collst, burnin=200, burnine=100, dburnin=100, plotpos=1, doceq = 3, ceq_CUSTOM = ceq_MU)  
 tmp<-statsplotfun(out=out_psf, eigout=eig_psf2, r0out=r0_psf, collst=collst, burnin=200, burnine=100, dburnin=100, plotpos=1, doceq = 1)  
 tmp<-statsplotfun(out=out_rps, eigout=eig_rps2, r0out=r0_rps, collst=collst, burnin=200, burnine=100, dburnin=100, plotpos=1, doceq = 1)  
 tmp<-statsplotfun(out=out_neut, eigout=eig_neut2, r0out=r0_neut, collst=collst, burnin=200, burnine=100, dburnin=100, plotpos=1, doceq = 1)  

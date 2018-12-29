@@ -318,7 +318,7 @@ sqtmp_label_text[1]<-"< -2"; sqtmp_label_text[length(sqtmp_label_text)]<-"> 2"
 n_eq_text<-abs(n_eq)
 n_eq_text[is.nan(n_eq_text)]<-"> 50"
 n_eq_text<-c("< 1", n_eq_text, "< 1")
-filled.legend(z=matrix(sqtmp_label), levels=sqtmp_label, col=adjustcolor(c(rev(rainbow(sum(sqtmp<0)-1, start=0.55, end=.70)), 1, 1, rev(rainbow(sum(sqtmp>0)-1, start=0, end=0.1))), alpha.f = 0.6), key.axes = axis(4, at = sqtmp_label, sqtmp_label_text, las=2))
+filled.legend(z=matrix(sqtmp_label), levels=sqtmp_label, col=adjustcolor(c(rev(rainbow(sum(sqtmp<0)-1, start=0.55, end=.70)), "gray1", "gray1", rev(rainbow(sum(sqtmp>0)-1, start=0, end=0.1))), alpha.f = 0.6), key.axes = axis(4, at = sqtmp_label, sqtmp_label_text, las=2))
 axis(2, at = sqtmp_label, n_eq_text, las=2)
 text(-0.55, 2.1, expression(paste(italic(n))), xpd=NA, cex=1.5)
 text(1.5, 2.1, expression(paste(italic(Z),"-score")), xpd=NA, cex=1.5)
