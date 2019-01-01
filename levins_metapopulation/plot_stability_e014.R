@@ -116,8 +116,8 @@ mtext(text = expression(paste("empirical")), side = 3, outer = TRUE, line = 0, a
 mtext(text = expression(paste("Levins-OF")), side = 3, outer = TRUE, line = 0, adj = 0.48, cex=1.2)
 mtext(text = expression(paste("neutral-OF")), side = 3, outer = TRUE, line = 0, adj = 0.81, cex=1.2)
 
-mtext(text = expression(paste("temporal span, time steps")), side = 1, outer = TRUE, line = 1.3, cex=1.2, adj = 0.48)
-mtext(text = expression(paste("spatial span, number of patches")), side = 2, outer = TRUE, line = -0.1, cex=1.2, adj = 0.5)
+mtext(text = expression(paste("temporal extent, years")), side = 1, outer = TRUE, line = 1.3, cex=1.2, adj = 0.48)
+mtext(text = expression(paste("spatial extent, number of plots")), side = 2, outer = TRUE, line = -0.1, cex=1.2, adj = 0.5)
 
 
 mtext(text = expression(paste(r[0], t)), side = 3, outer = TRUE, line = -0.5, adj = 1, cex=1.5, xpd=NA)
