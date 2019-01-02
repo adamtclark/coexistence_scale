@@ -139,8 +139,8 @@ source("util/plot_grid_functions.R")
 
 matout_r0_pop[!is.na(matout_r0_pop) & matout_r0_pop<(-1e6)]<-(-1e3)
 
-pdf("figures/SUP_FIGURE_sim_continuous_dyn_results_psf.pdf", width=6, height=4, colormodel = "cmyk")
-#svg("figures/SUP_FIGURE_sim_continuous_dyn_results_psf.svg", width=6, height=4)
+#pdf("figures/SUP_FIGURE_sim_continuous_dyn_results_psf.pdf", width=6, height=4, colormodel = "cmyk")
+svg("figures/SUP_FIGURE_sim_continuous_dyn_results_psf.svg", width=6, height=4)
 sqtmp<-c(-1.5, -1, -0.5, -0.25, -0.1, 0, 0.1, 0.25, 0.5, 1, 1.5)
 sqtmp_plot<-c(-1e4, -1, -0.5, -0.25, -0.1, 0, 0.1, 0.25, 0.5, 1, 1e4)
 logxpos<-c(1,2,5,10,20,50,150,200)
@@ -163,7 +163,7 @@ mtext(text = "PSF", side = 4, outer = TRUE, line = -7.8, adj = 0.515, cex=1.2)
 mtext(text = expression(paste(r[e], ", population")), side = 3, outer = TRUE, line = 0, adj = .14, cex=1.2)
 mtext(text = expression(paste(r[0], ", population")), side = 3, outer = TRUE, line = 0, adj = 0.64, cex=1.2)
 
-mtext(text = expression(paste("temporal extent, time steps")), side = 1, outer = TRUE, line = 1.3, cex=1.2, adj = 0.3)
+mtext(text = expression(paste("temporal extent, time steps")), side = 1, outer = TRUE, line = 1.3, cex=1.2, adj = 0.4)
 mtext(text = expression(paste("spatial extent, fraction of maximum")), side = 2, outer = TRUE, line = -0.1, cex=1.2, adj = 0.46)
 
 mtext(text = expression(paste(r[e])), side = 3, outer = TRUE, line = 0, adj = .9, cex=1.5)
