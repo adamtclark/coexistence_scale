@@ -22,6 +22,8 @@ if(length(grep("save_processed_data_array.RData", dir("output")))==0) {
   flst_dyn<-flst_dyn[grep(".rda", flst_dyn, fixed = TRUE)]
   flst_cv<-flst_cv[grep(".rda", flst_cv, fixed = TRUE)]
   
+  flst_dyn<-flst_dyn[-grep("psf", flst_dyn, fixed=T)]
+  
   load(paste("output/", flst_dyn[1], sep=""))
   load(paste("output/", flst_cv[1], sep=""))
   matout_dyn<-data.frame(matout_dyn)
