@@ -654,11 +654,12 @@ dev.off()
 
 ##### 2. Show growth/invasion around disturbance events in dist. model
 matout_dyn<-data.frame(fread(paste("output/", flst_dyn[grep("_1.csv", flst_dyn)], sep=""), verbose=FALSE))
+#load(gsub("csv", "rda", paste("output/", flst_dyn[grep("_1.csv", flst_dyn)], sep="")))
 sbs<-which(matout_dyn$scale==1)
 subscol<-grep(modlst[2], clnm_dyn)
 
 ofs2<-c(0.275, -0.017)
-pdf("figures/SUP_FIGURE_disturbance_example.pdf", width=6, height=3, colormodel = "cmyk")
+pdf("figures/SUP_FIGURE_disturbance_grw_example.pdf", width=6, height=3, colormodel = "cmyk")
 par(mar=c(4,4,1,1), oma=c(0,0,0,0), mfrow=c(1,2))
 #Eigen
 sp1<-tapply(matout_dyn[sbs,intersect(e2pop, subscol)[1]], matout_dyn[sbs,"tscale"], function(x) median(x, na.rm=T))
@@ -670,7 +671,7 @@ abline(v=c(0, 50, 100, 150, 200), lty=2)
 axis(1); axis(2, las=2); box()
 
 mtext("time since event", 1, line=2.5, cex=1.2)
-mtext(expression(paste(italic(lambda))), 2.5, line=2.5, cex=1.2)
+mtext(expression(paste(italic(r[e]))), 2.5, line=2.5, cex=1.2)
 put.fig.letter("a.", "topleft", offset=ofs2, cex=1.2)
 
 #r0
