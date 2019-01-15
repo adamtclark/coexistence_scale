@@ -179,8 +179,8 @@ ptb<-0.2
 
 tmax<-300 #timeseries length
 tmax_long<-1000
-burnin<-100 #burning for growth rate when rare method
-simtime<-200 #time spans for equilibria dectection
+burnin<-25 #burning for growth rate when rare method
+simtime<-50 #time spans for equilibria dectection
 invarburn<-200
 
 lglst<-round(seq(0, tmax_long*0.8-10, length=10)) #lags for invar test
@@ -197,7 +197,7 @@ grid_sub<-grid_subset(gridout, size = scalelst[1])
 
 out_psf_long1<-run_metapopulation(tmax=tmax_long, gridout = gridout, population = population_psf1, talktime = 0, runtype = "psf", sites_sub = grid_sub$sites)
 
-out_psf1<-rerunrun_metapopulation(out_psf_long1, tmax=100, runtype="psf", talktime = 0)
+out_psf1<-rerunrun_metapopulation(out_psf_long1, tmax=burnin, runtype="psf", talktime = 0)
 r0_psf1<-estimate_rarereturn(out_psf1, simtime=simtime, burnin=burnin, runtype="psf", perturbsites = grid_sub$sites, sites_sub = grid_sub$sites, doplot = FALSE, add_amount = 1)
 
 
@@ -207,7 +207,7 @@ population_psf2<-populate(gridout, nlst = c(0.1, 0),
 
 out_psf_long2<-run_metapopulation(tmax=tmax_long, gridout = gridout, population = population_psf2, talktime = 0, runtype = "psf", sites_sub = grid_sub$sites)
 
-out_psf2<-rerunrun_metapopulation(out_psf_long2, tmax=100, runtype="psf", talktime = 0)
+out_psf2<-rerunrun_metapopulation(out_psf_long2, tmax=burnin, runtype="psf", talktime = 0)
 r0_psf2<-estimate_rarereturn(out_psf2, simtime=simtime, burnin=burnin, runtype="psf", perturbsites = grid_sub$sites, sites_sub = grid_sub$sites, doplot = FALSE, add_amount = 1)
 
 
@@ -216,10 +216,13 @@ collst<-adjustcolor(c(brewer.pal(4, "Set1")), alpha.f = 0.7)
 
 ofs1<-c(0.17,-0.05)
 pdf("figures/SUP_FIGURE_positive_psf_alternatestates.pdf", width=5, height=6, colormodel = "cmyk")
-  par(mfrow=c(2,1), mar=c(4,4,2,2))
+  par(mfrow=c(2,1), mar=c(4,4,2,2), oma=c(2,2,0,0))
   plot1<-modplotfun_psf(out_psf1, r0_psf1, collst, plotpos=1)
   put.fig.letter("a.", "topleft", offset=ofs1, cex=2)
   plot2<-modplotfun_psf(out_psf2, r0_psf2, collst, plotpos=2)
   put.fig.letter("b.", "topleft", offset=ofs1, cex=2)
+  
+  mtext("species abundance", 2, line=0, outer=T, cex=2)
+  mtext("simulation time", 1, line=0, outer=T, cex=2)
 dev.off()
 
