@@ -214,8 +214,12 @@ r0_psf2<-estimate_rarereturn(out_psf2, simtime=simtime, burnin=burnin, runtype="
 #Plot results
 collst<-adjustcolor(c(brewer.pal(4, "Set1")), alpha.f = 0.7)
 
-par(mfrow=c(2,1), mar=c(4,4,2,2))
-plot1<-modplotfun_psf(out_psf1, r0_psf1, collst, plotpos=1)
-plot2<-modplotfun_psf(out_psf2, r0_psf2, collst, plotpos=2)
-
+ofs1<-c(0.17,-0.05)
+pdf("figures/SUP_FIGURE_positive_psf_alternatestates.pdf", width=5, height=6, colormodel = "cmyk")
+  par(mfrow=c(2,1), mar=c(4,4,2,2))
+  plot1<-modplotfun_psf(out_psf1, r0_psf1, collst, plotpos=1)
+  put.fig.letter("a.", "topleft", offset=ofs1, cex=2)
+  plot2<-modplotfun_psf(out_psf2, r0_psf2, collst, plotpos=2)
+  put.fig.letter("b.", "topleft", offset=ofs1, cex=2)
+dev.off()
 
