@@ -107,7 +107,7 @@ if(length(grep("save_processed_data_FULL_array.RData", dir("output")))==0) {
   matout_invar_tot<-array(dim=c(length(scalslst), length(laglst), length(modlst), length(iterlst)))
   
   mxfun<-function(x) {
-    if(sum(!is.na(x))>0) {
+    if(sum(is.na(x))==0) {
       return(max(x, na.rm=T))
     } else {
       return(NA)
@@ -115,7 +115,7 @@ if(length(grep("save_processed_data_FULL_array.RData", dir("output")))==0) {
   }
   
   mnfun<-function(x) {
-    if(sum(!is.na(x))>0) {
+    if(sum(is.na(x))==0) {
       return(min(x, na.rm=T))
     } else {
       return(NA)
