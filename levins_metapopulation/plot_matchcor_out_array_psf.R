@@ -70,7 +70,7 @@ if(length(grep("save_processed_data_array_psf.RData", dir("output")))==0) {
   matout_r0_tot<-array(dim=c(length(scalslst), length(tscalelst), length(modlst), length(qtl_lims)))
   
   mxfun<-function(x) {
-    if(sum(!is.na(x))>0) {
+    if(sum(is.na(x))==0) {
       return(max(x, na.rm=T))
     } else {
       return(NA)
@@ -78,7 +78,7 @@ if(length(grep("save_processed_data_array_psf.RData", dir("output")))==0) {
   }
   
   mnfun<-function(x) {
-    if(sum(!is.na(x))>0) {
+    if(sum(is.na(x))==0) {
       return(min(x, na.rm=T))
     } else {
       return(NA)
