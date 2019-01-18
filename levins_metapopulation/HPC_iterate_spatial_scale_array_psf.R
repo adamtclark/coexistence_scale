@@ -29,6 +29,8 @@ makemat<-function(eig1out, eig2out, r0out, nsp) {
   tmpmat[1:nrow(eig2out$eigenlst_tot),(1:nsp)+nsp*(nn)]<-eig2out$eigenlst_tot; nn<-nn+1
   tmpmat[1:nrow(r0out$grwrare_tot),(1:nsp)+nsp*(nn)]<-r0out$grwrare_tot; nn<-nn+1
   
+  tmpmat<-apply(tmpmat, 2, function(x) {if(min(x,na.rm=T)==(-Inf)) {x[x==(-Inf)]<-min(x[is.finite(x)],na.rm=T)}; x})
+  
   return(tmpmat)
 }
 
@@ -187,7 +189,7 @@ xfac<-3
 xfac_fast<-7
 ptb<-0.2
 
-tmax<-300 #timeseries length
+tmax<-100 #timeseries length
 tmax_long<-1000
 burnin<-200 #burning for growth rate when rare method
 simtime<-200 #time spans for equilibria dectection
