@@ -43,7 +43,7 @@ plot_disc<-function(arrayout, xlst, scalesuse=c(1,2,4,6), cifun=function(x,...) 
 
 
 #arrayout=tmp; xscalslst=log(scalslst,10); xlst=log(tscalelst, 10); splitcol=0; nlevels=10; sqlst = sqtmp; logx=TRUE; logy=TRUE; logz=FALSE; logxps = logxpos; coltype=1; logxps=0; nstart=1; ciplot=FALSE; cimat=0; revcol=FALSE; dops_subset=FALSE; override_tmpsq=TRUE
-plot_cont<-function(arrayout, xscalslst, xlst, splitcol=0, nlevels=10, sqlst=0, logx=FALSE, logy=FALSE, logz=FALSE, coltype=1, logxps=0, nstart=1, ciplot=FALSE, cimat=0, revcol=FALSE, dops_subset=TRUE, override_tmpsq=FALSE, ypos=NA, dolines=TRUE, ...) {
+plot_cont<-function(arrayout, xscalslst, xlst, splitcol=0, nlevels=10, sqlst=0, logx=FALSE, logy=FALSE, logz=FALSE, coltype=1, logxps=0, nstart=1, ciplot=FALSE, cimat=0, revcol=FALSE, dops_subset=TRUE, override_tmpsq=FALSE, ypos=NA, dolines=TRUE, arrayout2=arrayout, doz=FALSE, sqz=NA, ...) {
   
   if(sum(abs(sqlst), na.rm=T)==0) {
     rng<-range(arrayout[,,,3], na.rm=T)
@@ -96,6 +96,8 @@ plot_cont<-function(arrayout, xscalslst, xlst, splitcol=0, nlevels=10, sqlst=0, 
       collst2<-adjustcolor(grey.colors(length(sqlst)-1), alpha.f = 0.8)
     } else if(coltype==5) {
       collst2<-adjustcolor(c(rev(rainbow(sum(sqlst<dm)-1, start=0.55, end=.70)), "gray1", "gray1", rev(rainbow(sum(sqlst>dm)-1, start=0, end=0.1))), alpha.f = 0.6)
+    } else if(coltype==6) {
+      collst2<-c("red", adjustcolor(c(rev(rainbow(sum(sqlst<dm), start=0.55, end=.70)), rev(rainbow(sum(sqlst>dm)-1, start=0, end=0.1))), alpha.f = 0.6))
     }
     
     if(ciplot) {
@@ -125,6 +127,7 @@ plot_cont<-function(arrayout, xscalslst, xlst, splitcol=0, nlevels=10, sqlst=0, 
       tmpz<-t(tmpz)
     } else {
       tmpz<-t(arrayout[,,j,3])
+      tmpz2<-t(arrayout2[,,j,3])
     }
     
     tmpps<-colSums(abs(arrayout[,,j,3]), na.rm=T)!=0
@@ -155,8 +158,8 @@ plot_cont<-function(arrayout, xscalslst, xlst, splitcol=0, nlevels=10, sqlst=0, 
         contour(x = xlst[ps_subset], 
                 y = xscalslst, 
                 z = tmpz[ps_subset,],
-                levels = sqlst,
-                labels=10^sqlst,
+                levels = 10^sqlst,
+                labels=0,
                 add=TRUE,axes=F,
                 xlim=range(xlst[tmpps]))
       } else {
@@ -164,10 +167,21 @@ plot_cont<-function(arrayout, xscalslst, xlst, splitcol=0, nlevels=10, sqlst=0, 
                 y = xscalslst, 
                 z = tmpz[ps_subset,],
                 levels = sqlst,
-                labels=round(sqlst,2),
+                labels=0,
                 add=TRUE,axes=F,
                 xlim=range(xlst[tmpps]))
       }
+    }
+    
+    if(doz) {
+      par(new=TRUE)
+      nr<-(length(sqz)-1)/2-1
+      cltmp<-c(rep(NA, nr), adjustcolor(c("grey1", "grey1"), alpha.f = 0.6), rep(NA, nr))
+      filled.contour3(x = xlst[ps_subset],
+                      y = xscalslst, 
+                      z = tmpz2[ps_subset,], levels = sqz, col=cltmp,axes=F,
+                      xlim=range(xlst[tmpps]))
+      
     }
     
     if(logx) {

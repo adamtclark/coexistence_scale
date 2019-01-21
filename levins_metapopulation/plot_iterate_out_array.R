@@ -214,6 +214,9 @@ source("util/plot_grid_functions.R")
 #pdf("figures/FIGURE_sim_continuous_dyn_results.pdf", width=5, height=8, colormodel = "cmyk")
 svg("figures/FIGURE_sim_continuous_dyn_results.svg", width=5, height=8)
 sqtmp<-c(-1.5, -1, -0.5, -0.25, -0.1, 0, 0.1, 0.25, 0.5, 1, 1.5)
+#sqtmp<-c(-1.5,-1,-0.5,-0.25,-0.1,-0.05,0,0.05,0.1,0.25,0.5,1,1.5)
+#sqtmp<-c(-1, -0.5, -0.25, -0.1, 0, 0.1, 0.25, 0.5, 1, 1.5)
+
 logxpos<-c(1,2,5,10,20,50,150,200)
 
 m<-matrix(nrow=5, 1:10)
@@ -222,8 +225,32 @@ layout(m, widths=c(1,1,0.7))
 
 par(mar=c(2,3,1,0), oma=c(2.5,2,2,3))
 ofs1<-c(0.255, -0.002)
-tmp<-plot_cont(matout_eig_pop, log(scalslst,10), log(tscalelst, 10), nlevels=10, logx=TRUE, logy=TRUE, sqlst = sqtmp, logxps = logxpos, nstart = 1, dolines=FALSE)
-tmp<-plot_cont(matout_r0_pop, log(scalslst,10), log(tscalelst, 10), nlevels=10, logx=TRUE, logy=TRUE, sqlst = sqtmp, logxps = logxpos, nstart = 6, revcol = TRUE, dolines=FALSE)
+
+#Get sd's
+matout_eig_pop_SD<-matout_eig_pop
+critz<-0.2326174
+sdest<-((matout_eig_pop[,,,3]-matout_eig_pop[,,,2])+(matout_eig_pop[,,,4]-matout_eig_pop[,,,3]))/2
+matout_eig_pop_SD[,,,3]<-matout_eig_pop_SD[,,,3]/sdest
+
+zcrit<-abs(qnorm(0.05, 0, 1))
+sqtmpz<-sort(c(zcrit/sqrt(c(1,2,5,10,30,50)), 0, -zcrit/sqrt(c(1,2,5,10,30,50))))
+n_eq<-round((1/(sqtmpz/zcrit))^2*sign(sqtmpz))
+sqtmpz<-c(-1000, sqtmpz, 1000)
+sqtmpz<-round(sqtmpz, 1)
+
+#plot re
+tmp<-plot_cont(arrayout = matout_eig_pop, xscalslst = log(scalslst,10), xlst = log(tscalelst, 10), nlevels=10, logx=TRUE, logy=TRUE, sqlst = sqtmp, logxps = logxpos, nstart = 1, dolines=FALSE, arrayout2 = matout_eig_pop_SD, doz = TRUE, sqz = sqtmpz)
+
+#Get sd's
+matout_r0_pop_SD<-matout_r0_pop
+critz<-0.2326174
+sdest<-((matout_r0_pop_SD[,,,3]-matout_r0_pop_SD[,,,2])+(matout_r0_pop_SD[,,,4]-matout_r0_pop_SD[,,,3]))/2
+matout_r0_pop_SD[,,,3]<-matout_r0_pop_SD[,,,3]/sdest
+
+#plot r0
+matout_r0_pop2<-matout_r0_pop
+matout_r0_pop2[is.na(matout_r0_pop)]<-999 #set extinctions to red
+tmp<-plot_cont(arrayout = matout_r0_pop2, xscalslst = log(scalslst,10), xlst = log(tscalelst, 10), nlevels=10, logx=TRUE, logy=TRUE, sqlst = c(sqtmp, 1e6), logxps = logxpos, nstart = 6, revcol = TRUE, dolines=FALSE, doz = TRUE, sqz = sqtmpz, arrayout2 = matout_r0_pop_SD, coltype = 6)
 
 par(mar=c(2,5.5,1,1))
 filled.legend(z=matrix(sqtmp), levels=-sqtmp, col=adjustcolor(c(rev(rainbow(sum(sqtmp<0), start=0.55, end=.70)), rev(rainbow(sum(sqtmp>0), start=0, end=0.1))), alpha.f = 0.6), key.axes = axis(4, at = sqtmp, las=2))
