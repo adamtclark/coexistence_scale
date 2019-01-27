@@ -1129,6 +1129,13 @@ estimate_eqreturn<-function(out, simtime=100, runtype="metapopulation", perturbs
   #list for storing results
   out_lst<-NULL
   
+  #if simulation is a disturbance simulation, update briefly to standard metapopulation
+  #this will make sure that disturbance events occur at the right time
+  if(runtype %in% c("disturbance")) {
+    tmptyp<-"metapopulation"
+    out<-rerunrun_metapopulation(out=out, tmax=0, runtype = tmptyp, perturb=prt, perturbsites=1:out$plotdata$ngrid, talktime=0, sites_sub=sites_sub)
+  }
+  
   #run simulation for each species, with perturbation
   for(i in 1:length(out$plotdata$ceq)) {
     #add perturbation for each species, sequentially
