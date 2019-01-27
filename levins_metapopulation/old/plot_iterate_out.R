@@ -671,7 +671,7 @@ abline(v=c(0, 50, 100, 150, 200), lty=2)
 axis(1); axis(2, las=2); box()
 
 mtext("time since event", 1, line=2.5, cex=1.2)
-mtext(expression(paste(italic(r[e]))), 2.5, line=2.5, cex=1.2)
+mtext(expression(paste(italic(r[e],t))), 2.5, line=2.5, cex=1.2)
 put.fig.letter("a.", "topleft", offset=ofs2, cex=1.2)
 
 #r0
@@ -684,7 +684,7 @@ abline(v=c(0, 50, 100, 150, 200), lty=2)
 axis(1); axis(2, las=2); box()
 
 mtext("time since event", 1, line=2.5, cex=1.2)
-mtext(expression(paste(italic(r[0]))), 2.5, line=2.5, cex=1.2)
+mtext(expression(paste(italic(r[0],t))), 2.5, line=2.5, cex=1.2)
 put.fig.letter("b.", "topleft", offset=ofs2, cex=1.2)
 dev.off()
 
