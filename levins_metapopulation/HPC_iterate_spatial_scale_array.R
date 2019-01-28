@@ -4,7 +4,6 @@ rm(list=ls())
 #setwd("~/Dropbox/Projects/032_Coexistence_mechanisms/src/levins_metapopulation/")
 
 #load packages
-require(rEDM)
 require(parallel)
 
 #load scripts
@@ -91,20 +90,16 @@ clusterExport(cl, c("invarburn",
   #run parallel program for predicting community biomass
   clusterout<-try(parLapplyLB(cl=cl, 1:niterations, fun=runpar))
   
-  if(!is.character(clusterout)) {
+  if(!is.character(clusterout) & !is.null(clusterout)) {
     tmp<-t(matrix(nrow=nrow(clusterout[[1]]), unlist(clusterout)))
     
     matout_tot<-cbind(scale=scalelst[i], tscale=1:ncol(clusterout[[1]]), iter=rep(1:niterations, each=ncol(clusterout[[1]])), tmp)
     
     #separate
-    matout_dyn<-matout_tot[,1:128]
-    matout_cv<-matout_tot[,c(1,3,129:152)]
-    matout_cv<-cbind(lag=c(lglst, rep(NA, ncol(clusterout[[1]])-length(lglst))), matout_cv)
-    matout_cv<-matout_cv[!is.na(matout_cv[,"lag"]),]
-    
+    matout_dyn<-matout_tot
+
     #save outputs to csv
     save(list=c("matout_dyn"), file = paste("output/matout_dyn_", scalelst[i], ".rda", sep=""))
-    save(list=c("matout_cv"), file = paste("output/matout_cv_", scalelst[i], ".rda", sep=""))
   }
   
   print(round(i/length(scalelst),2))
