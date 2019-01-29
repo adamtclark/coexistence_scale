@@ -127,9 +127,9 @@ if(length(grep("save_processed_data_array.RData", dir("output")))==0) {
     
     print("total progress:")
     print(round(i/length(scalslst), 2))
+    save.image("output/save_processed_data_array.RData")
   }
   
-  save.image("output/save_processed_data_array.RData")
 } else {
   load("output/save_processed_data_array.RData")
 }
