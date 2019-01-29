@@ -129,6 +129,8 @@ if(length(grep("save_processed_data_array.RData", dir("output")))==0) {
     print(round(i/length(scalslst), 2))
     save.image("output/save_processed_data_array.RData")
   }
+  rm(matout_dyn)
+  save.image("output/save_processed_data_array.RData")
   
 } else {
   load("output/save_processed_data_array.RData")
@@ -356,7 +358,7 @@ sbs<-which(matout_dyn$scale==1)
 subscol<-grep(modlst[2], clnm_dyn)
 
 ofs2<-c(0.275, -0.017)
-pdf("figures/SUP_FIGURE_disturbance_example.pdf", width=6, height=3, colormodel = "cmyk")
+pdf("figures/SUP_FIGURE_disturbance_grw_example.pdf", width=6, height=3, colormodel = "cmyk")
 par(mar=c(4,4,1,1), oma=c(0,0,0,0), mfrow=c(1,2))
 #Eigen
 sp1<-tapply(matout_dyn[sbs,intersect(e2pop, subscol)[1]], matout_dyn[sbs,"tscale"], function(x) median(x, na.rm=T))
