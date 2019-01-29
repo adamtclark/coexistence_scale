@@ -289,7 +289,7 @@ par(mar=c(2,3,1,0), oma=c(2.5,2,2,4))
 
 for(i in 2:3) {
   tmp<-densout_cum[,,,i,]
-  plotout<-plot_cont(arrayout=tmp, xscalslst=log(scalslst,10), xlst=log(tscallst_small, 10), splitcol=0, nlevels=10, sqlst = sqtmp, logx=TRUE, logy=TRUE, logz=FALSE, logxps = logxpos, coltype=4, nstart=1+5*(i-2), ciplot=FALSE, cimat=0, revcol=FALSE, dops_subset=FALSE, override_tmpsq=TRUE)
+  plotout<-plot_cont(arrayout=tmp, xscalslst=log(scalslst,10), xlst=log(tscallst_small, 10), splitcol=0, nlevels=10, sqlst = sqtmp, logx=TRUE, logy=TRUE, logz=FALSE, logxps = logxpos, coltype=4, nstart=1+5*(i-2), ciplot=FALSE, cimat=0, revcol=FALSE, dops_subset=FALSE, override_tmpsq=TRUE, dolines = TRUE)
 }
 
 par(mar=c(2,3.5,1,1))
@@ -325,7 +325,7 @@ par(mar=c(2,3,1,0), oma=c(2.5,2,2,5))
 ofs1<-c(0.255, -0.002)
 for(i in 1:1) {
   tmp<-densout_cum[,,,i,]
-  plotout<-plot_cont(arrayout=tmp, xscalslst=log(scalslst,10), xlst=log(tscallst_small, 10), splitcol=0, nlevels=10, sqlst = sqtmp, logx=TRUE, logy=TRUE, logz=FALSE, logxps = logxpos, coltype=4, nstart=1+6*(i-1), ciplot=FALSE, cimat=0, revcol=FALSE, dops_subset=FALSE, override_tmpsq=TRUE)
+  plotout<-plot_cont(arrayout=tmp, xscalslst=log(scalslst,10), xlst=log(tscallst_small, 10), splitcol=0, nlevels=10, sqlst = sqtmp, logx=TRUE, logy=TRUE, logz=FALSE, logxps = logxpos, coltype=4, nstart=1+6*(i-1), ciplot=FALSE, cimat=0, revcol=FALSE, dops_subset=FALSE, override_tmpsq=TRUE, dolines = TRUE)
 }
 par(mar=c(2,3,1,0))
 filled.legend(z=(matrix(1:length(sqtmp2))), levels=1:length(sqtmp2), col=adjustcolor(grey.colors(length(sqtmp2)-1), alpha.f = 0.8), key.axes = axis(4, at = 1:length(sqtmp2), labels = sqtmp2, las=2))

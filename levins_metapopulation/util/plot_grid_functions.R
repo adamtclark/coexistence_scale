@@ -159,7 +159,7 @@ plot_cont<-function(arrayout, xscalslst, xlst, splitcol=0, nlevels=10, sqlst=0, 
                 y = xscalslst, 
                 z = tmpz[ps_subset,],
                 levels = 10^sqlst,
-                labels=0,
+                labels=10^sqlst,
                 add=TRUE,axes=F,
                 xlim=range(xlst[tmpps]))
       } else {
@@ -167,7 +167,7 @@ plot_cont<-function(arrayout, xscalslst, xlst, splitcol=0, nlevels=10, sqlst=0, 
                 y = xscalslst, 
                 z = tmpz[ps_subset,],
                 levels = sqlst,
-                labels=0,
+                labels=sqlst,
                 add=TRUE,axes=F,
                 xlim=range(xlst[tmpps]))
       }
