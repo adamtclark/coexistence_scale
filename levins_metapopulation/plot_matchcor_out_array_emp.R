@@ -171,9 +171,9 @@ sqtmp<-c(0, 0.2, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.99, 1.01)
 logxpos<-c(1,2,5,10,20,50,150)
 
 ofs1<-c(0.19, -0.002)
+scalelst_short<-scalelst_short/2
 
-
-svg("figures/FIGURE_match_models_emp.svg", width=4, height=6)
+svg("figures/SUP_FIGURE_match_models_emp.svg", width=4, height=6)
 m<-matrix(nrow=3, 1:3)
 m<-cbind(m, 4)
 layout(m, widths=c(1,0.35))
@@ -181,7 +181,7 @@ layout(m, widths=c(1,0.35))
 par(mar=c(2,3,1,0), oma=c(2.5,2,.5,4))
 
 modlst<-c("Annual", "C3", "C4")
-scalelst_short_round<-c(1,2,4,5,10,15,20,30,50,75,100,200,300,400,800)
+scalelst_short_round<-c(1,2,4,5,10,15,20,30,50,75,100,200,300,400,800)/2
 densout_cum_plot<-array(dim=c(dim(plot_dens_cum),3), plot_dens_cum)
 plotout<-plot_cont(arrayout=densout_cum_plot, xscalslst=log(scalelst_short,10), xlst=log(tscallst_small, 10), splitcol=0, nlevels=10, sqlst = sqtmp, logx=TRUE, logy=TRUE, logz=FALSE, logxps = logxpos, coltype=4, nstart=1, ciplot=FALSE, cimat=0, revcol=FALSE, dops_subset=FALSE, override_tmpsq=TRUE, ypos = c(1,5,10,25,50,100,200,400,800))
 
@@ -196,7 +196,7 @@ mtext(text = "C3 Grasses", side = 4, outer = TRUE, line = -5.5, adj = 0.515, cex
 mtext(text = "C4 Grasses", side = 4, outer = TRUE, line = -5.5, adj = 0.1, cex=1.2)
 
 mtext(text = expression(paste("temporal extent, years")), side = 1, outer = TRUE, line = 1.3, cex=1.2, adj = 0.24)
-mtext(text = expression(paste("spatial extent, number of plots")), side = 2, outer = TRUE, line = -0.1, cex=1.2, adj = 0.5)
+mtext(text = expression(paste("spatial extent, m"^2)), side = 2, outer = TRUE, line = -0.1, cex=1.2, adj = 0.5)
 
 mtext(text = expression(paste("Levins-OF Model Identification Success, ", italic(RCL)[italic("m|OF")])), side = 4, outer = TRUE, line = 2.5, cex=1.2)
 
