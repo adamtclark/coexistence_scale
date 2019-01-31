@@ -83,7 +83,8 @@ load("output/tmp/array_quant_small2.rda")
 load("output/tmp/xscl_small.rda")
 load("output/tmp/timebands_small.rda")
 
-scalelst<-c(1,2,4,6,9,12,20,30,49,72,100,196,306,400,812)/c(100^2)
+scalelst<-c(1,2,4,6,9,12,20,30,49,72,100,196,306,400,812)/2/c(100^2)
+xscl_small<-xscl_small/2
 
 svg("figures/FIGURE_e014_comparison.svg", width=7, height=6)
 ofs<-c(0.24, -0.002)
@@ -117,7 +118,7 @@ mtext(text = expression(paste("Levins-OF")), side = 3, outer = TRUE, line = 0, a
 mtext(text = expression(paste("neutral-OF")), side = 3, outer = TRUE, line = 0, adj = 0.81, cex=1.2)
 
 mtext(text = expression(paste("temporal extent, years")), side = 1, outer = TRUE, line = 1.3, cex=1.2, adj = 0.48)
-mtext(text = expression(paste("spatial extent, number of plots")), side = 2, outer = TRUE, line = -0.1, cex=1.2, adj = 0.5)
+mtext(text = expression(paste("spatial extent, m"^2)), side = 2, outer = TRUE, line = -0.1, cex=1.2, adj = 0.5)
 
 
 mtext(text = expression(paste(r[0], t)), side = 3, outer = TRUE, line = -0.5, adj = 1, cex=1.5, xpd=NA)
